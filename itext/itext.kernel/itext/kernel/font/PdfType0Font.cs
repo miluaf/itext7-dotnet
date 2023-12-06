@@ -622,6 +622,8 @@ namespace iText.Kernel.Font {
             FontProgram fontProgram = GetFontProgram();
             IList<byte[]> codeSpaceRanges = isToUnicodeEmbedded ? embeddedToUnicode.GetCodeSpaceRanges() : cmap.GetCodeSpaceRanges
                 ();
+            // Check if 1-byte encoding is used, e.g., CMapName/OneByteIdentityH.
+            bool isOneByteEncoding = cmap.GetCmapName().StartsWith("OneByte");
             String charCodesSequence = characterCodes.GetValue();
             // A sequence of one or more bytes shall be extracted from the string and matched against the codespace
             // ranges in the CMap. That is, the first byte shall be matched against 1-byte codespace ranges; if no match is
@@ -635,7 +637,7 @@ namespace iText.Kernel.Font {
                 for (int codeLength = 1; codeLength <= MAX_CID_CODE_LENGTH && i + codeLength <= charCodesSequence.Length; 
                     codeLength++) {
                     code = (code << 8) + charCodesSequence[i + codeLength - 1];
-                    if (iText.Kernel.Font.PdfType0Font.ContainsCodeInCodeSpaceRange(codeSpaceRanges, code, codeLength)) {
+                    if (iText.Kernel.Font.PdfType0Font.ContainsCodeInCodeSpaceRange(codeSpaceRanges, code, codeLength, isOneByteEncoding)) {
                         codeSpaceMatchedLength = codeLength;
                     }
                     else {
@@ -742,9 +744,10 @@ namespace iText.Kernel.Font {
             return cidinfo.ContainsKey(PdfName.Ordering) ? cidinfo.Get(PdfName.Ordering).ToString() : null;
         }
 
-        private static bool ContainsCodeInCodeSpaceRange(IList<byte[]> codeSpaceRanges, int code, int length) {
+        private static bool ContainsCodeInCodeSpaceRange(IList<byte[]> codeSpaceRanges, int code, int length, bool isOneByteEncoding) {
             for (int i = 0; i < codeSpaceRanges.Count; i += 2) {
-                if (length == codeSpaceRanges[i].Length) {
+                // If 1-byte encoding is used, e.g., CMapName: OneByteIdentityH, the code length can be different from the code space ranges length.
+                if (isOneByteEncoding || length == codeSpaceRanges[i].Length) {
                     byte[] low = codeSpaceRanges[i];
                     byte[] high = codeSpaceRanges[i + 1];
                     
