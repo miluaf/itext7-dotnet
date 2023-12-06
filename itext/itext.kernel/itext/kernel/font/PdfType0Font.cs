@@ -745,20 +745,19 @@ namespace iText.Kernel.Font {
         private static bool ContainsCodeInCodeSpaceRange(IList<byte[]> codeSpaceRanges, int code, int length) {
             for (int i = 0; i < codeSpaceRanges.Count; i += 2) {
                 if (length == codeSpaceRanges[i].Length) {
-                    int mask = 0xff;
-                    int totalShift = 0;
                     byte[] low = codeSpaceRanges[i];
                     byte[] high = codeSpaceRanges[i + 1];
-                    bool fitsIntoRange = true;
-                    for (int ind = length - 1; ind >= 0; ind--, totalShift += 8, mask <<= 8) {
-                        int actualByteValue = (code & mask) >> totalShift;
-                        if (!(actualByteValue >= (0xff & low[ind]) && actualByteValue <= (0xff & high[ind]))) {
-                            fitsIntoRange = false;
-                        }
+                    
+                    int actualLow = 0;
+                    int actualHigh = 0;
+                    for (int j = 0; j < length; j++)
+                    {
+                        int place = length - j - 1;
+                        actualLow += low[j] << (place * 8);
+                        actualHigh += high[j] << (place * 8);
                     }
-                    if (fitsIntoRange) {
-                        return true;
-                    }
+
+                    return code >= actualLow && code <= actualHigh;
                 }
             }
             return false;
