@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2023 Apryse Group NV
+Copyright (c) 1998-2024 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -131,8 +131,8 @@ namespace iText.Kernel.Font {
                 toUnicodeCMap = FontUtil.ProcessToUnicode(toUnicode);
                 embeddedToUnicode = toUnicodeCMap;
             }
-            if (cmap.IsName() && (PdfEncodings.IDENTITY_H.Equals(((PdfName)cmap).GetValue()) || PdfEncodings.IDENTITY_V
-                .Equals(((PdfName)cmap).GetValue()))) {
+            if (cmap.IsName() && ((toUnicodeCMap != null) || PdfEncodings.IDENTITY_H.Equals(((PdfName)cmap).GetValue()
+                ) || PdfEncodings.IDENTITY_V.Equals(((PdfName)cmap).GetValue()))) {
                 if (toUnicodeCMap == null) {
                     String uniMap = GetUniMapFromOrdering(ordering, PdfEncodings.IDENTITY_H.Equals(((PdfName)cmap).GetValue())
                         );
@@ -240,7 +240,7 @@ namespace iText.Kernel.Font {
         }
 
         public override Glyph GetGlyph(int unicode) {
-            // TODO handle unicode value with cmap and use only glyphByCode
+            // TODO DEVSIX-7568 handle unicode value with cmap and use only glyphByCode
             Glyph glyph = GetFontProgram().GetGlyph(unicode);
             if (glyph == null && (glyph = notdefGlyphs.Get(unicode)) == null) {
                 // Handle special layout characters like sfthyphen (00AD).
@@ -596,7 +596,6 @@ namespace iText.Kernel.Font {
             return process;
         }
 
-        //TODO what if Glyphs contains only whitespaces and ignorable identifiers?
         private bool IsAppendableGlyph(Glyph glyph) {
             // If font is specific and glyph.getCode() = 0, unicode value will be also 0.
             // Character.isIdentifierIgnorable(0) gets true.
@@ -745,25 +744,30 @@ namespace iText.Kernel.Font {
         }
 
         private static bool ContainsCodeInCodeSpaceRange(IList<byte[]> codeSpaceRanges, int code, int length, bool isOneByteEncoding) {
+            long unsignedCode = code & unchecked((int)(0xffffffff));
             for (int i = 0; i < codeSpaceRanges.Count; i += 2) {
                 // If 1-byte encoding is used, e.g., CMapName: OneByteIdentityH, the code length can be different from the code space ranges length.
                 if (isOneByteEncoding || length == codeSpaceRanges[i].Length) {
                     byte[] low = codeSpaceRanges[i];
                     byte[] high = codeSpaceRanges[i + 1];
-                    
-                    int actualLow = 0;
-                    int actualHigh = 0;
-                    for (int j = 0; j < length; j++)
-                    {
-                        int place = length - j - 1;
-                        actualLow += low[j] << (place * 8);
-                        actualHigh += high[j] << (place * 8);
+                    long lowValue = BytesToLong(low);
+                    long highValue = BytesToLong(high);
+                    if (unsignedCode >= lowValue && unsignedCode <= highValue) {
+                        return true;
                     }
-
-                    return code >= actualLow && code <= actualHigh;
                 }
             }
             return false;
+        }
+
+        private static long BytesToLong(byte[] bytes) {
+            long res = 0;
+            int shift = 0;
+            for (int i = bytes.Length - 1; i >= 0; --i) {
+                res += (bytes[i] & 0xff) << shift;
+                shift += 8;
+            }
+            return res;
         }
 
         private void FlushFontData() {
