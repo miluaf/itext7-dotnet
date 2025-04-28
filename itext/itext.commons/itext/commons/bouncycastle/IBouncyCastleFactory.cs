@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using iText.Commons.Bouncycastle.Asn1;
 using iText.Commons.Bouncycastle.Asn1.Cms;
 using iText.Commons.Bouncycastle.Asn1.Esf;
@@ -39,6 +40,7 @@ using iText.Commons.Bouncycastle.Cert.Ocsp;
 using iText.Commons.Bouncycastle.Cms;
 using iText.Commons.Bouncycastle.Crypto;
 using iText.Commons.Bouncycastle.Crypto.Generators;
+using iText.Commons.Bouncycastle.Crypto.Modes;
 using iText.Commons.Bouncycastle.Math;
 using iText.Commons.Bouncycastle.Openssl;
 using iText.Commons.Bouncycastle.Operator;
@@ -967,6 +969,11 @@ namespace iText.Commons.Bouncycastle {
         /// <param name="encodable">ASN1 Encodable wrapper to be cast</param>
         /// <returns>casted ASN1 Generalized time wrapper</returns>
         IDerGeneralizedTime CreateASN1GeneralizedTime(IAsn1Encodable encodable);
+        
+        /// <summary>Cast DateTime to ASN1 Generalized time wrapper.</summary>
+        /// <param name="date">DateTime to be cast</param>
+        /// <returns>ASN1 Generalized time wrapper</returns>
+        IDerGeneralizedTime CreateASN1GeneralizedTime(DateTime date);
 
         /// <summary>Cast ASN1 Encodable wrapper to ASN1 UTC Time wrapper.</summary>
         /// <param name="encodable">ASN1 Encodable wrapper to be cast</param>
@@ -1047,6 +1054,19 @@ namespace iText.Commons.Bouncycastle {
         /// </param>
         /// <returns>created X500 Name wrapper</returns>
         IX500Name CreateX500Name(String s);
+        
+        
+        /// <summary>
+        /// Create X500 Name wrapper from
+        /// <see cref="IAsn1Sequence"/>.
+        /// </summary>
+        /// <param name="s">
+        /// 
+        /// <see cref="IAsn1Sequence"/>
+        /// to create X500 Name wrapper from
+        /// </param>
+        /// <returns>created X500 Name wrapper</returns>
+        IX500Name CreateX500Name(IAsn1Sequence s);
 
         /// <summary>Create resp ID wrapper from X500 Name wrapper.</summary>
         /// <param name="x500Name">X500 Name wrapper to create resp ID wrapper from</param>
@@ -1203,6 +1223,13 @@ namespace iText.Commons.Bouncycastle {
         /// <param name="contentInfo">content info wrapper to create TST Info wrapper from</param>
         /// <returns>created TST Info wrapper</returns>
         ITstInfo CreateTSTInfo(IContentInfo contentInfo);
+
+        /// <summary>
+        /// Create TST Info wrapper from content info wrapper.
+        /// </summary>
+        /// <param name="contentInfo">primitive wrapper to create TST Info wrapper from</param>
+        /// <returns>created TST Info wrapper</returns>
+        ITstInfo CreateTSTInfo(IAsn1Object contentInfo);
 
         /// <summary>Create single resp wrapper from basic OCSP Response wrapper.</summary>
         /// <param name="basicResp">basic OCSP Response wrapper to create single resp wrapper from</param>
@@ -1575,7 +1602,18 @@ namespace iText.Commons.Bouncycastle {
         /// </returns>
         bool IsNullExtension(IX509Extension extNonce);
 
+        /// <summary>
+        /// Check if provided encodable wrapper wraps null.
+        /// </summary>
+        /// <param name="encodable">encodable wrapper to be checked</param>
+        /// <returns>true if provided encodable wrapper wraps null, false otherwise</returns>
         bool IsNull(IAsn1Encodable encodable);
+
+        /// <summary>
+        /// Get SecureRandom implementation from the factory.
+        /// </summary>
+        /// <returns>SecureRandom implementation</returns>
+        RNGCryptoServiceProvider GetSecureRandom();
         
         /// <summary>
         /// Create
@@ -1630,5 +1668,40 @@ namespace iText.Commons.Bouncycastle {
         /// <param name="certificate">certificate to get end date</param>
         /// <returns>The end date of the certificate</returns>
         string CreateEndDate(IX509Certificate certificate);
+
+        /// <summary>
+        /// Generates byte array based on extract-and-expand key derivation function, using provided parameters.
+        /// </summary>
+        /// <param name="inputKey">byte[] input key material</param>
+        /// <param name="salt">byte[] salt</param>
+        /// <param name="info">byte[] info</param>
+        /// <returns>byte[] key derivation function result.</returns>
+        byte[] GenerateHKDF(byte[] inputKey, byte[] salt, byte[] info);
+
+        /// <summary>
+        /// Generates byte array based MAC token according to HMACSHA256 algorithm.
+        /// </summary>
+        /// <param name="key">MAC key</param>
+        /// <param name="data">data to be encrypted</param>
+        /// <returns>byte array based MAC token.</returns>
+        byte[] GenerateHMACSHA256Token(byte[] key, byte[] data);
+
+        /// <summary>
+        /// Generates encrypted key based on AES256 without padding wrapping algorithm.
+        /// </summary>
+        /// <param name="key">key to be encrypted</param>
+        /// <param name="kek">key encryption key to be used</param>
+        /// <returns>encrypted key.</returns>
+        byte[] GenerateEncryptedKeyWithAES256NoPad(byte[] key, byte[] kek);
+
+        /// <summary>
+        /// Generates decrypted key based on AES256 without padding unwrapping algorithm.
+        /// </summary>
+        /// <param name="key">key to be decrypted</param>
+        /// <param name="kek">key encryption key to be used</param>
+        /// <returns>decrypted key.</returns>
+        byte[] GenerateDecryptedKeyWithAES256NoPad(byte[] key, byte[] kek);
+
+        IGCMBlockCipher CreateGCMBlockCipher();
     }
 }

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -29,6 +29,7 @@ using iText.Commons.Bouncycastle.Asn1;
 using iText.Commons.Bouncycastle.Cert;
 using iText.Commons.Digest;
 using iText.Commons.Utils;
+using iText.Kernel.Crypto;
 using iText.Kernel.Exceptions;
 using iText.Kernel.Pdf;
 using iText.Signatures.Cms;
@@ -367,9 +368,8 @@ namespace iText.Signatures {
             , Stream outputStream, String signatureFieldName, CMSContainer cmsContainer) {
             SetSignatureAlgorithmAndSignature(externalSignature, cmsContainer);
             try {
-                using (PdfDocument document = new PdfDocument(inputDocument, stampingProperties)) {
-                    PdfTwoPhaseSigner.AddSignatureToPreparedDocument(document, signatureFieldName, outputStream, cmsContainer);
-                }
+                PdfTwoPhaseSigner.AddSignatureToPreparedDocument(inputDocument, signatureFieldName, outputStream, cmsContainer
+                    );
             }
             finally {
                 outputStream.Dispose();
@@ -396,14 +396,12 @@ namespace iText.Signatures {
             byte[] timestamp = tsaClient.GetTimeStampToken(signatureDigest);
             using (IAsn1InputStream tempStream = FACTORY.CreateASN1InputStream(new MemoryStream(timestamp))) {
                 IAsn1Sequence seq = FACTORY.CreateASN1Sequence(tempStream.ReadObject());
-                CmsAttribute timestampAttribute = new CmsAttribute(SecurityIDs.ID_AA_TIME_STAMP_TOKEN, FACTORY.CreateDERSet
-                    (seq));
+                CmsAttribute timestampAttribute = new CmsAttribute(OID.AA_TIME_STAMP_TOKEN, FACTORY.CreateDERSet(seq));
                 cmsContainer.GetSignerInfo().AddUnSignedAttribute(timestampAttribute);
             }
             try {
-                using (PdfDocument document = new PdfDocument(inputDocument, stampingProperties)) {
-                    PdfTwoPhaseSigner.AddSignatureToPreparedDocument(document, signatureFieldName, outputStream, cmsContainer);
-                }
+                PdfTwoPhaseSigner.AddSignatureToPreparedDocument(inputDocument, signatureFieldName, outputStream, cmsContainer
+                    );
             }
             finally {
                 outputStream.Dispose();

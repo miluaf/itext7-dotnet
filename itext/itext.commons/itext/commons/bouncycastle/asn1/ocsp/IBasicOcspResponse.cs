@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2024 Apryse Group NV
+    Copyright (c) 1998-2025 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -85,5 +85,15 @@ namespace iText.Commons.Bouncycastle.Asn1.Ocsp {
         /// </summary>
         /// <returns>date BasicOCSPResponse was produced at.</returns>
         DateTime GetProducedAt();
+
+        /// <summary>
+        /// Calls actual
+        /// <c>GetExtensionParsedValue</c>
+        /// method for the wrapped BasicOCSPResponse object.
+        /// </summary>
+        /// <returns>Parsed extension value.</returns>
+        IAsn1Encodable GetExtensionParsedValue(IDerObjectIdentifier getIdPkixOcspArchiveCutoff);
+
+        IRespID GetResponderId();
     }
 }

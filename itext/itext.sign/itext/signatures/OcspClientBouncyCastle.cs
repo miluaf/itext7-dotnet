@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -30,12 +30,11 @@ using iText.Commons.Bouncycastle.Asn1.Ocsp;
 using iText.Commons.Bouncycastle.Cert;
 using iText.Commons.Bouncycastle.Cert.Ocsp;
 using iText.Commons.Bouncycastle.Math;
-using iText.Commons.Utils;
 using iText.IO.Util;
 
 namespace iText.Signatures {
     /// <summary>OcspClient implementation using BouncyCastle.</summary>
-    public class OcspClientBouncyCastle : IOcspClient {
+    public class OcspClientBouncyCastle : IOcspClientBouncyCastle {
         private static readonly IBouncyCastleFactory BOUNCY_CASTLE_FACTORY = BouncyCastleFactoryCreator.GetFactory
             ();
 
@@ -43,32 +42,16 @@ namespace iText.Signatures {
         private static readonly ILogger LOGGER = ITextLogManager.GetLogger(typeof(iText.Signatures.OcspClientBouncyCastle
             ));
 
-        private readonly OCSPVerifier verifier;
-
         /// <summary>
-        /// Creates
-        /// <c>OcspClient</c>.
+        /// Creates new
+        /// <see cref="OcspClientBouncyCastle"/>
+        /// instance.
         /// </summary>
-        /// <param name="verifier">will be used for response verification.</param>
-        /// <seealso cref="OCSPVerifier"/>
-        public OcspClientBouncyCastle(OCSPVerifier verifier) {
-            this.verifier = verifier;
+        public OcspClientBouncyCastle() {
         }
 
-        /// <summary>Gets OCSP response.</summary>
-        /// <remarks>
-        /// Gets OCSP response. If
-        /// <see cref="OCSPVerifier"/>
-        /// was set, the response will be checked.
-        /// </remarks>
-        /// <param name="checkCert">the certificate to check</param>
-        /// <param name="rootCert">parent certificate</param>
-        /// <param name="url">to get the verification</param>
-        /// <returns>
-        /// 
-        /// <see cref="iText.Commons.Bouncycastle.Asn1.Ocsp.IBasicOcspResponse"/>
-        /// an OCSP response wrapper
-        /// </returns>
+        // Empty constructor in order for default one to not be removed if another one is added.
+        /// <summary><inheritDoc/></summary>
         public virtual IBasicOcspResponse GetBasicOCSPResp(IX509Certificate checkCert, IX509Certificate rootCert, 
             String url) {
             try {
@@ -79,12 +62,7 @@ namespace iText.Signatures {
                 if (ocspResponse.GetStatus() != BOUNCY_CASTLE_FACTORY.CreateOCSPResponseStatus().GetSuccessful()) {
                     return null;
                 }
-                IBasicOcspResponse basicResponse = BOUNCY_CASTLE_FACTORY.CreateBasicOCSPResponse(ocspResponse.GetResponseObject
-                    ());
-                if (verifier != null) {
-                    verifier.IsValidResponse(basicResponse, rootCert, DateTimeUtil.GetCurrentUtcTime());
-                }
-                return basicResponse;
+                return BOUNCY_CASTLE_FACTORY.CreateBasicOCSPResponse(ocspResponse.GetResponseObject());
             }
             catch (Exception ex) {
                 LOGGER.LogError(ex.Message);
@@ -129,7 +107,6 @@ namespace iText.Signatures {
         /// </returns>
         protected internal static IOcspRequest GenerateOCSPRequest(IX509Certificate issuerCert, IBigInteger serialNumber
             ) {
-            //Add provider BC
             // Generate the id for the certificate we are looking for
             ICertID id = SignUtils.GenerateCertificateId(issuerCert, serialNumber, BOUNCY_CASTLE_FACTORY.CreateCertificateID
                 ().GetHashSha1());
@@ -158,6 +135,7 @@ namespace iText.Signatures {
             return null;
         }
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>Gets an OCSP response object using BouncyCastle.</summary>
         /// <param name="checkCert">to certificate to check</param>
         /// <param name="rootCert">the parent certificate</param>
@@ -184,6 +162,7 @@ namespace iText.Signatures {
             Stream @in = CreateRequestAndResponse(checkCert, rootCert, url);
             return @in == null ? null : BOUNCY_CASTLE_FACTORY.CreateOCSPResponse(StreamUtil.InputStreamToArray(@in));
         }
+//\endcond
 
         /// <summary>
         /// Create OCSP request and get the response for this request, represented as

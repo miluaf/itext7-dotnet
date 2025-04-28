@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -27,6 +27,7 @@ using iText.Kernel.Pdf;
 
 namespace iText.Kernel.Font {
     public class PdfType1Font : PdfSimpleFont<Type1Font> {
+//\cond DO_NOT_DOCUMENT
         internal PdfType1Font(Type1Font type1Font, String encoding, bool embedded)
             : base() {
             SetFontProgram(type1Font);
@@ -41,11 +42,15 @@ namespace iText.Kernel.Font {
                 fontEncoding = FontEncoding.CreateFontEncoding(encoding);
             }
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         internal PdfType1Font(Type1Font type1Font, String encoding)
             : this(type1Font, encoding, false) {
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         internal PdfType1Font(PdfDictionary fontDictionary)
             : base(fontDictionary) {
             newFont = false;
@@ -56,6 +61,7 @@ namespace iText.Kernel.Font {
             }
             subset = false;
         }
+//\endcond
 
         public override bool IsSubset() {
             return subset;

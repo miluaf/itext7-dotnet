@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -85,6 +85,24 @@ namespace iText.Kernel.Utils {
         }
 
         [NUnit.Framework.Test]
+        [LogMessage(iText.IO.Logs.IoLogMessageConstant.SOURCE_DOCUMENT_HAS_ACROFORM_DICTIONARY)]
+        public virtual void MergeDocumentOutlinesWithExplicitRemoteDestinationTest() {
+            String resultFile = destinationFolder + "mergeDocumentWithRemoteGoToTest.pdf";
+            String filename1 = sourceFolder + "docWithRemoteGoTo.pdf";
+            String filename2 = sourceFolder + "doc1.pdf";
+            PdfDocument sourceDocument1 = new PdfDocument(new PdfReader(filename1));
+            PdfDocument sourceDocument2 = new PdfDocument(new PdfReader(filename2));
+            PdfMerger resultDocument = new PdfMerger(new PdfDocument(CompareTool.CreateTestPdfWriter(resultFile)));
+            resultDocument.Merge(sourceDocument1, 1, 1);
+            resultDocument.Merge(sourceDocument2, 1, 1);
+            resultDocument.Close();
+            sourceDocument1.Close();
+            sourceDocument2.Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(resultFile, sourceFolder + "cmp_mergeDocumentWithRemoteGoToTest.pdf"
+                , destinationFolder, "diff_"));
+        }
+
+        [NUnit.Framework.Test]
         public virtual void MergeDocumentWithCycleRefInAcroFormTest() {
             String filename1 = sourceFolder + "doc1.pdf";
             String filename2 = sourceFolder + "pdfWithCycleRefInAnnotationParent.pdf";
@@ -131,6 +149,38 @@ namespace iText.Kernel.Utils {
             PdfMerger merger = new PdfMerger(pdfDoc3).SetCloseSourceDocuments(true);
             merger.Merge(pdfDoc, 1, 1).Merge(pdfDoc1, 1, 1).Merge(pdfDoc2, 1, 1).Close();
             NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(resultFile, sourceFolder + "cmp_mergedResult02.pdf"
+                , destinationFolder, "diff_"));
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void MergeDocumentWithCycleTagReferenceTest() {
+            String filename1 = sourceFolder + "doc1.pdf";
+            String filename2 = sourceFolder + "pdfWithCycleRefInParentTag.pdf";
+            String resultFile = destinationFolder + "pdfWithCycleRefInParentTag.pdf";
+            using (PdfDocument pdfDocument1 = new PdfDocument(new PdfReader(filename2))) {
+                using (PdfDocument pdfDocument2 = new PdfDocument(new PdfReader(filename1), CompareTool.CreateTestPdfWriter
+                    (resultFile).SetSmartMode(true))) {
+                    PdfMerger merger = new PdfMerger(pdfDocument2);
+                    merger.Merge(pdfDocument1, 1, pdfDocument1.GetNumberOfPages());
+                }
+            }
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(resultFile, sourceFolder + "cmp_pdfWithCycleRefInParentTag.pdf"
+                , destinationFolder, "diff_"));
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void MergeDocumentWithCycleReferenceInFormFieldTest() {
+            String filename1 = sourceFolder + "doc1.pdf";
+            String filename2 = sourceFolder + "pdfWithCycleRefInFormField.pdf";
+            String resultFile = destinationFolder + "pdfWithCycleRefInFormField.pdf";
+            using (PdfDocument pdfDocument1 = new PdfDocument(new PdfReader(filename2))) {
+                using (PdfDocument pdfDocument2 = new PdfDocument(new PdfReader(filename1), CompareTool.CreateTestPdfWriter
+                    (resultFile).SetSmartMode(true))) {
+                    PdfMerger merger = new PdfMerger(pdfDocument2);
+                    merger.Merge(pdfDocument1, 1, pdfDocument1.GetNumberOfPages());
+                }
+            }
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(resultFile, sourceFolder + "cmp_pdfWithCycleRefInFormField.pdf"
                 , destinationFolder, "diff_"));
         }
 
@@ -428,7 +478,8 @@ namespace iText.Kernel.Utils {
             PdfDocument inputDoc = new PdfDocument(new PdfReader(sourceFolder + "infiniteLoopInOutlineStructure.pdf"));
             PdfDocument outputDoc = new PdfDocument(CompareTool.CreateTestPdfWriter(destinationFolder + "infiniteLoopInOutlineStructure.pdf"
                 ));
-            PdfMerger merger = new PdfMerger(outputDoc, false, true);
+            PdfMerger merger = new PdfMerger(outputDoc, new PdfMergerProperties().SetMergeTags(false).SetMergeOutlines
+                (true));
             System.Console.Out.WriteLine("Doing merge");
             merger.Merge(inputDoc, 1, 2);
             merger.Close();
@@ -463,7 +514,8 @@ namespace iText.Kernel.Utils {
             using (PdfDocument merged = new PdfDocument(CompareTool.CreateTestPdfWriter(mergedPdf))) {
                 using (PdfDocument fileA = new PdfDocument(new PdfReader(firstDocument))) {
                     using (PdfDocument fileB = new PdfDocument(new PdfReader(secondDocument))) {
-                        PdfMerger merger = new PdfMerger(merged, false, true);
+                        PdfMerger merger = new PdfMerger(merged, new PdfMergerProperties().SetMergeTags(false).SetMergeOutlines(true
+                            ));
                         merger.Merge(fileA, 1, fileA.GetNumberOfPages());
                         merger.Merge(fileB, 1, fileB.GetNumberOfPages());
                         merger.Close();
@@ -483,7 +535,8 @@ namespace iText.Kernel.Utils {
             using (PdfDocument documentA = new PdfDocument(new PdfReader(firstDocument))) {
                 using (PdfDocument documentB = new PdfDocument(new PdfReader(secondDocument))) {
                     using (PdfDocument merged = new PdfDocument(CompareTool.CreateTestPdfWriter(mergedPdf))) {
-                        PdfMerger merger = new PdfMerger(merged, false, true);
+                        PdfMerger merger = new PdfMerger(merged, new PdfMergerProperties().SetMergeTags(false).SetMergeOutlines(true
+                            ));
                         merger.Merge(documentA, 1, documentA.GetNumberOfPages());
                         merger.Merge(documentB, 1, documentB.GetNumberOfPages());
                         merger.Close();
@@ -502,7 +555,8 @@ namespace iText.Kernel.Utils {
             using (PdfDocument documentA = new PdfDocument(new PdfReader(firstPdfDocument))) {
                 using (PdfDocument documentB = new PdfDocument(new PdfReader(secondPdfDocument))) {
                     using (PdfDocument mergedPdf = new PdfDocument(CompareTool.CreateTestPdfWriter(mergedDocument))) {
-                        PdfMerger merger = new PdfMerger(mergedPdf, false, true);
+                        PdfMerger merger = new PdfMerger(mergedPdf, new PdfMergerProperties().SetMergeTags(false).SetMergeOutlines
+                            (true));
                         merger.Merge(documentA, 1, documentA.GetNumberOfPages());
                         merger.Merge(documentB, 1, documentB.GetNumberOfPages());
                         merger.Close();
@@ -753,6 +807,50 @@ namespace iText.Kernel.Utils {
             MergePdfs(sources, mergedDocument, new PdfMergerProperties().SetMergeScripts(true), true);
             NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(mergedDocument, cmpDocument, destinationFolder
                 ));
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void CopyEmptyOcPropertiesTest() {
+            String filename = sourceFolder + "emptyOcPropertiesDoc.pdf";
+            String resultFile = destinationFolder + "mergedEmptyOcPropertiesDoc.pdf";
+            PdfDocument pdfDoc = new PdfDocument(new PdfReader(filename));
+            PdfDocument result = new PdfDocument(CompareTool.CreateTestPdfWriter(resultFile));
+            PdfMerger merger = new PdfMerger(result).SetCloseSourceDocuments(true);
+            merger.Merge(pdfDoc, 1, 1).Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(resultFile, sourceFolder + "cmp_mergedEmptyOcPropertiesDoc.pdf"
+                , destinationFolder, "diff_"));
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void CopyOnlyEmptyOcPropertiesTest() {
+            String filename = sourceFolder + "ocPropertiesDoc.pdf";
+            String resultFile = destinationFolder + "mergedOcPropertiesDoc.pdf";
+            PdfDocument pdfDoc = new PdfDocument(new PdfReader(filename));
+            PdfDocument result = new PdfDocument(CompareTool.CreateTestPdfWriter(resultFile));
+            PdfMerger merger = new PdfMerger(result).SetCloseSourceDocuments(true);
+            merger.Merge(pdfDoc, 1, 1).Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(resultFile, sourceFolder + "cmp_mergedOcPropertiesDoc.pdf"
+                , destinationFolder, "diff_"));
+        }
+
+        [LogMessage(iText.IO.Logs.IoLogMessageConstant.SOURCE_DOCUMENT_HAS_ACROFORM_DICTIONARY)]
+        [NUnit.Framework.Test]
+        public virtual void CombineTagRootKidsTest() {
+            String filename1 = sourceFolder + "tagRootKidsDoc1.pdf";
+            String filename2 = sourceFolder + "tagRootKidsDoc2.pdf";
+            String resultFile = destinationFolder + "mergedTags.pdf";
+            PdfDocument result = new PdfDocument(CompareTool.CreateTestPdfWriter(resultFile));
+            PdfMerger merger = new PdfMerger(result, new PdfMergerProperties().SetMergeTags(true).SetMergeOutlines(true
+                )).SetCloseSourceDocuments(true);
+            PdfDocument input1 = new PdfDocument(new PdfReader(filename1));
+            merger.Merge(input1, 1, 1);
+            input1.Close();
+            PdfDocument input2 = new PdfDocument(new PdfReader(filename2));
+            merger.Merge(input2, 1, 1);
+            input2.Close();
+            merger.Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(resultFile, sourceFolder + "cmp_mergedTags.pdf"
+                , destinationFolder, "diff_"));
         }
 
         private PdfDictionary MergeSinglePdfAndGetResultingStructTreeRoot(String pathToMerge) {

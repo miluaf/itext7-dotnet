@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -42,7 +42,7 @@ namespace iText.Pdfua {
         }
 
         private static PdfUAConfig CreateConfig() {
-            return new PdfUAConfig(PdfUAConformanceLevel.PDFUA_1, "English pangram", "en-US");
+            return new PdfUAConfig(PdfUAConformance.PDF_UA_1, "English pangram", "en-US");
         }
     }
 }

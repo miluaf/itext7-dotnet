@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -28,7 +28,7 @@ using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Tagging;
 using iText.Layout.Element;
 using iText.Pdfua;
-using iText.Pdfua.Exceptions;
+using iText.Pdfua.Logs;
 using iText.Test;
 using iText.Test.Attributes;
 
@@ -262,7 +262,7 @@ namespace iText.Pdfua.Checkers {
             PdfUATableTest.TableBuilder tableBuilder = new PdfUATableTest.TableBuilder(3);
             tableBuilder.AddHeaderCell(new PdfUATableTest.HeaderCellSupplier(null, "Header 1", 1, 1, "Column"));
             tableBuilder.AddHeaderCell(new PdfUATableTest.HeaderCellSupplier(null, "Header 2", 1, 1, "Column"));
-            tableBuilder.AddHeaderCell(new _Generator_304());
+            tableBuilder.AddHeaderCell(new _Generator_302());
             for (int i = 0; i < 9; i++) {
                 tableBuilder.AddBodyCell(new PdfUATableTest.DataCellSupplier("Data 1", 1, 1, null));
                 tableBuilder.AddBodyCell(new PdfUATableTest.DataCellSupplier("Data 1", 1, 1, null));
@@ -271,8 +271,8 @@ namespace iText.Pdfua.Checkers {
             framework.AssertBothFail("tableWithHeaderScopeColumn13");
         }
 
-        private sealed class _Generator_304 : UaValidationTestFramework.Generator<Cell> {
-            public _Generator_304() {
+        private sealed class _Generator_302 : UaValidationTestFramework.Generator<Cell> {
+            public _Generator_302() {
             }
 
             public Cell Generate() {
@@ -434,7 +434,7 @@ namespace iText.Pdfua.Checkers {
             PdfUATableTest.TableBuilder tableBuilder = new PdfUATableTest.TableBuilder(3);
             tableBuilder.AddBodyCell(new PdfUATableTest.HeaderCellSupplier(null, "Header 1", 1, 1, "Row"));
             tableBuilder.AddBodyCell(new PdfUATableTest.DataCellSupplier("Data 1", 1, 1, null));
-            tableBuilder.AddBodyCell(new _Generator_508());
+            tableBuilder.AddBodyCell(new _Generator_506());
             tableBuilder.AddBodyCell(new PdfUATableTest.HeaderCellSupplier(null, "Header 1", 1, 1, "Row"));
             tableBuilder.AddBodyCell(new PdfUATableTest.DataCellSupplier("Data 1", 1, 1, null));
             tableBuilder.AddBodyCell(new PdfUATableTest.DataCellSupplier("Data 1", 1, 1, null));
@@ -442,8 +442,8 @@ namespace iText.Pdfua.Checkers {
             framework.AssertBothFail("tableWithHeaderRowScope07");
         }
 
-        private sealed class _Generator_508 : UaValidationTestFramework.Generator<Cell> {
-            public _Generator_508() {
+        private sealed class _Generator_506 : UaValidationTestFramework.Generator<Cell> {
+            public _Generator_506() {
             }
 
             public Cell Generate() {
@@ -876,14 +876,14 @@ namespace iText.Pdfua.Checkers {
                 root.AddRoleMapping("FancyTD", StandardRoles.TD);
             }
             ));
-            tableBuilder.AddBodyCell(new _Generator_1010());
-            tableBuilder.AddBodyCell(new _Generator_1020());
+            tableBuilder.AddBodyCell(new _Generator_1008());
+            tableBuilder.AddBodyCell(new _Generator_1018());
             framework.AddSuppliers(tableBuilder);
             framework.AssertBothValid("tableCustomRoles");
         }
 
-        private sealed class _Generator_1010 : UaValidationTestFramework.Generator<Cell> {
-            public _Generator_1010() {
+        private sealed class _Generator_1008 : UaValidationTestFramework.Generator<Cell> {
+            public _Generator_1008() {
             }
 
             public Cell Generate() {
@@ -894,8 +894,8 @@ namespace iText.Pdfua.Checkers {
             }
         }
 
-        private sealed class _Generator_1020 : UaValidationTestFramework.Generator<Cell> {
-            public _Generator_1020() {
+        private sealed class _Generator_1018 : UaValidationTestFramework.Generator<Cell> {
+            public _Generator_1018() {
             }
 
             public Cell Generate() {
@@ -906,6 +906,7 @@ namespace iText.Pdfua.Checkers {
             }
         }
 
+//\cond DO_NOT_DOCUMENT
         internal class TableBuilder : UaValidationTestFramework.Generator<IBlockElement> {
             private readonly int amountOfColumns;
 
@@ -918,9 +919,11 @@ namespace iText.Pdfua.Checkers {
             private readonly IList<UaValidationTestFramework.Generator<Cell>> footerCells = new List<UaValidationTestFramework.Generator
                 <Cell>>();
 
+//\cond DO_NOT_DOCUMENT
             internal TableBuilder(int amountOfColumns) {
                 this.amountOfColumns = amountOfColumns;
             }
+//\endcond
 
             public virtual PdfUATableTest.TableBuilder AddHeaderCell(UaValidationTestFramework.Generator<Cell> sup) {
                 this.headerCells.Add(sup);
@@ -951,7 +954,9 @@ namespace iText.Pdfua.Checkers {
                 return table;
             }
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         internal class DataCellSupplier : UaValidationTestFramework.Generator<Cell> {
             private readonly String content;
 
@@ -987,7 +992,9 @@ namespace iText.Pdfua.Checkers {
                 }
             }
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         internal class InternalPdfStructureAttributes : PdfStructureAttributes {
             public InternalPdfStructureAttributes(String owner)
                 : base(owner) {
@@ -999,7 +1006,9 @@ namespace iText.Pdfua.Checkers {
                 return this;
             }
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         internal class HeaderCellSupplier : UaValidationTestFramework.Generator<Cell> {
             private readonly String id;
 
@@ -1038,6 +1047,7 @@ namespace iText.Pdfua.Checkers {
                 }
             }
         }
+//\endcond
 
         private static PdfFont GetFont() {
             try {

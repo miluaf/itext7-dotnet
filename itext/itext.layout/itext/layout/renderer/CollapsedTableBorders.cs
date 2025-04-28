@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -30,6 +30,7 @@ using iText.Layout.Element;
 using iText.Layout.Properties;
 
 namespace iText.Layout.Renderer {
+//\cond DO_NOT_DOCUMENT
     internal class CollapsedTableBorders : TableBorders {
         /// <summary>
         /// Horizontal borders to be collapsed with
@@ -53,15 +54,19 @@ namespace iText.Layout.Renderer {
 
         private static IComparer<Border> borderComparator = new CollapsedTableBorders.BorderComparator();
 
+        private readonly IDictionary<int, IList<Border>> verticalBorderComputationResult;
+
         // region constructors
         public CollapsedTableBorders(IList<CellRenderer[]> rows, int numberOfColumns, Border[] tableBoundingBorders
             )
             : base(rows, numberOfColumns, tableBoundingBorders) {
+            verticalBorderComputationResult = new Dictionary<int, IList<Border>>();
         }
 
         public CollapsedTableBorders(IList<CellRenderer[]> rows, int numberOfColumns, Border[] tableBoundingBorders
             , int largeTableIndexOffset)
             : base(rows, numberOfColumns, tableBoundingBorders, largeTableIndexOffset) {
+            verticalBorderComputationResult = new Dictionary<int, IList<Border>>();
         }
 
         // endregion
@@ -130,20 +135,19 @@ namespace iText.Layout.Renderer {
         }
 
         public override IList<Border> GetVerticalBorder(int index) {
-            if (index == 0) {
-                IList<Border> borderList = TableBorderUtil.CreateAndFillBorderList(null, tableBoundingBorders[3], verticalBorders
-                    [0].Count);
-                return GetCollapsedList(verticalBorders[0], borderList);
+            if (index == 0 || index == numberOfColumns) {
+                if (verticalBorderComputationResult.ContainsKey(index)) {
+                    return verticalBorderComputationResult.Get(index);
+                }
+                int tableBoundingBordersIndex = index == 0 ? 3 : 1;
+                IList<Border> borderList = TableBorderUtil.CreateAndFillBorderList(null, tableBoundingBorders[tableBoundingBordersIndex
+                    ], verticalBorders[index].Count);
+                IList<Border> result = GetCollapsedList(verticalBorders[index], borderList);
+                verticalBorderComputationResult.Put(index, result);
+                return result;
             }
             else {
-                if (index == numberOfColumns) {
-                    IList<Border> borderList = TableBorderUtil.CreateAndFillBorderList(null, tableBoundingBorders[1], verticalBorders
-                        [verticalBorders.Count - 1].Count);
-                    return GetCollapsedList(verticalBorders[verticalBorders.Count - 1], borderList);
-                }
-                else {
-                    return verticalBorders[index];
-                }
+                return verticalBorders[index];
             }
         }
 
@@ -249,8 +253,7 @@ namespace iText.Layout.Renderer {
         }
 
         //endregion
-        protected internal override void BuildBordersArrays(CellRenderer cell, int row, int col, int[] rowspansToDeduct
-            ) {
+        protected internal override void BuildBordersArrays(CellRenderer cell, int row, int col) {
             // We should check if the row number is less than horizontal borders array size. It can happen if the cell with
             // big rowspan doesn't fit current area and is going to be placed partial.
             if (row > horizontalBorders.Count) {
@@ -275,7 +278,7 @@ namespace iText.Layout.Renderer {
                 // process only valid cells which hasn't been processed yet
                 if (j >= 0 && nextCellRow != rows.Count && nextCellRow > row) {
                     CellRenderer nextCell = rows[nextCellRow][j];
-                    BuildBordersArrays(nextCell, nextCellRow, true);
+                    BuildBordersArrays(nextCell, nextCellRow);
                 }
             }
             // consider cells under the current one
@@ -291,7 +294,7 @@ namespace iText.Layout.Renderer {
                 CellRenderer nextCell = rows[nextCellRow][col + j];
                 // otherwise the border was considered previously
                 if (row == nextCellRow - (int)nextCell.GetPropertyAsInteger(Property.ROWSPAN)) {
-                    BuildBordersArrays(nextCell, nextCellRow, true);
+                    BuildBordersArrays(nextCell, nextCellRow);
                 }
                 j += (int)nextCell.GetPropertyAsInteger(Property.COLSPAN);
             }
@@ -303,14 +306,14 @@ namespace iText.Layout.Renderer {
                 }
                 if (nextCellRow != rows.Count) {
                     CellRenderer nextCell = rows[nextCellRow][col + currCellColspan];
-                    BuildBordersArrays(nextCell, nextCellRow, true);
+                    BuildBordersArrays(nextCell, nextCellRow);
                 }
             }
             // consider current cell
-            BuildBordersArrays(cell, row, false);
+            BuildBordersArrays(cell, row);
         }
 
-        protected internal virtual void BuildBordersArrays(CellRenderer cell, int row, bool isNeighbourCell) {
+        protected internal virtual void BuildBordersArrays(CellRenderer cell, int row) {
             int colspan = (int)cell.GetPropertyAsInteger(Property.COLSPAN);
             int rowspan = (int)cell.GetPropertyAsInteger(Property.ROWSPAN);
             int colN = ((Cell)cell.GetModelElement()).GetCol();
@@ -502,7 +505,7 @@ namespace iText.Layout.Renderer {
 
         public static IList<Border> GetCollapsedList(IList<Border> innerList, IList<Border> outerList) {
             int size = Math.Min(null == innerList ? 0 : innerList.Count, null == outerList ? 0 : outerList.Count);
-            IList<Border> collapsedList = new List<Border>();
+            IList<Border> collapsedList = new List<Border>(size);
             for (int i = 0; i < size; i++) {
                 collapsedList.Add(GetCollapsedBorder(innerList[i], outerList[i]));
             }
@@ -647,6 +650,7 @@ namespace iText.Layout.Renderer {
             return this;
         }
 
+//\cond DO_NOT_DOCUMENT
         // endregion
         /// <summary>
         /// Returns the
@@ -687,6 +691,7 @@ namespace iText.Layout.Renderer {
             }
             return crossingBorders;
         }
+//\endcond
 
         /// <summary>
         /// A comparison function to compare two
@@ -761,4 +766,5 @@ namespace iText.Layout.Renderer {
             return strict ? comparisonResult > 0 : comparisonResult >= 0;
         }
     }
+//\endcond
 }

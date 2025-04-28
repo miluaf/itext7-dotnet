@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,6 +21,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using iText.Kernel.Pdf;
+using iText.Kernel.Validation.Context;
 
 namespace iText.Kernel.Pdf.Tagging {
     /// <summary>Models the tree of structure element IDs.</summary>
@@ -29,10 +30,13 @@ namespace iText.Kernel.Pdf.Tagging {
     /// This is an optional feature of tagged PDF documents.
     /// </remarks>
     public class PdfStructIdTree : GenericNameTree {
+//\cond DO_NOT_DOCUMENT
         internal PdfStructIdTree(PdfDocument pdfDoc)
             : base(pdfDoc) {
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>Parse a structure element ID tree into its in-memory representation.</summary>
         /// <param name="pdfDoc">
         /// the associated
@@ -54,6 +58,7 @@ namespace iText.Kernel.Pdf.Tagging {
             structIdTree.SetItems(GenericNameTree.ReadTree(dict));
             return structIdTree;
         }
+//\endcond
 
         /// <summary>Retrieve a structure element by ID, if it has one.</summary>
         /// <param name="id">the ID of the structure element to retrieve</param>
@@ -77,7 +82,8 @@ namespace iText.Kernel.Pdf.Tagging {
         }
 
         public override void AddEntry(PdfString key, PdfObject value) {
-            base.AddEntry(key, value, (pdfDoc) => pdfDoc.CheckIsoConformance(key, IsoKey.DUPLICATE_ID_ENTRY));
+            base.AddEntry(key, value, (pdfDoc) => pdfDoc.CheckIsoConformance(new DuplicateIdEntryValidationContext(key
+                )));
         }
     }
 }

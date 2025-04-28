@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -243,7 +243,7 @@ namespace iText.Forms.Form.Renderer {
             modelElement.SetProperty(Property.RENDERING_MODE, this.GetProperty<RenderingMode?>(Property.RENDERING_MODE
                 ));
             PdfButtonFormField button = new PushButtonFormFieldBuilder(doc, name).SetWidgetRectangle(area).SetFont(font
-                ).SetGenericConformanceLevel(GetGenericConformanceLevel(doc)).CreatePushButton();
+                ).SetConformance(GetConformance(doc)).CreatePushButton();
             button.DisableFieldRegeneration();
             button.SetFontSize(fontSizeValue);
             button.GetFirstFormAnnotation().SetBackgroundColor(backgroundColor);
@@ -258,6 +258,7 @@ namespace iText.Forms.Form.Renderer {
             FormFieldRendererUtil.ReapplyProperties(modelElement, properties);
         }
 
+//\cond DO_NOT_DOCUMENT
         /// <summary><inheritDoc/></summary>
         internal override void SetContentHeight(IRenderer flatRenderer, float height) {
             Rectangle bBox = flatRenderer.GetOccupiedArea().GetBBox();
@@ -285,5 +286,6 @@ namespace iText.Forms.Form.Renderer {
             bBox.SetHeight(height);
             flatRenderer.Move(0, -dy);
         }
+//\endcond
     }
 }

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -33,6 +33,7 @@ using iText.Forms.Logs;
 using iText.Forms.Util;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
+using iText.Layout.Element;
 using iText.Layout.Font;
 using iText.Layout.Layout;
 using iText.Layout.Minmaxwidth;
@@ -46,6 +47,8 @@ namespace iText.Forms.Form.Renderer {
     /// implementation for input fields.
     /// </summary>
     public class InputFieldRenderer : AbstractOneLineTextFieldRenderer {
+        private const float DEFAULT_COMB_PADDING = 0;
+
         /// <summary>
         /// Creates a new
         /// <see cref="InputFieldRenderer"/>
@@ -76,16 +79,63 @@ namespace iText.Forms.Form.Renderer {
                 ) : (bool)password;
         }
 
+//\cond DO_NOT_DOCUMENT
         /// <summary><inheritDoc/></summary>
         internal override IRenderer CreateParagraphRenderer(String defaultValue) {
             if (String.IsNullOrEmpty(defaultValue) && null != ((InputField)modelElement).GetPlaceholder() && !((InputField
                 )modelElement).GetPlaceholder().IsEmpty()) {
                 return ((InputField)modelElement).GetPlaceholder().CreateRendererSubTree();
             }
-            IRenderer flatRenderer = base.CreateParagraphRenderer(defaultValue);
+            if (String.IsNullOrEmpty(defaultValue)) {
+                defaultValue = "\u00a0";
+            }
+            IRenderer flatRenderer;
+            if (IsComb()) {
+                SetProperty(Property.PADDING_LEFT, UnitValue.CreatePointValue(DEFAULT_COMB_PADDING));
+                SetProperty(Property.PADDING_RIGHT, UnitValue.CreatePointValue(DEFAULT_COMB_PADDING));
+                int maxLen = GetMaxLen();
+                int numberOfCharacters = Math.Min(maxLen, defaultValue.Length);
+                int start;
+                TextAlignment? textAlignment = this.GetProperty<TextAlignment?>(Property.TEXT_ALIGNMENT, TextAlignment.LEFT
+                    );
+                switch (textAlignment) {
+                    case TextAlignment.RIGHT: {
+                        start = (maxLen - numberOfCharacters);
+                        break;
+                    }
+
+                    case TextAlignment.CENTER: {
+                        start = (maxLen - numberOfCharacters) / 2;
+                        break;
+                    }
+
+                    default: {
+                        start = 0;
+                        break;
+                    }
+                }
+                Paragraph paragraph = new Paragraph();
+                for (int i = 0; i < start; i++) {
+                    paragraph.Add(GetSubParagraph("", maxLen));
+                }
+                for (int i = 0; i < numberOfCharacters; i++) {
+                    paragraph.Add(GetSubParagraph(defaultValue.JSubstring(i, i + 1), maxLen));
+                }
+                for (int i = start + numberOfCharacters; i < maxLen; i++) {
+                    paragraph.Add(GetSubParagraph("", maxLen));
+                }
+                flatRenderer = paragraph.SetMargin(0).CreateRendererSubTree();
+            }
+            else {
+                Text text = new Text(defaultValue);
+                FormFieldValueNonTrimmingTextRenderer nextRenderer = new FormFieldValueNonTrimmingTextRenderer(text);
+                text.SetNextRenderer(nextRenderer);
+                flatRenderer = new Paragraph(text).SetMargin(0).CreateRendererSubTree();
+            }
             flatRenderer.SetProperty(Property.NO_SOFT_WRAP_INLINE, true);
             return flatRenderer;
         }
+//\endcond
 
         /// <summary><inheritDoc/></summary>
         protected internal override void AdjustFieldLayout(LayoutContext layoutContext) {
@@ -142,16 +192,20 @@ namespace iText.Forms.Form.Renderer {
             // Default html2pdf input field appearance differs from the default one for form fields.
             // That's why we got rid of several properties we set by default during InputField instance creation.
             modelElement.SetProperty(Property.BOX_SIZING, BoxSizingPropertyValue.BORDER_BOX);
-            PdfFormField inputField = new TextFormFieldBuilder(doc, name).SetWidgetRectangle(area).SetFont(font).SetGenericConformanceLevel
-                (GetGenericConformanceLevel(doc)).CreateText();
+            PdfTextFormField inputField = new TextFormFieldBuilder(doc, name).SetWidgetRectangle(area).SetFont(font).SetConformance
+                (GetConformance(doc)).CreateText();
             inputField.DisableFieldRegeneration();
             inputField.SetValue(value);
             inputField.SetFontSize(fontSizeValue);
             if (password) {
-                inputField.SetFieldFlag(PdfFormField.FF_PASSWORD, true);
+                inputField.SetPassword(true);
             }
             else {
                 inputField.SetDefaultValue(new PdfString(value));
+            }
+            if (IsComb()) {
+                inputField.SetComb(true);
+                inputField.SetMaxLen(GetMaxLen());
             }
             int rotation = ((InputField)modelElement).GetRotation();
             if (rotation != 0) {
@@ -209,6 +263,26 @@ namespace iText.Forms.Form.Renderer {
                 result = base.SetMinMaxWidthBasedOnFixedWidth(minMaxWidth);
             }
             return result;
+        }
+
+        private static Paragraph GetSubParagraph(String value, int maxLen) {
+            Text text = new Text(value);
+            FormFieldValueNonTrimmingTextRenderer nextRenderer = new FormFieldValueNonTrimmingTextRenderer(text);
+            text.SetNextRenderer(nextRenderer);
+            return new Paragraph(text).SetTextAlignment(TextAlignment.CENTER).SetWidth(UnitValue.CreatePercentValue((float
+                )100 / maxLen)).SetHeight(UnitValue.CreatePercentValue(100)).SetMargin(0);
+        }
+
+        /// <summary>Checks if the input field is a comb field.</summary>
+        /// <returns>true, if the input field is a comb field</returns>
+        private bool IsComb() {
+            return (bool)this.GetProperty<bool?>(FormProperty.TEXT_FIELD_COMB_FLAG, false);
+        }
+
+        /// <summary>Gets the maximum length of the field's text, in characters.</summary>
+        /// <returns>the current maximum text length</returns>
+        private int GetMaxLen() {
+            return (int)this.GetProperty<int?>(FormProperty.TEXT_FIELD_MAX_LEN, 0);
         }
 
         /// <summary>Obfuscates the content of a password input field.</summary>

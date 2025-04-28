@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -314,6 +314,7 @@ namespace iText.Layout {
             }
         }
 
+//\cond DO_NOT_DOCUMENT
         internal class ExposedPdfCanvas : PdfCanvas {
             public ExposedPdfCanvas(PdfStream contentStream, PdfResources resources, PdfDocument document)
                 : base(contentStream, resources, document) {
@@ -327,5 +328,6 @@ namespace iText.Layout {
                 return this.drawingOnPage;
             }
         }
+//\endcond
     }
 }

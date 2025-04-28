@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -927,6 +927,30 @@ namespace iText.Kernel.Pdf {
             names.Add("someName5");
             names.Add("someName6");
             OcgPropertiesCopierTest.CopyPagesAndAssertLayersName(names, fromDocBytes);
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void CopyEmptyOcgTest() {
+            byte[] fromDocBytes;
+            using (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                using (PdfDocument fromDocument = new PdfDocument(new PdfWriter(outputStream))) {
+                    PdfDictionary DDic = new PdfDictionary();
+                    DDic.Put(PdfName.ON, new PdfArray());
+                    DDic.Put(PdfName.Order, new PdfArray());
+                    DDic.Put(PdfName.RBGroups, new PdfArray());
+                    PdfDictionary OcDic = new PdfDictionary();
+                    OcDic.Put(PdfName.D, DDic);
+                    OcDic.Put(PdfName.OCGs, new PdfArray());
+                    fromDocument.GetCatalog().Put(PdfName.OCProperties, OcDic);
+                }
+                fromDocBytes = outputStream.ToArray();
+            }
+            using (PdfDocument toDocument = new PdfDocument(new PdfWriter(new ByteArrayOutputStream()))) {
+                using (PdfDocument fromDocument = new PdfDocument(new PdfReader(new MemoryStream(fromDocBytes)))) {
+                    fromDocument.CopyPagesTo(1, 1, toDocument);
+                    NUnit.Framework.Assert.IsNull(toDocument.GetCatalog().GetOCProperties(false));
+                }
+            }
         }
 
         private static byte[] GetDocumentWithAllDFields() {

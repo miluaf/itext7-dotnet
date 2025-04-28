@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -89,6 +89,16 @@ namespace iText.Kernel.Logs {
         public const String STRUCT_PARENT_INDEX_MISSED_AND_RECREATED = "StructParent index not found in tagged object, so index is recreated.";
 
         public const String XOBJECT_STRUCT_PARENT_INDEX_MISSED_AND_RECREATED = "XObject has no StructParents index in its stream, so index is recreated";
+
+        [Obsolete]
+        public const String DUPLICATE_ENTRIES_IN_ORDER_ARRAY_REMOVED = "Duplicated entries in order array are " + 
+            "removed";
+
+        public const String FINGERPRINT_DISABLED_BUT_NO_REQUIRED_LICENCE = "Fingerprint disabling is only " + "available in non AGPL mode. Fingerprint will be added at the end of the document.";
+
+        public const String ALGORITHM_NOT_FROM_SPEC = "Requested algorithm might not be supported by the pdf specification.";
+
+        public const String MEMORYLIMITAWAREHANDLER_OVERRIDE_CREATENEWINSTANCE_METHOD = "MemoryLimitsAwareHandler#createNewInstance method must be overriden.";
 
         private KernelLogMessageConstant() {
         }

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -64,8 +64,11 @@ namespace iText.Kernel.Pdf.Tagging {
             }
 
             //empty constructor
-            /// <summary><inheritDoc/></summary>
-            public virtual void NextElement(IStructureNode elem) {
+            public virtual bool Accept(IStructureNode node) {
+                return node != null;
+            }
+
+            public virtual void ProcessElement(IStructureNode elem) {
                 if ((elem is PdfMcr)) {
                     haveMcr = true;
                 }

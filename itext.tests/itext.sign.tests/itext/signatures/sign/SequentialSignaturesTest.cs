@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,9 +21,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
-using System.IO;
 using iText.Commons.Bouncycastle.Cert;
 using iText.Commons.Bouncycastle.Crypto;
+using iText.Commons.Utils;
+using iText.Forms.Form.Element;
+using iText.Kernel.Crypto;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Signatures;
@@ -59,11 +61,13 @@ namespace iText.Signatures.Sign {
             IPrivateKey signPrivateKey = PemFileHelper.ReadFirstKey(signCertFileName, password);
             IExternalSignature pks = new PrivateKeySignature(signPrivateKey, DigestAlgorithms.SHA256);
             String signatureName = "Signature2";
-            PdfSigner signer = new PdfSigner(new PdfReader(srcFileName), new FileStream(outFileName, FileMode.Create), 
-                new StampingProperties().UseAppendMode());
-            signer.SetFieldName(signatureName);
-            signer.GetSignatureAppearance().SetPageRect(new Rectangle(50, 350, 200, 100)).SetReason("Test").SetLocation
-                ("TestCity").SetLayer2Text("Approval test signature.\nCreated by iText.");
+            PdfSigner signer = new PdfSigner(new PdfReader(srcFileName), FileUtil.GetFileOutputStream(outFileName), new 
+                StampingProperties().UseAppendMode());
+            SignatureFieldAppearance appearance = new SignatureFieldAppearance(SignerProperties.IGNORED_ID).SetContent
+                ("Approval test signature.\nCreated by iText.");
+            SignerProperties signerProperties = new SignerProperties().SetFieldName(signatureName).SetPageRect(new Rectangle
+                (50, 350, 200, 100)).SetReason("Test").SetLocation("TestCity").SetSignatureAppearance(appearance);
+            signer.SetSignerProperties(signerProperties);
             signer.SignDetached(new BouncyCastleDigest(), pks, signChain, null, null, null, 0, PdfSigner.CryptoStandard
                 .CADES);
             TestSignUtils.BasicCheckSignedDoc(outFileName, signatureName);
@@ -80,15 +84,16 @@ namespace iText.Signatures.Sign {
             IPrivateKey signPrivateKey = PemFileHelper.ReadFirstKey(signCertFileName, password);
             IExternalSignature pks = new PrivateKeySignature(signPrivateKey, DigestAlgorithms.SHA256);
             String signatureName = "Signature2";
-            PdfSigner signer = new PdfSigner(new PdfReader(srcFileName), new FileStream(outFileName, FileMode.Create), 
-                new StampingProperties().UseAppendMode());
+            PdfSigner signer = new PdfSigner(new PdfReader(srcFileName), FileUtil.GetFileOutputStream(outFileName), new 
+                StampingProperties().UseAppendMode());
             PdfDocument document = signer.GetDocument();
             document.GetWriter().SetCompressionLevel(CompressionConstants.NO_COMPRESSION);
-            signer.SetFieldName(signatureName);
-            PdfSignatureAppearance appearance = signer.GetSignatureAppearance();
-            appearance.SetPageNumber(1);
-            signer.GetSignatureAppearance().SetPageRect(new Rectangle(50, 550, 200, 100)).SetReason("Test2").SetLocation
-                ("TestCity2").SetLayer2Text("Approval test signature #2.\nCreated by iText.");
+            SignatureFieldAppearance appearance = new SignatureFieldAppearance(SignerProperties.IGNORED_ID).SetContent
+                ("Approval test signature #2.\nCreated by iText.");
+            SignerProperties signerProperties = new SignerProperties().SetFieldName(signatureName).SetPageNumber(1).SetPageRect
+                (new Rectangle(50, 550, 200, 100)).SetReason("Test2").SetLocation("TestCity2").SetSignatureAppearance(
+                appearance);
+            signer.SetSignerProperties(signerProperties);
             signer.SignDetached(new BouncyCastleDigest(), pks, signChain, null, null, null, 0, PdfSigner.CryptoStandard
                 .CADES);
             TestSignUtils.BasicCheckSignedDoc(outFileName, "Signature1");

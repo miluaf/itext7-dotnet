@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -165,8 +165,8 @@ namespace iText.Forms.Form.Renderer {
             // Default html2pdf text area appearance differs from the default one for form fields.
             // That's why we got rid of several properties we set by default during TextArea instance creation.
             modelElement.SetProperty(Property.BOX_SIZING, BoxSizingPropertyValue.BORDER_BOX);
-            PdfFormField inputField = new TextFormFieldBuilder(doc, name).SetWidgetRectangle(area).SetGenericConformanceLevel
-                (GetGenericConformanceLevel(doc)).SetFont(font).CreateMultilineText();
+            PdfFormField inputField = new TextFormFieldBuilder(doc, name).SetWidgetRectangle(area).SetConformance(GetConformance
+                (doc)).SetFont(font).CreateMultilineText();
             inputField.DisableFieldRegeneration();
             inputField.SetValue(value);
             inputField.SetFontSize(fontSizeValue);
@@ -197,6 +197,7 @@ namespace iText.Forms.Form.Renderer {
             return base.SetMinMaxWidthBasedOnFixedWidth(minMaxWidth);
         }
 
+//\cond DO_NOT_DOCUMENT
         internal override IRenderer CreateParagraphRenderer(String defaultValue) {
             if (String.IsNullOrEmpty(defaultValue) && null != ((TextArea)modelElement).GetPlaceholder() && !((TextArea
                 )modelElement).GetPlaceholder().IsEmpty()) {
@@ -206,6 +207,7 @@ namespace iText.Forms.Form.Renderer {
             flatRenderer.SetProperty(Property.OVERFLOW_X, OverflowPropertyValue.FIT);
             return flatRenderer;
         }
+//\endcond
 
         private void CropContentLines(IList<LineRenderer> lines, Rectangle bBox) {
             float? height = RetrieveHeight();

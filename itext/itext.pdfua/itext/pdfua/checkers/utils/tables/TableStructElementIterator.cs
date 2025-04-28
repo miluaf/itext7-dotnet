@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -31,7 +31,9 @@ using iText.Pdfua.Checkers.Utils;
 namespace iText.Pdfua.Checkers.Utils.Tables {
     /// <summary>Creates an iterator to iterate over the table structures.</summary>
     public class TableStructElementIterator : ITableIterator<PdfStructElem> {
+//\cond DO_NOT_DOCUMENT
         internal readonly PdfUAValidationContext context;
+//\endcond
 
         private readonly IList<PdfStructElem> all = new List<PdfStructElem>();
 

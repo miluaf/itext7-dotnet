@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2024 Apryse Group NV
+    Copyright (c) 1998-2025 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -27,6 +27,7 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using iText.Bouncycastlefips.Cert;
 using iText.Bouncycastlefips.Cert.Ocsp;
 using iText.Bouncycastlefips.Crypto;
+using iText.Commons.Bouncycastle.Asn1;
 using iText.Commons.Bouncycastle.Asn1.Ocsp;
 using iText.Commons.Bouncycastle.Cert;
 using iText.Commons.Bouncycastle.Cert.Ocsp;
@@ -121,6 +122,17 @@ namespace iText.Bouncycastlefips.Asn1.Ocsp {
         /// <summary><inheritDoc/></summary>
         public DateTime GetProducedAt() {
             return GetBasicOcspResponse().TbsResponseData.ProducedAt.ToDateTime();
+        }
+
+        /// <summary><inheritDoc/></summary>
+        public IAsn1Encodable GetExtensionParsedValue(IDerObjectIdentifier objectIdentifier) {
+            return new Asn1EncodableBCFips(GetBasicOcspResponse().TbsResponseData.ResponseExtensions.GetExtension(
+                ((DerObjectIdentifierBCFips)objectIdentifier).GetDerObjectIdentifier())?.GetParsedValue());
+        }
+        
+        public IRespID GetResponderId()
+        {
+            return new RespIDBCFips(GetBasicOcspResponse().TbsResponseData.ResponderID);
         }
     }
 }

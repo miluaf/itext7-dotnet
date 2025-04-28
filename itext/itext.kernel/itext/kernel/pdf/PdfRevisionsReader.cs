@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System.Collections.Generic;
 using System.IO;
+using iText.Commons.Actions.Contexts;
 using iText.Commons.Utils;
 using iText.IO.Source;
 
@@ -31,6 +32,8 @@ namespace iText.Kernel.Pdf {
         private readonly PdfReader reader;
 
         private IList<DocumentRevision> documentRevisions = null;
+
+        private IMetaInfo metaInfo;
 
         /// <summary>
         /// Creates
@@ -46,6 +49,18 @@ namespace iText.Kernel.Pdf {
             this.reader = reader;
         }
 
+        /// <summary>
+        /// Sets the
+        /// <see cref="iText.Commons.Actions.Contexts.IMetaInfo"/>
+        /// that will be used during
+        /// <see cref="PdfDocument"/>
+        /// creation.
+        /// </summary>
+        /// <param name="metaInfo">meta info to set</param>
+        public virtual void SetEventCountingMetaInfo(IMetaInfo metaInfo) {
+            this.metaInfo = metaInfo;
+        }
+
         /// <summary>Gets information about PDF document revisions.</summary>
         /// <returns>
         /// 
@@ -59,8 +74,9 @@ namespace iText.Kernel.Pdf {
                 RandomAccessFileOrArray raf = reader.GetSafeFile();
                 WindowRandomAccessSource source = new WindowRandomAccessSource(raf.CreateSourceView(), 0, raf.Length());
                 using (Stream inputStream = new RASInputStream(source)) {
-                    using (PdfReader newReader = new PdfReader(inputStream)) {
-                        using (PdfDocument newDocument = new PdfDocument(newReader)) {
+                    using (PdfReader newReader = new PdfReader(inputStream, reader.GetPropertiesCopy())) {
+                        using (PdfDocument newDocument = new PdfDocument(newReader, new DocumentProperties().SetEventCountingMetaInfo
+                            (metaInfo))) {
                             newDocument.GetXref().UnmarkReadingCompleted();
                             newDocument.GetXref().ClearAllReferences();
                             PdfRevisionsReader.RevisionsXrefProcessor xrefProcessor = new PdfRevisionsReader.RevisionsXrefProcessor();
@@ -75,9 +91,11 @@ namespace iText.Kernel.Pdf {
             return documentRevisions;
         }
 
+//\cond DO_NOT_DOCUMENT
         internal class RevisionsXrefProcessor : PdfReader.XrefProcessor {
             private readonly IList<DocumentRevision> documentRevisions = new List<DocumentRevision>();
 
+//\cond DO_NOT_DOCUMENT
             internal override void ProcessXref(PdfXrefTable xrefTable, PdfTokenizer tokenizer) {
                 ICollection<PdfIndirectReference> modifiedObjects = new HashSet<PdfIndirectReference>();
                 for (int i = 0; i < xrefTable.Size(); ++i) {
@@ -89,10 +107,14 @@ namespace iText.Kernel.Pdf {
                 documentRevisions.Add(new DocumentRevision(eofOffset, modifiedObjects));
                 xrefTable.ClearAllReferences();
             }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
             internal virtual IList<DocumentRevision> GetDocumentRevisions() {
                 return documentRevisions;
             }
+//\endcond
         }
+//\endcond
     }
 }

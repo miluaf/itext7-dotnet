@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -25,8 +25,6 @@ using System;
 namespace iText.Signatures.Logs {
     /// <summary>Class which contains constants to be used in logging inside sign module.</summary>
     public sealed class SignLogMessageConstant {
-        public const String ALGORITHM_NOT_FROM_SPEC = "Requested algorithm might not be supported by the pdf specification.";
-
         public const String EXCEPTION_WITHOUT_MESSAGE = "Unexpected exception without message was thrown during keystore processing";
 
         public const String UNABLE_TO_PARSE_AIA_CERT = "Unable to parse certificates coming from authority info " 

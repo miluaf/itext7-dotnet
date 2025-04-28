@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -48,8 +48,11 @@ namespace iText.Pdfua.Checkers.Utils {
                 : base(context) {
             }
 
-            /// <summary><inheritDoc/></summary>
-            public override void NextElement(IStructureNode elem) {
+            public override bool Accept(IStructureNode node) {
+                return node != null;
+            }
+
+            public override void ProcessElement(IStructureNode elem) {
                 PdfStructElem form = context.GetElementIfRoleMatches(PdfName.Form, elem);
                 if (form == null) {
                     return;
@@ -81,9 +84,9 @@ namespace iText.Pdfua.Checkers.Utils {
                 PdfDictionary @object = structElem.GetPdfObject();
                 PdfDictionary kids = @object.GetAsDictionary(PdfName.K);
                 // It's a dictionary in this particular case
-                if (kids != null && kids.Get(PdfName.Obj) != null && PdfName.Widget.Equals(kids.GetAsDictionary(PdfName.Obj
-                    ).GetAsName(PdfName.Subtype))) {
-                    return kids.GetAsDictionary(PdfName.Obj);
+                if (kids != null && kids.Get(PdfName.Obj) != null && PdfName.Widget.Equals(((PdfDictionary)kids.Get(PdfName
+                    .Obj)).GetAsName(PdfName.Subtype))) {
+                    return (PdfDictionary)kids.Get(PdfName.Obj);
                 }
                 return null;
             }

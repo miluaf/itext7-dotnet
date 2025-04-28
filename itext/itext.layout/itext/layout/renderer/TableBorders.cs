@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -30,6 +30,7 @@ using iText.Layout.Borders;
 using iText.Layout.Properties;
 
 namespace iText.Layout.Renderer {
+//\cond DO_NOT_DOCUMENT
     internal abstract class TableBorders {
         /// <summary>Horizontal borders of the table.</summary>
         /// <remarks>
@@ -156,9 +157,7 @@ namespace iText.Layout.Renderer {
         protected internal abstract float GetCellVerticalAddition(float[] indents);
 
         // endregion
-        [System.ObsoleteAttribute(@"Remove rowspansToDeduct parameter which is not used anymore.")]
-        protected internal abstract void BuildBordersArrays(CellRenderer cell, int row, int col, int[] rowspansToDeduct
-            );
+        protected internal abstract void BuildBordersArrays(CellRenderer cell, int row, int col);
 
         protected internal abstract iText.Layout.Renderer.TableBorders UpdateBordersOnNewPage(bool isOriginalNonSplitRenderer
             , bool isFooterOrHeader, TableRenderer currentRenderer, TableRenderer headerRenderer, TableRenderer footerRenderer
@@ -182,7 +181,7 @@ namespace iText.Layout.Renderer {
                                 row -= numOfRowsToRemove;
                                 numOfRowsToRemove = 0;
                             }
-                            BuildBordersArrays(currentRow[col], row, col, null);
+                            BuildBordersArrays(currentRow[col], row, col);
                             hasCells = true;
                             int colspan = (int)currentRow[col].GetPropertyAsInteger(Property.COLSPAN);
                             col += colspan - 1;
@@ -452,4 +451,5 @@ namespace iText.Layout.Renderer {
             }
         }
     }
+//\endcond
 }

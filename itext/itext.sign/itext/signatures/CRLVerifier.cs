@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -33,13 +33,17 @@ namespace iText.Signatures {
     /// Class that allows you to verify a certificate against
     /// one or more Certificate Revocation Lists.
     /// </summary>
+    [System.ObsoleteAttribute(@"starting from 8.0.5.iText.Signatures.Validation.CRLValidator should be used instead."
+        )]
     public class CRLVerifier : RootStoreVerifier {
         /// <summary>The Logger instance</summary>
         protected internal static readonly ILogger LOGGER = ITextLogManager.GetLogger(typeof(iText.Signatures.CRLVerifier
             ));
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>The list of CRLs to check for revocation date.</summary>
         internal IList<IX509Crl> crls;
+//\endcond
 
         /// <summary>Creates a CRLVerifier instance.</summary>
         /// <param name="verifier">the next verifier in the chain</param>
@@ -125,12 +129,12 @@ namespace iText.Signatures {
         public virtual IX509Crl GetCRL(IX509Certificate signCert, IX509Certificate issuerCert) {
             try {
                 // gets the URL from the certificate
-                String crlurl = CertificateUtil.GetCRLURL(signCert);
-                if (crlurl == null) {
+                IList<String> crlurl = CertificateUtil.GetCRLURLs(signCert);
+                if (crlurl.IsEmpty()) {
                     return null;
                 }
-                LOGGER.LogInformation("Getting CRL from " + crlurl);
-                return (IX509Crl)SignUtils.ParseCrlFromStream(UrlUtil.OpenStream(new Uri(crlurl)));
+                LOGGER.LogInformation("Getting CRL from " + crlurl[0]);
+                return (IX509Crl)SignUtils.ParseCrlFromStream(UrlUtil.OpenStream(new Uri(crlurl[0])));
             }
             catch (System.IO.IOException) {
                 return null;

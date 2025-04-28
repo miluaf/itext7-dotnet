@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -36,6 +36,7 @@ using iText.Commons.Bouncycastle.Cert.Ocsp;
 using iText.Commons.Bouncycastle.Security;
 using iText.Commons.Utils;
 using iText.IO.Util;
+using iText.Kernel.Crypto;
 using iText.Signatures.Logs;
 
 namespace iText.Signatures {
@@ -49,17 +50,22 @@ namespace iText.Signatures {
         private static readonly ILogger LOGGER = ITextLogManager.GetLogger(typeof(CertificateUtil));
 
         // Certificate Revocation Lists
-        /// <summary>Gets a CRL from an X509 certificate.</summary>
-        /// <param name="certificate">the X509Certificate to extract the CRL from</param>
-        /// <returns>CRL or null if there's no CRL available</returns>
-        public static IX509Crl GetCRL(IX509Certificate certificate) {
-            return CertificateUtil.GetCRL(CertificateUtil.GetCRLURL(certificate));
+        /// <summary>Gets a CRLs from the X509 certificate.</summary>
+        /// <param name="certificate">the X509Certificate to extract the CRLs from</param>
+        /// <returns>CRL list or null if there's no CRL available</returns>
+        public static IList<IX509Crl> GetCRLs(IX509Certificate certificate) {
+            IList<IX509Crl> crls = new List<IX509Crl>();
+            foreach (String crlUrl in GetCRLURLs(certificate)) {
+                crls.Add(CertificateUtil.GetCRL(crlUrl));
+            }
+            return crls;
         }
 
-        /// <summary>Gets the URL of the Certificate Revocation List for a Certificate</summary>
-        /// <param name="certificate">the Certificate</param>
-        /// <returns>the String where you can check if the certificate was revoked</returns>
-        public static String GetCRLURL(IX509Certificate certificate) {
+        /// <summary>Gets the list of the Certificate Revocation List URLs for a Certificate.</summary>
+        /// <param name="certificate">the Certificate to get CRL URLs for</param>
+        /// <returns>the list of URL strings where you can check if the certificate is revoked.</returns>
+        public static IList<String> GetCRLURLs(IX509Certificate certificate) {
+            IList<String> crls = new List<String>();
             IDistributionPoint[] dists = GetDistributionPoints(certificate);
             foreach (IDistributionPoint p in dists) {
                 IDistributionPointName distributionPointName = p.GetDistributionPoint();
@@ -68,16 +74,18 @@ namespace iText.Signatures {
                 }
                 IGeneralNames generalNames = FACTORY.CreateGeneralNames(distributionPointName.GetName());
                 IGeneralName[] names = generalNames.GetNames();
+                // If the DistributionPointName contains multiple values, each name describes a different mechanism
+                // to obtain the same CRL.
                 foreach (IGeneralName name in names) {
                     if (name.GetTagNo() != FACTORY.CreateGeneralName().GetUniformResourceIdentifier()) {
                         continue;
                     }
                     IDerIA5String derStr = FACTORY.CreateDERIA5String(FACTORY.CreateASN1TaggedObject(name.ToASN1Primitive()), 
                         false);
-                    return derStr.GetString();
+                    crls.Add(derStr.GetString());
                 }
             }
-            return null;
+            return crls;
         }
 
         /// <summary>
@@ -123,6 +131,13 @@ namespace iText.Signatures {
             return SignUtils.ParseCrlFromStream(input);
         }
 
+        /// <summary>Parses a CRL from bytes.</summary>
+        /// <param name="crlBytes">the bytes holding the unparsed CRL</param>
+        /// <returns>the parsed CRL object.</returns>
+        public static IX509Crl ParseCrlFromBytes(byte[] crlBytes) {
+            return SignUtils.ParseCrlFromStream(new MemoryStream(crlBytes));
+        }
+
         /// <summary>Retrieves the URL for the issuer certificate for the given CRL.</summary>
         /// <param name="crl">the CRL response</param>
         /// <returns>the URL or null.</returns>
@@ -130,7 +145,7 @@ namespace iText.Signatures {
             IAsn1Object obj;
             try {
                 obj = GetExtensionValue(crl, FACTORY.CreateExtensions().GetAuthorityInfoAccess().GetId());
-                return GetValueFromAIAExtension(obj, SecurityIDs.ID_CA_ISSUERS);
+                return GetValueFromAIAExtension(obj, OID.CA_ISSUERS);
             }
             catch (System.IO.IOException) {
                 return null;
@@ -145,7 +160,7 @@ namespace iText.Signatures {
             IAsn1Object obj;
             try {
                 obj = GetExtensionValue(certificate, FACTORY.CreateExtensions().GetAuthorityInfoAccess().GetId());
-                return GetValueFromAIAExtension(obj, SecurityIDs.ID_OCSP);
+                return GetValueFromAIAExtension(obj, OID.OCSP);
             }
             catch (System.IO.IOException) {
                 return null;
@@ -160,7 +175,7 @@ namespace iText.Signatures {
             IAsn1Object obj;
             try {
                 obj = GetExtensionValue(certificate, FACTORY.CreateExtensions().GetAuthorityInfoAccess().GetId());
-                return GetValueFromAIAExtension(obj, SecurityIDs.ID_CA_ISSUERS);
+                return GetValueFromAIAExtension(obj, OID.CA_ISSUERS);
             }
             catch (System.IO.IOException) {
                 return null;
@@ -172,7 +187,7 @@ namespace iText.Signatures {
         /// <param name="certificate">a certificate</param>
         /// <returns>a TSA URL</returns>
         public static String GetTSAURL(IX509Certificate certificate) {
-            byte[] der = SignUtils.GetExtensionValueByOid(certificate, SecurityIDs.ID_TSA);
+            byte[] der = SignUtils.GetExtensionValueByOid(certificate, OID.TSA);
             if (der == null) {
                 return null;
             }
@@ -220,7 +235,7 @@ namespace iText.Signatures {
             while (revInfo.MoveNext()) {
                 IAsn1Sequence s = FACTORY.CreateASN1Sequence(revInfo.Current);
                 IDerObjectIdentifier o = FACTORY.CreateASN1ObjectIdentifier(s.GetObjectAt(0));
-                if (o != null && SecurityIDs.ID_RI_OCSP_RESPONSE.Equals(o.GetId())) {
+                if (o != null && OID.RI_OCSP_RESPONSE.Equals(o.GetId())) {
                     IAsn1Sequence ocspResp = FACTORY.CreateASN1Sequence(s.GetObjectAt(1));
                     IDerEnumerated respStatus = FACTORY.CreateASN1Enumerated(ocspResp.GetObjectAt(0));
                     if (respStatus.IntValueExact() == FACTORY.CreateOCSPResponseStatus().GetSuccessful()) {
@@ -272,7 +287,7 @@ namespace iText.Signatures {
         /// </returns>
         public static IDerSet CreateRevocationInfoChoices(ICollection<IX509Crl> crls, ICollection<IBasicOcspResponse
             > ocsps, ICollection<IAsn1Sequence> otherRevocationInfoFormats) {
-            if (crls.Count == 0 && ocsps.Count == 0) {
+            if (crls.IsEmpty() && ocsps.IsEmpty()) {
                 return null;
             }
             IAsn1EncodableVector revocationInfoChoices = FACTORY.CreateASN1EncodableVector();
@@ -285,7 +300,7 @@ namespace iText.Signatures {
             foreach (IBasicOcspResponse element in ocsps) {
                 IAsn1EncodableVector ocspResponseRevInfo = FACTORY.CreateASN1EncodableVector();
                 // Add otherRevInfoFormat (ID_RI_OCSP_RESPONSE)
-                ocspResponseRevInfo.Add(FACTORY.CreateASN1ObjectIdentifier(SecurityIDs.ID_RI_OCSP_RESPONSE));
+                ocspResponseRevInfo.Add(FACTORY.CreateASN1ObjectIdentifier(OID.RI_OCSP_RESPONSE));
                 IAsn1EncodableVector ocspResponse = FACTORY.CreateASN1EncodableVector();
                 ocspResponse.Add(FACTORY.CreateOCSPResponseStatus(FACTORY.CreateOCSPResponseStatus().GetSuccessful()).ToASN1Primitive
                     ());
@@ -350,6 +365,7 @@ namespace iText.Signatures {
             }
         }
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>Checks if the certificate is signed by provided issuer certificate.</summary>
         /// <param name="subjectCertificate">a certificate to check</param>
         /// <param name="issuerCertificate">an issuer certificate to check</param>
@@ -358,6 +374,7 @@ namespace iText.Signatures {
             ) {
             return subjectCertificate.GetIssuerDN().Equals(issuerCertificate.GetSubjectDN());
         }
+//\endcond
 
         /// <summary>Checks if the certificate is self-signed.</summary>
         /// <param name="certificate">a certificate to check</param>

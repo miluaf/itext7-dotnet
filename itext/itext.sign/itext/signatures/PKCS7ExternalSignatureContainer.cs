@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -26,10 +26,22 @@ using System.IO;
 using iText.Bouncycastleconnector;
 using iText.Commons.Bouncycastle.Cert;
 using iText.Commons.Bouncycastle.Crypto;
+using iText.Kernel.Crypto;
 using iText.Kernel.Exceptions;
 using iText.Kernel.Pdf;
 
 namespace iText.Signatures {
+    /// <summary>
+    /// Implementation class for
+    /// <see cref="IExternalSignatureContainer"/>.
+    /// </summary>
+    /// <remarks>
+    /// Implementation class for
+    /// <see cref="IExternalSignatureContainer"/>.
+    /// This external signature container is implemented based on PCS7 standard and
+    /// <see cref="PdfPKCS7"/>
+    /// class.
+    /// </remarks>
     public class PKCS7ExternalSignatureContainer : IExternalSignatureContainer {
         private readonly IX509Certificate[] chain;
 
@@ -58,6 +70,15 @@ namespace iText.Signatures {
             this.privateKey = privateKey;
         }
 
+        /// <summary><inheritDoc/></summary>
+        /// <param name="data">
+        /// 
+        /// <inheritDoc/>
+        /// </param>
+        /// <returns>
+        /// 
+        /// <inheritDoc/>
+        /// </returns>
         public virtual byte[] Sign(Stream data) {
             PdfPKCS7 sgn = new PdfPKCS7((IPrivateKey)null, chain, hashAlgorithm, new BouncyCastleDigest(), false);
             if (signaturePolicy != null) {
@@ -93,6 +114,11 @@ namespace iText.Signatures {
             return sgn.GetEncodedPKCS7(hash, sigType, tsaClient, ocspList, crlBytes);
         }
 
+        /// <summary><inheritDoc/></summary>
+        /// <param name="signDic">
+        /// 
+        /// <inheritDoc/>
+        /// </param>
         public virtual void ModifySigningDictionary(PdfDictionary signDic) {
             signDic.Put(PdfName.Filter, PdfName.Adobe_PPKLite);
             signDic.Put(PdfName.SubFilter, sigType == PdfSigner.CryptoStandard.CADES ? PdfName.ETSI_CAdES_DETACHED : PdfName

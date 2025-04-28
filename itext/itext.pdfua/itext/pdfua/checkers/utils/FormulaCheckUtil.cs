@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -61,8 +61,11 @@ namespace iText.Pdfua.Checkers.Utils {
                 : base(context) {
             }
 
-            /// <summary><inheritDoc/></summary>
-            public override void NextElement(IStructureNode elem) {
+            public override bool Accept(IStructureNode node) {
+                return node != null;
+            }
+
+            public override void ProcessElement(IStructureNode elem) {
                 PdfStructElem structElem = context.GetElementIfRoleMatches(PdfName.Formula, elem);
                 if (structElem == null) {
                     return;

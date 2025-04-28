@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-    Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -31,6 +31,7 @@ using iText.Commons.Bouncycastle.Crypto;
 using iText.Commons.Digest;
 using iText.Commons.Utils;
 using iText.IO.Source;
+using iText.Kernel.Crypto;
 using iText.Kernel.Exceptions;
 using iText.Kernel.Pdf;
 using iText.Signatures.Cms;
@@ -105,13 +106,31 @@ namespace iText.Signatures.Sign {
         public virtual void TestCompletionWithWrongFieldName() {
             byte[] signData = new byte[4096];
             // open prepared document
-            using (PdfDocument preparedDoc = new PdfDocument(new PdfReader(new FileInfo(SOURCE_FOLDER + "2PhasePreparedSignature.pdf"
-                )))) {
+            using (PdfReader reader = new PdfReader(new FileInfo(SOURCE_FOLDER + "2PhasePreparedSignature.pdf"
+                   ))) {
                 using (Stream signedDoc = new ByteArrayOutputStream()) {
                     // add signature
                     Exception e = NUnit.Framework.Assert.Catch(typeof(PdfException), () => {
-                        PdfTwoPhaseSigner.AddSignatureToPreparedDocument(preparedDoc, "wrong" + FIELD_NAME, signedDoc, signData);
-                    }
+                            PdfTwoPhaseSigner.AddSignatureToPreparedDocument(reader, "wrong" + FIELD_NAME, signedDoc, signData);
+                        }
+                    );
+                    NUnit.Framework.Assert.AreEqual(MessageFormatUtil.Format(SignExceptionMessageConstant.THERE_IS_NO_FIELD_IN_THE_DOCUMENT_WITH_SUCH_NAME
+                        , "wrong" + FIELD_NAME), e.Message);
+                }
+            }
+        }
+        
+        [NUnit.Framework.Test]
+        public virtual void TestCompletionWithWrongFieldNameAndDeprecatedApiTest() {
+            byte[] signData = new byte[4096];
+            // open prepared document
+            using (PdfDocument preparedDoc = new PdfDocument(new PdfReader(new FileInfo(SOURCE_FOLDER + "2PhasePreparedSignature.pdf"
+                   )))) {
+                using (Stream signedDoc = new ByteArrayOutputStream()) {
+                    // add signature
+                    Exception e = NUnit.Framework.Assert.Catch(typeof(PdfException), () => {
+                            PdfTwoPhaseSigner.AddSignatureToPreparedDocument(preparedDoc, "wrong" + FIELD_NAME, signedDoc, signData);
+                        }
                     );
                     NUnit.Framework.Assert.AreEqual(MessageFormatUtil.Format(SignExceptionMessageConstant.THERE_IS_NO_FIELD_IN_THE_DOCUMENT_WITH_SUCH_NAME
                         , "wrong" + FIELD_NAME), e.Message);
@@ -123,12 +142,12 @@ namespace iText.Signatures.Sign {
         public virtual void TestCompletionWithNotEnoughSpace() {
             byte[] signData = new byte[20000];
             // open prepared document
-            using (PdfDocument preparedDoc = new PdfDocument(new PdfReader(new FileInfo(SOURCE_FOLDER + "2PhasePreparedSignature.pdf"
-                )))) {
+            using (PdfReader reader = new PdfReader(new FileInfo(SOURCE_FOLDER + "2PhasePreparedSignature.pdf"
+                ))) {
                 using (Stream signedDoc = new ByteArrayOutputStream()) {
                     // add signature
                     Exception e = NUnit.Framework.Assert.Catch(typeof(PdfException), () => {
-                        PdfTwoPhaseSigner.AddSignatureToPreparedDocument(preparedDoc, FIELD_NAME, signedDoc, signData);
+                        PdfTwoPhaseSigner.AddSignatureToPreparedDocument(reader, FIELD_NAME, signedDoc, signData);
                     }
                     );
                     NUnit.Framework.Assert.AreEqual(SignExceptionMessageConstant.AVAILABLE_SPACE_IS_NOT_ENOUGH_FOR_SIGNATURE, 
@@ -150,9 +169,9 @@ namespace iText.Signatures.Sign {
                     byte[] signData = new byte[1024];
                     using (Stream outputStreamPhase2 = FileUtil.GetFileOutputStream(DESTINATION_FOLDER + "2PhaseCompleteCycle.pdf"
                         )) {
-                        using (PdfDocument doc = new PdfDocument(new PdfReader(new MemoryStream(outputStream.ToArray())))) {
+                        using (PdfReader newReader = new PdfReader(new MemoryStream(outputStream.ToArray()))) {
                             Exception e = NUnit.Framework.Assert.Catch(typeof(PdfException), () => {
-                                PdfTwoPhaseSigner.AddSignatureToPreparedDocument(doc, FIELD_NAME, outputStreamPhase2, signData);
+                                PdfTwoPhaseSigner.AddSignatureToPreparedDocument(newReader, FIELD_NAME, outputStreamPhase2, signData);
                             }
                             );
                             NUnit.Framework.Assert.AreEqual(MessageFormatUtil.Format(SignExceptionMessageConstant.SIGNATURE_WITH_THIS_NAME_IS_NOT_THE_LAST_IT_DOES_NOT_COVER_WHOLE_DOCUMENT
@@ -209,8 +228,8 @@ namespace iText.Signatures.Sign {
                     byte[] signData = SignDigest(digest, DIGEST_ALGORITHM);
                     using (Stream outputStreamPhase2 = FileUtil.GetFileOutputStream(DESTINATION_FOLDER + "2PhaseCompleteCycle.pdf"
                         )) {
-                        using (PdfDocument doc = new PdfDocument(new PdfReader(new MemoryStream(outputStream.ToArray())))) {
-                            PdfTwoPhaseSigner.AddSignatureToPreparedDocument(doc, fieldName, outputStreamPhase2, signData);
+                        using (PdfReader newReader = new PdfReader(new MemoryStream(outputStream.ToArray()))) {
+                            PdfTwoPhaseSigner.AddSignatureToPreparedDocument(newReader, fieldName, outputStreamPhase2, signData);
                         }
                     }
                     NUnit.Framework.Assert.IsNull(SignaturesCompareTool.CompareSignatures(DESTINATION_FOLDER + "2PhaseCompleteCycle.pdf"
@@ -227,11 +246,11 @@ namespace iText.Signatures.Sign {
                 signdataS.Read(signData);
             }
             // open prepared document
-            using (PdfDocument preparedDoc = new PdfDocument(new PdfReader(new FileInfo(SOURCE_FOLDER + "2PhasePreparedSignature.pdf"
-                )))) {
+            using (PdfReader reader = new PdfReader(new FileInfo(SOURCE_FOLDER + "2PhasePreparedSignature.pdf"
+                ))) {
                 using (Stream signedDoc = FileUtil.GetFileOutputStream(DESTINATION_FOLDER + "2PhaseCompletion.pdf")) {
                     // add signature
-                    PdfTwoPhaseSigner.AddSignatureToPreparedDocument(preparedDoc, FIELD_NAME, signedDoc, signData);
+                    PdfTwoPhaseSigner.AddSignatureToPreparedDocument(reader, FIELD_NAME, signedDoc, signData);
                 }
             }
             NUnit.Framework.Assert.IsNull(SignaturesCompareTool.CompareSignatures(DESTINATION_FOLDER + "2PhaseCompletion.pdf"
@@ -261,7 +280,7 @@ namespace iText.Signatures.Sign {
                         cmsToUpdate.GetSignerInfo().SetSignature(signaturedata);
                         //if needed a time stamp could be added here
                         //Phase 2.3 add the updated CMS to the document
-                        PdfTwoPhaseSigner.AddSignatureToPreparedDocument(doc, signatureName, outputStreamPhase2, cmsToUpdate);
+                        PdfTwoPhaseSigner.AddSignatureToPreparedDocument(new PdfReader(new MemoryStream(phaseOneOS.ToArray())), signatureName, outputStreamPhase2, cmsToUpdate);
                     }
                 }
                 // validate signature
@@ -302,7 +321,7 @@ namespace iText.Signatures.Sign {
                     // Phase 1.1 prepare the CMS
                     CMSContainer cms = new CMSContainer();
                     SignerInfo signerInfo = new SignerInfo();
-                    //signerInfo.setSigningCertificateAndAddToSignedAttributes(chain[0], SecurityIDs.ID_SHA384);
+                    //signerInfo.setSigningCertificateAndAddToSignedAttributes(chain[0], OID.ID_SHA384);
                     signerInfo.SetSigningCertificate(chain[0]);
                     // in the two phase scenario,; we don't have the private key! So we start from the signing certificate
                     
@@ -319,8 +338,8 @@ namespace iText.Signatures.Sign {
 
                     // now we store signedAttributesToSign together with the prepared document and send
                     // dataToSign to the signing instance
-                    using (PdfDocument doc = new PdfDocument(new PdfReader(new MemoryStream(outputStream.ToArray())))) {
-                        PdfTwoPhaseSigner.AddSignatureToPreparedDocument(doc, fieldName, preparedOS, cms);
+                    using (PdfReader newReader = new PdfReader(new MemoryStream(outputStream.ToArray()))) {
+                        PdfTwoPhaseSigner.AddSignatureToPreparedDocument(newReader, fieldName, preparedOS, cms);
                     }
                     return dataToSign;
                 }

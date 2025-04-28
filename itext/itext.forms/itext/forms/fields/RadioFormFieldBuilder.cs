@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -46,7 +46,7 @@ namespace iText.Forms.Fields {
         public virtual PdfButtonFormField CreateRadioGroup() {
             PdfButtonFormField radioGroup = PdfFormCreator.CreateButtonFormField(GetDocument());
             radioGroup.DisableFieldRegeneration();
-            radioGroup.pdfConformanceLevel = GetGenericConformanceLevel();
+            radioGroup.pdfConformance = GetConformance();
             radioGroup.SetFieldName(GetFormFieldName());
             radioGroup.SetFieldFlags(PdfButtonFormField.FF_RADIO);
             radioGroup.EnableFieldRegeneration();
@@ -71,12 +71,12 @@ namespace iText.Forms.Fields {
             PdfName appearancePdfName = new PdfName(appearanceName);
             PdfWidgetAnnotation annotation = new PdfWidgetAnnotation(widgetRectangle);
             annotation.SetAppearanceState(appearancePdfName);
-            if (GetGenericConformanceLevel() != null) {
+            if (GetConformance() != null && GetConformance().IsPdfAOrUa()) {
                 annotation.SetFlag(PdfAnnotation.PRINT);
             }
             PdfFormAnnotation radio = PdfFormCreator.CreateFormAnnotation(annotation, GetDocument());
             SetPageToField(radio);
-            radio.pdfConformanceLevel = GetGenericConformanceLevel();
+            radio.pdfConformance = GetConformance();
             return radio;
         }
 

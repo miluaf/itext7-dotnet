@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -24,6 +24,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using iText.Bouncycastle.Security;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Esf;
@@ -47,6 +48,7 @@ using iText.Bouncycastlefips.Cert.Ocsp;
 using iText.Bouncycastlefips.Cms;
 using iText.Bouncycastlefips.Crypto;
 using iText.Bouncycastlefips.Crypto.Generators;
+using iText.Bouncycastlefips.Crypto.Modes;
 using iText.Bouncycastlefips.Math;
 using iText.Bouncycastlefips.Openssl;
 using iText.Bouncycastlefips.Operator;
@@ -69,6 +71,7 @@ using iText.Commons.Bouncycastle.Cert.Ocsp;
 using iText.Commons.Bouncycastle.Cms;
 using iText.Commons.Bouncycastle.Crypto;
 using iText.Commons.Bouncycastle.Crypto.Generators;
+using iText.Commons.Bouncycastle.Crypto.Modes;
 using iText.Commons.Bouncycastle.Math;
 using iText.Commons.Bouncycastle.Openssl;
 using iText.Commons.Bouncycastle.Operator;
@@ -829,6 +832,11 @@ namespace iText.Bouncycastlefips {
         }
 
         /// <summary><inheritDoc/></summary>
+        public virtual IDerGeneralizedTime CreateASN1GeneralizedTime(DateTime date) {
+            return new DerGeneralizedTimeBCFips(new DerGeneralizedTime(date));
+        }
+
+        /// <summary><inheritDoc/></summary>
         public virtual IDerUtcTime CreateASN1UTCTime(IAsn1Encodable encodable) {
             Asn1EncodableBCFips encodableBCFips = (Asn1EncodableBCFips)encodable;
             if (encodableBCFips.GetEncodable() is DerUtcTime) {
@@ -867,6 +875,11 @@ namespace iText.Bouncycastlefips {
         /// <summary><inheritDoc/></summary>
         public virtual IX500Name CreateX500Name(String s) {
             return new X500NameBCFips(new X500Name(s));
+        }
+
+        public IX500Name CreateX500Name(IAsn1Sequence s)
+        {
+            return new X500NameBCFips(X500Name.GetInstance(((Asn1SequenceBCFips) s).GetAsn1Sequence()));
         }
 
         /// <summary><inheritDoc/></summary>
@@ -947,6 +960,11 @@ namespace iText.Bouncycastlefips {
             MemoryStream bOut = new MemoryStream();
             content.Write(bOut);
             return new TstInfoBCFips(TstInfo.GetInstance(Asn1Object.FromByteArray(bOut.ToArray())));
+        }
+        
+        /// <summary><inheritDoc/></summary>
+        public virtual ITstInfo CreateTSTInfo(IAsn1Object contentInfo) {
+            return new TstInfoBCFips(TstInfo.GetInstance(((Asn1ObjectBCFips) contentInfo).GetPrimitive()));
         }
 
         /// <summary><inheritDoc/></summary>
@@ -1039,7 +1057,7 @@ namespace iText.Bouncycastlefips {
 
         /// <summary><inheritDoc/></summary>
         public ICertID CreateCertificateID(string hashAlgorithm, IX509Certificate issuerCert, IBigInteger serialNumber) {
-            return new CertIDBCFips(hashAlgorithm, issuerCert, serialNumber);
+            return new CertIDBCFips(new AlgorithmIdentifier(new DerObjectIdentifier(hashAlgorithm), DerNull.Instance), issuerCert, serialNumber);
         }
 
         /// <summary><inheritDoc/></summary>
@@ -1182,6 +1200,11 @@ namespace iText.Bouncycastlefips {
         public bool IsNull(IAsn1Encodable encodable) {
             return ((Asn1EncodableBCFips)encodable).GetEncodable() == null;
         }
+        
+        /// <summary><inheritDoc/></summary>
+        public RNGCryptoServiceProvider GetSecureRandom() {
+            return new RNGCryptoServiceProvider();
+        }
 
         /// <summary><inheritDoc/></summary>
         public IX509Extension CreateExtension(bool b, IDerOctetString octetString) {
@@ -1212,17 +1235,6 @@ namespace iText.Bouncycastlefips {
         }
 
         /// <summary><inheritDoc/></summary>
-        public SecureRandom GetSecureRandom() {
-            byte[] personalizationString = Strings.ToUtf8ByteArray("some personalization string");
-            SecureRandom entropySource = new SecureRandom();
-            return CryptoServicesRegistrar.CreateService(FipsDrbg.Sha512)
-                .FromEntropySource(entropySource,true)
-                .SetPersonalizationString(personalizationString).Build(
-                    entropySource.GenerateSeed(256 / (2 * 8)), true, 
-                    Strings.ToByteArray("number only used once"));
-        }
-        
-        /// <summary><inheritDoc/></summary>
         public IBouncyCastleUtil GetBouncyCastleUtil() {
             return BOUNCY_CASTLE_UTIL;
         }
@@ -1230,6 +1242,39 @@ namespace iText.Bouncycastlefips {
         /// <summary><inheritDoc/></summary>
         public string CreateEndDate(IX509Certificate certificate) {
             return certificate.GetEndDateTime();
+        }
+        
+        /// <summary><inheritDoc/></summary>
+        public byte[] GenerateHKDF(byte[] inputKey, byte[] salt, byte[] info) {
+            FipsKdf.HKdfKey key = FipsKdf.HKdfKeyBldr.WithSalt(salt).WithPrf(FipsPrfAlgorithm.Sha256HMac).Build(inputKey).WithIV(info);
+            IKdfCalculator<FipsKdf.AgreementKdfParameters> service = CryptoServicesRegistrar.CreateService(key);
+            return service.GetResult(inputKey.Length).Collect();
+        }
+        
+        /// <summary><inheritDoc/></summary>
+        public byte[] GenerateHMACSHA256Token(byte[] key, byte[] data) {
+            HMACSHA256 mac = new HMACSHA256(key);
+            return mac.ComputeHash(data);
+        }
+        
+        /// <summary><inheritDoc/></summary>
+        public byte[] GenerateEncryptedKeyWithAES256NoPad(byte[] key, byte[] kek) {
+            FipsAes.Key aesKey = new FipsAes.Key(kek);
+            IBlockCipherService provider = CryptoServicesRegistrar.CreateService((ICryptoServiceType<IBlockCipherService>) aesKey);
+            IKeyWrapper<FipsAes.WrapParameters> keyWrapper = provider.CreateKeyWrapper(FipsAes.KW);
+            return keyWrapper.Wrap(key).Collect();
+        }
+        
+        /// <summary><inheritDoc/></summary>
+        public byte[] GenerateDecryptedKeyWithAES256NoPad(byte[] key, byte[] kek) {
+            FipsAes.Key aesKey = new FipsAes.Key(kek);
+            IBlockCipherService provider = CryptoServicesRegistrar.CreateService((ICryptoServiceType<IBlockCipherService>) aesKey);
+            IKeyUnwrapper<FipsAes.WrapParameters> keyWrapper = provider.CreateKeyUnwrapper(FipsAes.KW);
+            return keyWrapper.Unwrap(key, 0, key.Length).Collect();
+        }
+
+        public IGCMBlockCipher CreateGCMBlockCipher() {
+            return new GCMBlockCipherBCFips();
         }
 
         private IX509Certificate ReadPemCertificate(PushbackStream pushbackStream) {

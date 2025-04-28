@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2024 Apryse Group NV
+Copyright (c) 1998-2025 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -376,11 +376,11 @@ namespace iText.Kernel.Pdf {
         }
 
         /// <summary>
-        /// Add an extensions dictionary containing developer prefix identification and version
+        /// Adds an extensions dictionary containing developer prefix identification and version
         /// numbers for developer extensions that occur in this document.
         /// </summary>
         /// <remarks>
-        /// Add an extensions dictionary containing developer prefix identification and version
+        /// Adds an extensions dictionary containing developer prefix identification and version
         /// numbers for developer extensions that occur in this document.
         /// See ISO 32000-1, Table 28 – Entries in the catalog dictionary.
         /// </remarks>
@@ -429,6 +429,41 @@ namespace iText.Kernel.Pdf {
                     }
                 }
                 extensions.Put(extension.GetPrefix(), extension.GetDeveloperExtensions());
+            }
+        }
+
+        /// <summary>
+        /// Removes an extensions dictionary containing developer prefix identification and version
+        /// numbers for developer extensions that do not occur in this document.
+        /// </summary>
+        /// <remarks>
+        /// Removes an extensions dictionary containing developer prefix identification and version
+        /// numbers for developer extensions that do not occur in this document.
+        /// See ISO 32000-1, Table 28 – Entries in the catalog dictionary.
+        /// </remarks>
+        /// <param name="extension">developer extension to be removed from the document</param>
+        public virtual void RemoveDeveloperExtension(PdfDeveloperExtension extension) {
+            PdfDictionary extensions = GetPdfObject().GetAsDictionary(PdfName.Extensions);
+            if (extensions == null) {
+                return;
+            }
+            if (extension.IsMultiValued()) {
+                PdfArray existingExtensionArray = extensions.GetAsArray(extension.GetPrefix());
+                if (existingExtensionArray == null) {
+                    return;
+                }
+                for (int i = 0; i < existingExtensionArray.Size(); i++) {
+                    PdfDictionary pdfDict = existingExtensionArray.GetAsDictionary(i);
+                    // for array-based extensions, we check for membership only, since comparison doesn't make sense
+                    if (pdfDict.GetAsNumber(PdfName.ExtensionLevel).IntValue() == extension.GetExtensionLevel()) {
+                        existingExtensionArray.Remove(i);
+                        existingExtensionArray.SetModified();
+                        return;
+                    }
+                }
+            }
+            else {
+                extensions.Remove(extension.GetPrefix());
             }
         }
 
@@ -499,20 +534,27 @@ namespace iText.Kernel.Pdf {
             return ocProperties != null || ocgCopied;
         }
 
+//\cond DO_NOT_DOCUMENT
         internal virtual void SetOcgCopied(bool ocgCopied) {
             this.ocgCopied = ocgCopied;
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         internal virtual PdfPagesTree GetPageTree() {
             return pageTree;
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>this method return map containing all pages of the document with associated outlines.</summary>
         /// <returns>map containing all pages of the document with associated outlines</returns>
         internal virtual IDictionary<PdfObject, IList<PdfOutline>> GetPagesWithOutlines() {
             return pagesWithOutlines;
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>This methods adds new name to the Dests NameTree.</summary>
         /// <remarks>This methods adds new name to the Dests NameTree. It throws an exception, if the name already exists.
         ///     </remarks>
@@ -524,7 +566,9 @@ namespace iText.Kernel.Pdf {
         internal virtual void AddNamedDestination(PdfString key, PdfObject value) {
             AddNameToNameTree(key, value, PdfName.Dests);
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>This methods adds a new name to the specified NameTree.</summary>
         /// <remarks>This methods adds a new name to the specified NameTree. It throws an exception, if the name already exists.
         ///     </remarks>
@@ -534,7 +578,9 @@ namespace iText.Kernel.Pdf {
         internal virtual void AddNameToNameTree(PdfString key, PdfObject value, PdfName treeType) {
             GetNameTree(treeType).AddEntry(key, value);
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>This method returns a complete outline tree of the whole document.</summary>
         /// <param name="updateOutlines">
         /// if the flag is true, the method read the whole document and creates outline tree.
@@ -568,7 +614,9 @@ namespace iText.Kernel.Pdf {
             }
             return outlines;
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>Indicates if the catalog has any outlines</summary>
         /// <returns>
         /// 
@@ -580,7 +628,9 @@ namespace iText.Kernel.Pdf {
         internal virtual bool HasOutlines() {
             return GetPdfObject().ContainsKey(PdfName.Outlines);
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>This flag determines if Outline tree of the document has been built via calling getOutlines method.
         ///     </summary>
         /// <remarks>
@@ -591,7 +641,9 @@ namespace iText.Kernel.Pdf {
         internal virtual bool IsOutlineMode() {
             return outlineMode;
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>This method removes all outlines associated with a given page</summary>
         /// <param name="page">the page to remove outlines</param>
         internal virtual void RemoveOutlines(PdfPage page) {
@@ -609,7 +661,9 @@ namespace iText.Kernel.Pdf {
                 }
             }
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>This method sets the root outline element in the catalog.</summary>
         /// <param name="outline">the outline dictionary that shall be the root of the document’s outline hierarchy</param>
         internal virtual void AddRootOutline(PdfOutline outline) {
@@ -620,7 +674,9 @@ namespace iText.Kernel.Pdf {
                 Put(PdfName.Outlines, outline.GetContent());
             }
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         /// <summary>
         /// Construct
         /// <see cref="PdfCatalog">dictionary</see>
@@ -713,7 +769,9 @@ namespace iText.Kernel.Pdf {
                 }
             }
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         internal virtual PdfDestination CopyDestination(PdfObject dest, IDictionary<PdfPage, PdfPage> page2page, PdfDocument
              toDocument) {
             if (null == dest) {
@@ -722,14 +780,14 @@ namespace iText.Kernel.Pdf {
             PdfDestination d = null;
             if (dest.IsArray()) {
                 PdfObject pageObject = ((PdfArray)dest).Get(0);
-                foreach (PdfPage oldPage in page2page.Keys) {
-                    if (oldPage.GetPdfObject() == pageObject) {
-                        // in the copiedArray old page ref will be correctly replaced by the new page ref
-                        // as this page is already copied
-                        PdfArray copiedArray = (PdfArray)dest.CopyTo(toDocument, false, NullCopyFilter.GetInstance());
-                        d = new PdfExplicitDestination(copiedArray);
-                        break;
-                    }
+                //12.3.2.2 Explicit destinations
+                if (pageObject.IsNumber()) {
+                    //Handle remote and embedded destinations
+                    d = CreateDestinationFromPageNum(dest, toDocument);
+                }
+                else {
+                    //Handle all other destinations
+                    d = CreateDestinationFromPageRef(dest, page2page, toDocument, pageObject);
                 }
             }
             else {
@@ -764,7 +822,9 @@ namespace iText.Kernel.Pdf {
             }
             return d;
         }
+//\endcond
 
+//\cond DO_NOT_DOCUMENT
         internal virtual PdfDictionary FillAndGetOcPropertiesDictionary() {
             if (ocProperties != null) {
                 ocProperties.FillDictionary(false);
@@ -777,6 +837,24 @@ namespace iText.Kernel.Pdf {
                 GetDocument().GetCatalog().GetPdfObject().Put(PdfName.OCProperties, pdfDictionary);
             }
             return GetPdfObject().GetAsDictionary(PdfName.OCProperties);
+        }
+//\endcond
+
+        private PdfDestination CreateDestinationFromPageNum(PdfObject dest, PdfDocument toDocument) {
+            return new PdfExplicitDestination((PdfArray)dest.CopyTo(toDocument, false, NullCopyFilter.GetInstance()));
+        }
+
+        private static PdfDestination CreateDestinationFromPageRef(PdfObject dest, IDictionary<PdfPage, PdfPage> page2page
+            , PdfDocument toDocument, PdfObject pageObject) {
+            foreach (PdfPage oldPage in page2page.Keys) {
+                if (oldPage.GetPdfObject() == pageObject) {
+                    // in the copiedArray old page ref will be correctly replaced by the new page ref
+                    // as this page is already copied
+                    PdfArray copiedArray = (PdfArray)dest.CopyTo(toDocument, false, NullCopyFilter.GetInstance());
+                    return new PdfExplicitDestination(copiedArray);
+                }
+            }
+            return null;
         }
 
         private bool IsEqualSameNameDestExist(IDictionary<PdfPage, PdfPage> page2page, PdfDocument toDocument, PdfString
