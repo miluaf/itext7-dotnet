@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -303,8 +303,8 @@ namespace iText.IO.Image {
                     tiff.image.SetRotation(rotation);
                 }
             }
-            catch (Exception) {
-                throw new iText.IO.Exceptions.IOException(IoExceptionMessageConstant.CANNOT_READ_TIFF_IMAGE);
+            catch (Exception e) {
+                throw new iText.IO.Exceptions.IOException(IoExceptionMessageConstant.CANNOT_READ_TIFF_IMAGE, e);
             }
         }
 

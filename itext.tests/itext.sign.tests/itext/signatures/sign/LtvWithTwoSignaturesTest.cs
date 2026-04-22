@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -38,8 +38,7 @@ namespace iText.Signatures.Sign {
         private static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/signatures/sign/LtvWithTwoSignaturesTest/";
 
-        private static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/signatures/sign/LtvWithTwoSignaturesTest/";
+        private static readonly String destinationFolder = TestUtil.GetOutputPath() + "/signatures/sign/LtvWithTwoSignaturesTest/";
 
         private static readonly char[] password = "testpassphrase".ToCharArray();
 

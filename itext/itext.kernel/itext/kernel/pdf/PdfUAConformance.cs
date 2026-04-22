@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -32,6 +32,10 @@ namespace iText.Kernel.Pdf {
         /// <summary>PDF/UA-1 conformance</summary>
         public static readonly iText.Kernel.Pdf.PdfUAConformance PDF_UA_1 = new iText.Kernel.Pdf.PdfUAConformance(
             "1");
+
+        /// <summary>PDF/UA-2 conformance</summary>
+        public static readonly iText.Kernel.Pdf.PdfUAConformance PDF_UA_2 = new iText.Kernel.Pdf.PdfUAConformance(
+            "2");
 
         private readonly String part;
 

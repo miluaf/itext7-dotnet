@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -124,7 +124,9 @@ namespace iText.Kernel.Crypto {
         /// <c>off+len</c>
         /// is greater than the length of the array
         /// <paramref name="b"/>
-        /// , then an <tt>IndexOutOfBoundsException</tt> is thrown.
+        /// , then an
+        /// <c>IndexOutOfBoundsException</c>
+        /// is thrown.
         /// </remarks>
         /// <param name="b">the data.</param>
         /// <param name="off">the start offset in the data.</param>

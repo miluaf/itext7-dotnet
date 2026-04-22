@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -28,6 +28,7 @@ using iText.Forms.Util;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf.Annot;
+using iText.Kernel.Pdf.Tagging;
 using iText.Layout.Element;
 using iText.Layout.Layout;
 using iText.Layout.Properties;
@@ -64,6 +65,7 @@ namespace iText.Forms.Form.Renderer {
                 defaultValue = "\u00a0";
             }
             Text text = new Text(defaultValue);
+            text.GetAccessibilityProperties().SetRole(StandardRoles.SPAN);
             FormFieldValueNonTrimmingTextRenderer nextRenderer = new FormFieldValueNonTrimmingTextRenderer(text);
             text.SetNextRenderer(nextRenderer);
             return new Paragraph(text).SetMargin(0).CreateRendererSubTree();

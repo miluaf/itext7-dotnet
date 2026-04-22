@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -126,6 +126,22 @@ namespace iText.StyledXmlParser.Css.Parse {
         public virtual void Test12() {
             String cssFile = sourceFolder + "css12.css";
             String cmpFile = sourceFolder + "cmp_css12.css";
+            CssStyleSheet styleSheet = CssStyleSheetParser.Parse(FileUtil.GetInputStreamForFile(cssFile));
+            NUnit.Framework.Assert.AreEqual(GetCssFileContents(cmpFile), styleSheet.ToString());
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void CssExampleWithCommaInsideOfPseudoClassTest() {
+            String cssFile = sourceFolder + "cssExampleWithCommaInsideOfPseudoClassTest.css";
+            String cmpFile = sourceFolder + "cmp_cssExampleWithCommaInsideOfPseudoClassTest.css";
+            CssStyleSheet styleSheet = CssStyleSheetParser.Parse(FileUtil.GetInputStreamForFile(cssFile));
+            NUnit.Framework.Assert.AreEqual(GetCssFileContents(cmpFile), styleSheet.ToString());
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void InvalidCssExampleWithCommaInsideOfPseudoClassTest() {
+            String cssFile = sourceFolder + "invalidCssExampleWithCommaInsideOfPseudoClassTest.css";
+            String cmpFile = sourceFolder + "cmp_invalidCssExampleWithCommaInsideOfPseudoClassTest.css";
             CssStyleSheet styleSheet = CssStyleSheetParser.Parse(FileUtil.GetInputStreamForFile(cssFile));
             NUnit.Framework.Assert.AreEqual(GetCssFileContents(cmpFile), styleSheet.ToString());
         }

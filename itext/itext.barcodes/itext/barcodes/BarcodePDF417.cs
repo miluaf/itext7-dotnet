@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -1186,6 +1186,7 @@ namespace iText.Barcodes {
         }
 
         /// <summary>Prints the segments to standard output.</summary>
+        [System.ObsoleteAttribute(@"Test method for printing a segment list to std out, to be removed")]
         protected internal virtual void DumpList() {
             if (segmentList.Size() == 0) {
                 return;

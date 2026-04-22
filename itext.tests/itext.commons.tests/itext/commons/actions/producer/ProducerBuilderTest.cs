@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -195,6 +195,29 @@ namespace iText.Commons.Actions.Producer {
             IList<ConfirmedEventWrapper> events = GetEvents("some Author", 1, 2, 3);
             String newProducerLine = ProducerBuilder.ModifyProducer(events, "some Author");
             NUnit.Framework.Assert.AreEqual("some Author", newProducerLine);
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void MergeEquivalentProducersTest() {
+            String producerLine = "some producer";
+            String result = ProducerBuilder.MergeProducerLines(producerLine, producerLine);
+            NUnit.Framework.Assert.AreEqual(producerLine, result);
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void MergeDifferentProducersTest() {
+            String producerLine = "some producer";
+            String secondProducerLine = "another producer";
+            String result = ProducerBuilder.MergeProducerLines(producerLine, secondProducerLine);
+            NUnit.Framework.Assert.AreEqual(producerLine + "; modified using " + secondProducerLine, result);
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void MergeProducerEndsWithSecondProducerTest() {
+            String producerLine = "some producer; modified using another producer";
+            String secondProducerLine = "another producer";
+            String result = ProducerBuilder.MergeProducerLines(producerLine, secondProducerLine);
+            NUnit.Framework.Assert.AreEqual(producerLine, result);
         }
 
         private IList<ConfirmedEventWrapper> GetEvents(String initialProducerLine, params int[] indexes) {

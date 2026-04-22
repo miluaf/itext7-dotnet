@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -31,8 +31,7 @@ namespace iText.Kernel.Pdf {
     [NUnit.Framework.Category("IntegrationTest")]
     public class PdfPrimitivesTest : ExtendedITextTest {
 //\cond DO_NOT_DOCUMENT
-        internal static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/kernel/pdf/PdfPrimitivesTest/";
+        internal static readonly String destinationFolder = TestUtil.GetOutputPath() + "/kernel/pdf/PdfPrimitivesTest/";
 //\endcond
 
 //\cond DO_NOT_DOCUMENT

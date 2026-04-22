@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -24,12 +24,12 @@ using System;
 using iText.Kernel.Font;
 
 namespace iText.Kernel.Utils.Checkers {
-    /// <summary>Utility class that contains common checks used in both the  PDFA and PDFUA module for fonts.</summary>
+    /// <summary>Utility class that contains common checks used in both PDF/A and PDF/UA modules for fonts.</summary>
     public sealed class FontCheckUtil {
         private FontCheckUtil() {
         }
 
-        // Empty constructor
+        // Empty constructor.
         /// <summary>Checks the text by the passed checker and the font.</summary>
         /// <param name="text">the text to check</param>
         /// <param name="font">the font to check</param>
@@ -58,13 +58,13 @@ namespace iText.Kernel.Utils.Checkers {
 
         /// <summary>Character checker which performs check of passed symbol against the font.</summary>
         public interface CharacterChecker {
-            /// <summary>Checks passed symbol against the font</summary>
+            /// <summary>Checks passed symbol against the font.</summary>
             /// <param name="ch">character to check</param>
             /// <param name="font">font to check</param>
             /// <returns>
             /// 
             /// <see langword="true"/>
-            /// if check passes, otherwise
+            /// if font doesn't contain passed symbol or this symbol is invalid, otherwise
             /// <see langword="false"/>
             /// </returns>
             bool Check(int ch, PdfFont font);

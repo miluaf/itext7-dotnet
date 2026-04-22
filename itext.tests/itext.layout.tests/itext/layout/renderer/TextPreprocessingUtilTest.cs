@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -74,7 +74,6 @@ namespace iText.Layout.Renderer {
             NUnit.Framework.Assert.AreEqual(space.GetCode(), glyph.GetCode());
             NUnit.Framework.Assert.AreEqual(space.GetWidth(), glyph.GetWidth());
             NUnit.Framework.Assert.AreEqual(space.GetUnicode(), glyph.GetUnicode());
-            NUnit.Framework.Assert.AreEqual(iText.IO.Util.TextUtil.ConvertFromUtf32(unicode), glyph.GetChars());
         }
     }
 }

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,6 +21,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
+using System.Collections.Generic;
 using iText.Commons.Datastructures;
 using iText.Commons.Utils;
 using iText.Kernel.Colors;
@@ -29,6 +30,7 @@ using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Action;
 using iText.Kernel.Pdf.Annot;
 using iText.Kernel.Pdf.Navigation;
+using iText.Kernel.Pdf.Tagging;
 using iText.Kernel.Utils;
 using iText.Layout.Borders;
 using iText.Layout.Element;
@@ -43,8 +45,7 @@ namespace iText.Layout {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/LinkTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/LinkTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/layout/LinkTest/";
 
         private const String LONG_TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam nec condimentum odio. Duis sed ipsum semper, imperdiet risus sit amet, pellentesque leo. Proin eget libero quis orci sagittis efficitur et a justo. Phasellus ac ipsum id lacus fermentum malesuada. Morbi vulputate ultricies ligula a pretium. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Etiam eget leo maximus velit placerat condimentum. Nulla in fermentum ex, in fermentum risus. Phasellus gravida ante sit amet magna porta fermentum. Nunc nec urna quis enim facilisis scelerisque. Praesent risus est, efficitur eget quam nec, dignissim mollis nunc. Mauris in sodales nulla.\n"
              + "Sed sodales pharetra sapien, eget tristique magna fringilla at. Quisque ligula eros, auctor sit amet varius a, tincidunt non mauris. Sed diam mi, dignissim id magna accumsan, viverra scelerisque risus. Etiam blandit condimentum quam non bibendum. Sed vehicula justo quis lectus consequat, sit amet tempor sem mollis. Sed turpis nibh, luctus in arcu mattis, consequat laoreet est. Integer tempor, ante a gravida efficitur, velit libero dapibus nibh, et scelerisque diam nulla a orci. Vestibulum eleifend rutrum elit, sed pellentesque arcu lacinia nec. Nam semper, velit eget rhoncus efficitur, odio libero molestie mi, ut eleifend libero purus ut ex. Quisque hendrerit vehicula hendrerit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam quis elit eu dolor pellentesque viverra non eget purus. Nam nisi erat, efficitur sed malesuada ut, ornare sit amet risus. Nunc eu vestibulum turpis.\n"
@@ -272,6 +273,7 @@ namespace iText.Layout {
             String cmpFileName = sourceFolder + "cmp_splitLinkTest01.pdf";
             PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFileName));
             Document doc = new Document(pdfDocument);
+            pdfDocument.SetTagged();
             PdfAction action = PdfAction.CreateURI("http://itextpdf.com");
             PdfLinkAnnotation annotation = new PdfLinkAnnotation(new Rectangle(1, 1)).SetAction(action);
             Link linkByAnnotation = new Link(LONG_TEXT, annotation);
@@ -287,8 +289,10 @@ namespace iText.Layout {
         public virtual void LinkAnnotationOnDivSplitTest01() {
             String outFileName = destinationFolder + "linkAnnotationOnDivSplitTest01.pdf";
             String cmpFileName = sourceFolder + "cmp_linkAnnotationOnDivSplitTest01.pdf";
-            PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFileName));
+            PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFileName, new WriterProperties().SetPdfVersion(
+                PdfVersion.PDF_2_0)));
             Document doc = new Document(pdfDocument);
+            pdfDocument.SetTagged();
             PdfAction action = PdfAction.CreateURI("http://itextpdf.com");
             PdfLinkAnnotation annotation = new PdfLinkAnnotation(new Rectangle(1, 1)).SetAction(action);
             Div div = new Div().SetHeight(2000).SetBackgroundColor(ColorConstants.RED);
@@ -331,8 +335,9 @@ namespace iText.Layout {
             pdfDoc.GetPage(1).Flush();
             doc.Add(text);
             Paragraph customText = new Paragraph("Custom text");
-            customText.SetProperty(Property.DESTINATION, new Tuple2<String, PdfDictionary>("custom", linkAnnotation.GetAction
-                ()));
+            ICollection<Object> destinations = new HashSet<Object>();
+            destinations.Add(new Tuple2<String, PdfDictionary>("custom", linkAnnotation.GetAction()));
+            customText.SetProperty(Property.DESTINATION, destinations);
             doc.Add(customText);
             doc.Close();
             NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
@@ -350,8 +355,9 @@ namespace iText.Layout {
             PdfLinkAnnotation linkAnnotation = new PdfLinkAnnotation(new Rectangle(0, 0, 0, 0)).SetAction(PdfAction.CreateGoTo
                 ("custom"));
             Paragraph customText = new Paragraph("Custom text");
-            customText.SetProperty(Property.DESTINATION, new Tuple2<String, PdfDictionary>("custom", linkAnnotation.GetAction
-                ()));
+            ICollection<Object> destinations = new HashSet<Object>();
+            destinations.Add(new Tuple2<String, PdfDictionary>("custom", linkAnnotation.GetAction()));
+            customText.SetProperty(Property.DESTINATION, destinations);
             doc.Add(customText);
             doc.Add(new AreaBreak());
             pdfDoc.GetPage(1).Flush();
@@ -362,6 +368,41 @@ namespace iText.Layout {
             pdfDoc.GetPage(2).Flush();
             doc.Add(text);
             doc.Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+                , "diff"));
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void LinkWithSetDestinationTest() {
+            String outFileName = destinationFolder + "linkWithSetDestination.pdf";
+            String cmpFileName = sourceFolder + "cmp_linkWithSetDestination.pdf";
+            using (Document document = new Document(new PdfDocument(new PdfWriter(outFileName)))) {
+                Link link = new Link("link", PdfAction.CreateGoTo("destination"));
+                document.Add(new Paragraph().Add(link));
+                document.Add(new AreaBreak());
+                Paragraph target = new Paragraph("target");
+                target.SetDestination("destination");
+                document.Add(target);
+            }
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+                , "diff"));
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void DestinationToFlushedPageTest() {
+            String outFileName = destinationFolder + "destinationToFlushedPage.pdf";
+            String cmpFileName = sourceFolder + "cmp_destinationToFlushedPage.pdf";
+            using (PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName, new WriterProperties().SetPdfVersion
+                (PdfVersion.PDF_2_0)))) {
+                using (Document doc = new Document(pdfDoc)) {
+                    pdfDoc.SetTagged();
+                    doc.Add(new Paragraph("text")).Add(new AreaBreak());
+                    pdfDoc.GetPage(1).Flush();
+                    Link link = new Link("Goto page 1", PdfExplicitDestination.CreateXYZ(pdfDoc.GetPage(1), 36f, 806f, 0f));
+                    link.GetAccessibilityProperties().SetRole(StandardRoles.P);
+                    doc.Add(new Paragraph(link));
+                }
+            }
             NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
                 , "diff"));
         }

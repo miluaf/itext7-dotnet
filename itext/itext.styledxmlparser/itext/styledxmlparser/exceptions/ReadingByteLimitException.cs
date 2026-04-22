@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -20,10 +20,20 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+using System;
 using iText.Commons.Exceptions;
 
 namespace iText.StyledXmlParser.Exceptions {
     /// <summary>Thrown when the limit on the number of bytes read was violated.</summary>
+    [System.ObsoleteAttribute(@"In favor of iText.IO.Exceptions.ReadingByteLimitException")]
     public class ReadingByteLimitException : ITextException {
+        /// <summary>
+        /// Creates a new
+        /// <see cref="ReadingByteLimitException"/>
+        /// instance.
+        /// </summary>
+        public ReadingByteLimitException() {
+        }
+        //Empty constructor
     }
 }

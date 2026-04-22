@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -32,6 +32,7 @@ using iText.IO.Font.Otf;
 using iText.IO.Util;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
+using iText.Layout;
 using iText.Layout.Element;
 using iText.Layout.Layout;
 using iText.Layout.Minmaxwidth;
@@ -76,7 +77,7 @@ namespace iText.Layout.Renderer {
                 float layoutWidth = layoutBox.GetWidth();
                 float layoutHeight = layoutBox.GetHeight();
                 // consider returning some value to check if layoutBox has been changed due to floats,
-                // than reuse on non-float layout: kind of not first piece of content on the line
+                // then reuse on non-float layout: kind of not first piece of content on the line
                 FloatingHelper.AdjustLineAreaAccordingToFloats(floatRendererAreas, layoutBox);
                 if (layoutWidth > layoutBox.GetWidth() || layoutHeight > layoutBox.GetHeight()) {
                     floatsPlacedBeforeLine = true;
@@ -533,8 +534,9 @@ namespace iText.Layout.Renderer {
                     }
                     else {
                         bool forcePlacement = true.Equals(GetPropertyAsBoolean(Property.FORCED_PLACEMENT));
-                        bool isInlineBlockAndFirstOnRootArea = isInlineBlockChild && IsFirstOnRootArea();
-                        if ((childResult.GetStatus() == LayoutResult.PARTIAL && (!isInlineBlockChild || forcePlacement || isInlineBlockAndFirstOnRootArea
+                        bool isInlineBlockAndFirstOnRootAreaOrFlexItem = isInlineBlockChild && (IsFirstOnRootArea() || IsInsideFlexContainer
+                            ());
+                        if ((childResult.GetStatus() == LayoutResult.PARTIAL && (!isInlineBlockChild || forcePlacement || isInlineBlockAndFirstOnRootAreaOrFlexItem
                             )) || childResult.GetStatus() == LayoutResult.FULL) {
                             IRenderer splitRenderer = childResult.GetSplitRenderer();
                             split[0].AddChild(splitRenderer);
@@ -546,7 +548,7 @@ namespace iText.Layout.Renderer {
                             anythingPlaced = true;
                         }
                         if (null != childResult.GetOverflowRenderer()) {
-                            if (isInlineBlockChild && !forcePlacement && !isInlineBlockAndFirstOnRootArea) {
+                            if (isInlineBlockChild && !forcePlacement && !isInlineBlockAndFirstOnRootAreaOrFlexItem) {
                                 split[1].AddChildRenderer(childRenderer);
                             }
                             else {
@@ -580,7 +582,11 @@ namespace iText.Layout.Renderer {
                             result = new LineLayoutResult(LayoutResult.PARTIAL, occupiedArea, split[0], split[1], causeOfNothing);
                         }
                         else {
-                            result = new LineLayoutResult(LayoutResult.NOTHING, null, null, split[1], null);
+                            //Passing any cause of nothing here breaks RootRenderer#tryDisableKeepTogether logic, since it
+                            //traverses over causeOfNothing parents and those are invalidated at ParagraphRenderer level, so
+                            //in such a case we want ParagraphRenderer to be set as a causeOfNothing
+                            result = new LineLayoutResult(LayoutResult.NOTHING, null, null, split[1], causeOfNothing is AreaBreakRenderer
+                                 ? causeOfNothing : null);
                         }
                     }
                     result.SetFloatsOverflowedToNextPage(floatsToNextPageOverflowRenderers);
@@ -704,6 +710,23 @@ namespace iText.Layout.Renderer {
                     throw new InvalidOperationException();
                 }
             }
+        }
+
+        public override void DrawChildren(DrawContext drawContext) {
+            ICollection<IPropertyContainer> modelElements = new HashSet<IPropertyContainer>();
+            for (int i = childRenderers.Count - 1; i >= 0; --i) {
+                IRenderer childRenderer = childRenderers[i];
+                if (childRenderer is AbstractRenderer) {
+                    AbstractRenderer child = (AbstractRenderer)childRenderer;
+                    if (modelElements.Contains(child.GetModelElement())) {
+                        child.isLastRendererForModelElement = false;
+                    }
+                    else {
+                        modelElements.Add(child.GetModelElement());
+                    }
+                }
+            }
+            base.DrawChildren(drawContext);
         }
 
         public override IRenderer GetNextRenderer() {
@@ -883,6 +906,11 @@ namespace iText.Layout.Renderer {
             LineLayoutResult result = (LineLayoutResult)Layout(new LayoutContext(new LayoutArea(1, new Rectangle(MinMaxWidthUtils
                 .GetInfWidth(), AbstractRenderer.INF))));
             return result.GetMinMaxWidth();
+        }
+
+        /// <summary><inheritDoc/></summary>
+        protected internal override float? RetrieveResolvedDeclaredHeight() {
+            return ((AbstractRenderer)parent).RetrieveResolvedDeclaredHeight();
         }
 
 //\cond DO_NOT_DOCUMENT
@@ -1343,7 +1371,7 @@ namespace iText.Layout.Renderer {
         /// Extracts ascender and descender of an already layouted
         /// <see cref="IRenderer">childRenderer</see>.
         /// </summary>
-        /// <param name="childRenderer">an already layouted child who's ascender and descender are to be extracted</param>
+        /// <param name="childRenderer">an already layouted child whose ascender and descender are to be extracted</param>
         /// <param name="childResult">
         /// 
         /// <see cref="iText.Layout.Layout.LayoutResult"/>
@@ -1549,7 +1577,7 @@ namespace iText.Layout.Renderer {
                         }
                     }
                 }
-                if (unicodeIdsReorderingList.Count > 0) {
+                if (!unicodeIdsReorderingList.IsEmpty()) {
                     PdfDocument pdfDocument = GetPdfDocument();
                     SequenceId sequenceId = pdfDocument == null ? null : pdfDocument.GetDocumentIdWrapper();
                     MetaInfoContainer metaInfoContainer = this.GetProperty<MetaInfoContainer>(Property.META_INFO);
@@ -1577,7 +1605,7 @@ namespace iText.Layout.Renderer {
                     newChildRenderers.Add(child);
                 }
             }
-            // this mean, that some TextRenderer has been replaced.
+            // This means that some TextRenderer has been replaced.
             if (updateChildRenderers) {
                 SetChildRenderers(newChildRenderers);
             }
@@ -1687,6 +1715,20 @@ namespace iText.Layout.Renderer {
                     return 0;
                 }
             }
+        }
+
+        // TODO DEVSIX-9509 Move whole flex container to the next page if inline-block flex item is not fit
+        private bool IsInsideFlexContainer() {
+            bool isInsideFlexContainer = false;
+            IRenderer ancestor = this;
+            while (!isInsideFlexContainer && ancestor.GetParent() != null) {
+                IRenderer parent = ancestor.GetParent();
+                if (parent is FlexContainerRenderer) {
+                    isInsideFlexContainer = true;
+                }
+                ancestor = parent;
+            }
+            return isInsideFlexContainer;
         }
 
         public class RendererGlyph {

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -28,28 +28,34 @@ namespace iText.Commons.Actions {
     /// <summary>Class that stores namespaces of iText open source products.</summary>
     public sealed class NamespaceConstant {
         public const String ITEXT = "iText";
+        public const String ITEXT5 = "iTextSharp";
 
-        //Core
+        // Core
+        public const String CORE_BARCODES = ITEXT + ".Barcodes";
+        public const String CORE_COMMONS = ITEXT + ".Commons";
+        [Obsolete]
         public const String CORE_EVENTS = ITEXT + ".Events";
+        public const String CORE_FORMS = ITEXT + ".Forms";
         public const String CORE_IO = ITEXT + ".IO";
         public const String CORE_KERNEL = ITEXT + ".Kernel";
         public const String CORE_LAYOUT = ITEXT + ".Layout";
-        public const String CORE_BARCODES = ITEXT + ".Barcodes";
         public const String CORE_PDFA = ITEXT + ".Pdfa";
         public const String CORE_PDFUA = ITEXT + ".Pdfua";
         public const String CORE_SIGN = ITEXT + ".Signatures";
-        public const String CORE_FORMS = ITEXT + ".Forms";
         public const String CORE_SXP = ITEXT + ".StyledXmlParser";
         public const String CORE_SVG = ITEXT + ".Svg";
 
-        //Addons
+        // Addons
         public const String PDF_HTML = ITEXT + ".Html2pdf";
         public const String PDF_SWEEP = ITEXT + ".PdfCleanup";
         public const String PDF_OCR = ITEXT + ".Pdfocr";
         public const String PDF_OCR_TESSERACT4 = PDF_OCR + ".Tesseract4";
+        [Obsolete]
+        public const String PDF_OCR_ONNXTR = PDF_OCR + ".Onnxtr";
+        public const String PDF_OCR_ONNX = PDF_OCR + ".Onnx";
 
         public static readonly IList<String> ITEXT_CORE_NAMESPACES = JavaCollectionsUtil.UnmodifiableList(JavaUtil.ArraysAsList(
-            NamespaceConstant.CORE_EVENTS,
+            NamespaceConstant.CORE_COMMONS,
             NamespaceConstant.CORE_IO, 
             NamespaceConstant.CORE_KERNEL, 
             NamespaceConstant.CORE_LAYOUT,

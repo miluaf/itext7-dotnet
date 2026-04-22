@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -31,12 +31,14 @@ using iText.Forms.Util;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas;
+using iText.Kernel.Pdf.Tagging;
 using iText.Kernel.Pdf.Tagutils;
 using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Layout;
 using iText.Layout.Properties;
 using iText.Layout.Renderer;
+using iText.Layout.Tagging;
 
 namespace iText.Forms.Form.Renderer {
     /// <summary>
@@ -92,7 +94,7 @@ namespace iText.Forms.Form.Renderer {
             // html rendering is PDFA compliant this means we don't have to check if its PDFA.
             ICheckBoxRenderingStrategy renderingStrategy;
             PdfConformance conformance = this.GetProperty<PdfConformance>(FormProperty.FORM_CONFORMANCE_LEVEL);
-            bool isConformantPdfDocument = conformance != null && conformance.IsPdfAOrUa();
+            bool isConformantPdfDocument = conformance != null && conformance.ConformsToAny();
             if (GetRenderingMode() == RenderingMode.HTML_MODE) {
                 renderingStrategy = new HtmlCheckBoxRenderingStrategy();
             }
@@ -138,6 +140,7 @@ namespace iText.Forms.Form.Renderer {
         /// <summary>Applies given paddings to the given rectangle.</summary>
         /// <remarks>
         /// Applies given paddings to the given rectangle.
+        /// <para />
         /// Checkboxes don't support setting of paddings as they are always centered.
         /// So that this method returns the rectangle as is.
         /// </remarks>
@@ -157,7 +160,7 @@ namespace iText.Forms.Form.Renderer {
         protected internal override IRenderer CreateFlatRenderer() {
             UnitValue heightUV = GetPropertyAsUnitValue(Property.HEIGHT);
             UnitValue widthUV = GetPropertyAsUnitValue(Property.WIDTH);
-            // if it is a percentage value, we need to calculate the actual value but we
+            // if it is a percentage value, we need to calculate the actual value, but we
             // don't have the parent's width yet, so we will take the default value
             float height = DEFAULT_SIZE;
             if (heightUV != null && heightUV.IsPointValue()) {
@@ -170,6 +173,7 @@ namespace iText.Forms.Form.Renderer {
             Paragraph paragraph = new Paragraph().SetWidth(width).SetHeight(height).SetMargin(0).SetVerticalAlignment(
                 VerticalAlignment.MIDDLE).SetHorizontalAlignment(HorizontalAlignment.CENTER).SetTextAlignment(TextAlignment
                 .CENTER);
+            paragraph.GetAccessibilityProperties().SetRole(StandardRoles.LBL);
             paragraph.SetProperty(Property.BOX_SIZING, this.GetProperty<BoxSizingPropertyValue?>(Property.BOX_SIZING));
             modelElement.SetProperty(Property.RENDERING_MODE, this.GetProperty<RenderingMode?>(Property.RENDERING_MODE
                 ));
@@ -241,8 +245,15 @@ namespace iText.Forms.Form.Renderer {
                 PdfCanvas canvas = drawContext.GetCanvas();
                 bool isTaggingEnabled = drawContext.IsTaggingEnabled();
                 if (isTaggingEnabled) {
-                    TagTreePointer tp = drawContext.GetDocument().GetTagStructureContext().GetAutoTaggingPointer();
-                    canvas.OpenTag(tp.GetTagReference());
+                    LayoutTaggingHelper taggingHelper = this.GetProperty<LayoutTaggingHelper>(Property.TAGGING_HELPER);
+                    bool isArtifact = taggingHelper != null && taggingHelper.IsArtifact(this);
+                    if (!isArtifact) {
+                        TagTreePointer tp = drawContext.GetDocument().GetTagStructureContext().GetAutoTaggingPointer();
+                        canvas.OpenTag(tp.GetTagReference());
+                    }
+                    else {
+                        canvas.OpenTag(new CanvasArtifact());
+                    }
                 }
                 this._enclosing.CreateCheckBoxRenderStrategy().DrawCheckBoxContent(drawContext, this._enclosing, rectangle
                     );

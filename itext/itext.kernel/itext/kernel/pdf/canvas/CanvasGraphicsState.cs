@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -157,7 +157,13 @@ namespace iText.Kernel.Pdf.Canvas {
         /// <summary>Updates current transformation matrix.</summary>
         /// <remarks>
         /// Updates current transformation matrix.
-        /// The third column will always be [0 0 1]
+        /// <para />
+        /// Detailed explanation of
+        /// <c>[a b c d e f]</c>
+        /// parameters of transformation
+        /// matrix can be found in
+        /// <see cref="iText.Kernel.Geom.Matrix"/>
+        /// documentation.
         /// </remarks>
         /// <param name="a">element at (1,1) of the transformation matrix</param>
         /// <param name="b">element at (1,2) of the transformation matrix</param>

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -40,8 +40,7 @@ namespace iText.Kernel.Pdf {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/kernel/pdf/TagTreePointerTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/kernel/pdf/TagTreePointerTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/kernel/pdf/TagTreePointerTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -1057,6 +1056,28 @@ namespace iText.Kernel.Pdf {
             document.Close();
             CompareResult("accessibleAttributesInsertionTest05.pdf", "cmp_accessibleAttributesInsertionTest05.pdf", "diffAttributes05_"
                 );
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void DefaultNamespaceTest() {
+            using (PdfDocument document = new PdfDocument(new PdfWriter(new MemoryStream(), new WriterProperties().SetPdfVersion
+                (PdfVersion.PDF_2_0)))) {
+                document.SetTagged();
+                document.GetStructTreeRoot().AddNamespace(new PdfNamespace(StandardNamespaces.PDF_2_0));
+                TagTreePointer pointer = new TagTreePointer(document);
+                AccessibilityProperties properties = pointer.AddTag(StandardRoles.DIV).GetProperties();
+                PdfNamespace defaultNoDoc = PdfNamespace.GetDefault(null);
+                properties.SetNamespace(defaultNoDoc);
+                NUnit.Framework.Assert.AreEqual(StandardNamespaces.PDF_1_7, defaultNoDoc.GetNamespaceName());
+                PdfNamespace defaultNew = PdfNamespace.GetDefault(document);
+                properties.SetNamespace(defaultNew);
+                NUnit.Framework.Assert.AreEqual(StandardNamespaces.PDF_1_7, defaultNew.GetNamespaceName());
+                NUnit.Framework.Assert.AreNotEqual(defaultNoDoc.GetPdfObject(), defaultNew.GetPdfObject());
+                PdfNamespace defaultSame = PdfNamespace.GetDefault(document);
+                properties.SetNamespace(defaultSame);
+                NUnit.Framework.Assert.AreEqual(StandardNamespaces.PDF_1_7, defaultSame.GetNamespaceName());
+                NUnit.Framework.Assert.AreEqual(defaultNew.GetPdfObject(), defaultSame.GetPdfObject());
+            }
         }
 
         private void CompareResult(String outFileName, String cmpFileName, String diffNamePrefix) {

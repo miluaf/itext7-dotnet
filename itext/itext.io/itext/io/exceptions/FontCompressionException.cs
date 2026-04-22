@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -24,14 +24,34 @@ using System;
 using iText.Commons.Exceptions;
 
 namespace iText.IO.Exceptions {
+    /// <summary>General compressed font parsing exception.</summary>
     public class FontCompressionException : ITextException {
+        /// <summary>
+        /// Creates a new
+        /// <see cref="FontCompressionException"/>.
+        /// </summary>
         public FontCompressionException() {
         }
 
+        /// <summary>
+        /// Creates a new
+        /// <see cref="FontCompressionException"/>.
+        /// </summary>
+        /// <param name="message">the detail message</param>
         public FontCompressionException(String message)
             : base(message) {
         }
 
+        /// <summary>
+        /// Creates a new
+        /// <see cref="FontCompressionException"/>.
+        /// </summary>
+        /// <param name="message">the detail message</param>
+        /// <param name="cause">
+        /// the cause (which is saved for later retrieval by
+        /// <see cref="System.Exception.InnerException()"/>
+        /// method)
+        /// </param>
         public FontCompressionException(String message, Exception cause)
             : base(message, cause) {
         }

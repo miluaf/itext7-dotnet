@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -26,6 +26,10 @@ using iText.Svg.Exceptions;
 using iText.Svg.Renderers;
 
 namespace iText.Svg.Renderers.Impl {
+    /// <summary>
+    /// <see cref="iText.Svg.Renderers.ISvgNodeRenderer"/>
+    /// implementation for the &lt;defs&gt; tag.
+    /// </summary>
     public class DefsSvgNodeRenderer : AbstractBranchSvgNodeRenderer, INoDrawSvgNodeRenderer {
         protected internal override void DoDraw(SvgDrawContext context) {
             throw new NotSupportedException(SvgExceptionMessageConstant.DRAW_NO_DRAW);

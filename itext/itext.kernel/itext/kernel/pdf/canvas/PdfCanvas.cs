@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -22,7 +22,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
 using System.Collections.Generic;
-using System.Text;
 using iText.Commons.Datastructures;
 using iText.IO.Font;
 using iText.IO.Font.Otf;
@@ -338,14 +337,19 @@ namespace iText.Kernel.Pdf.Canvas {
         }
 
         /// <summary>
-        /// Concatenates the 2x3 affine transformation matrix to the current matrix
-        /// in the content stream managed by this Canvas.
+        /// Concatenates the 2x3 affine transformation matrix to the current matrix in the
+        /// content stream managed by this Canvas.
         /// </summary>
         /// <remarks>
-        /// Concatenates the 2x3 affine transformation matrix to the current matrix
-        /// in the content stream managed by this Canvas.
-        /// Contrast with
-        /// <see cref="SetTextMatrix(iText.Kernel.Geom.AffineTransform)"/>
+        /// Concatenates the 2x3 affine transformation matrix to the current matrix in the
+        /// content stream managed by this Canvas.
+        /// <para />
+        /// Detailed explanation of
+        /// <c>[a b c d e f]</c>
+        /// parameters of transformation
+        /// matrix can be found in
+        /// <see cref="iText.Kernel.Geom.Matrix"/>
+        /// documentation.
         /// </remarks>
         /// <param name="a">operand 1,1 in the matrix.</param>
         /// <param name="b">operand 1,2 in the matrix.</param>
@@ -376,8 +380,8 @@ namespace iText.Kernel.Pdf.Canvas {
         /// <returns>current canvas</returns>
         public virtual iText.Kernel.Pdf.Canvas.PdfCanvas ConcatMatrix(PdfArray array) {
             if (array.Size() != 6) {
-                //Throw exception or warning here
-                return this;
+                throw new PdfException(KernelExceptionMessageConstant.TRANSFORMATION_MATRIX_ARRAY_SIZE_SHOULD_BE_EQUAL_TO_6
+                    );
             }
             for (int i = 0; i < array.Size(); i++) {
                 if (!array.Get(i).IsNumber()) {
@@ -573,28 +577,30 @@ namespace iText.Kernel.Pdf.Canvas {
 
         /// <summary>Replaces the text matrix.</summary>
         /// <remarks>
-        /// Replaces the text matrix. Contrast with
-        /// <see cref="ConcatMatrix(iText.Kernel.Pdf.PdfArray)"/>
+        /// Replaces the text matrix.
+        /// <para />
+        /// Detailed explanation of
+        /// <c>[a b c d e f]</c>
+        /// parameters of transformation
+        /// matrix can be found in
+        /// <see cref="iText.Kernel.Geom.Matrix"/>
+        /// documentation.
         /// </remarks>
         /// <param name="a">operand 1,1 in the matrix.</param>
         /// <param name="b">operand 1,2 in the matrix.</param>
         /// <param name="c">operand 2,1 in the matrix.</param>
         /// <param name="d">operand 2,2 in the matrix.</param>
-        /// <param name="x">operand 3,1 in the matrix.</param>
-        /// <param name="y">operand 3,2 in the matrix.</param>
+        /// <param name="e">operand 3,1 in the matrix.</param>
+        /// <param name="f">operand 3,2 in the matrix.</param>
         /// <returns>current canvas.</returns>
-        public virtual iText.Kernel.Pdf.Canvas.PdfCanvas SetTextMatrix(float a, float b, float c, float d, float x
-            , float y) {
+        public virtual iText.Kernel.Pdf.Canvas.PdfCanvas SetTextMatrix(float a, float b, float c, float d, float e
+            , float f) {
             contentStream.GetOutputStream().WriteFloat(a).WriteSpace().WriteFloat(b).WriteSpace().WriteFloat(c).WriteSpace
-                ().WriteFloat(d).WriteSpace().WriteFloat(x).WriteSpace().WriteFloat(y).WriteSpace().WriteBytes(Tm);
+                ().WriteFloat(d).WriteSpace().WriteFloat(e).WriteSpace().WriteFloat(f).WriteSpace().WriteBytes(Tm);
             return this;
         }
 
         /// <summary>Replaces the text matrix.</summary>
-        /// <remarks>
-        /// Replaces the text matrix. Contrast with
-        /// <see cref="ConcatMatrix(iText.Kernel.Pdf.PdfArray)"/>
-        /// </remarks>
         /// <param name="transform">new textmatrix as transformation</param>
         /// <returns>current canvas</returns>
         public virtual iText.Kernel.Pdf.Canvas.PdfCanvas SetTextMatrix(AffineTransform transform) {
@@ -645,6 +651,7 @@ namespace iText.Kernel.Pdf.Canvas {
                 throw new PdfException(KernelExceptionMessageConstant.FONT_AND_SIZE_MUST_BE_SET_BEFORE_WRITING_ANY_TEXT, currentGs
                     );
             }
+            CheckTextOnAddition(text);
             document.CheckIsoConformance(new FontValidationContext(text.ToString(), currentGs.GetFont()));
             float fontSize = FontProgram.ConvertTextSpaceToGlyphSpace(currentGs.GetFontSize());
             float charSpacing = currentGs.GetCharSpacing();
@@ -817,14 +824,6 @@ namespace iText.Kernel.Pdf.Canvas {
                 throw new PdfException(KernelExceptionMessageConstant.FONT_AND_SIZE_MUST_BE_SET_BEFORE_WRITING_ANY_TEXT, currentGs
                     );
             }
-            // Take text part to process
-            StringBuilder text = new StringBuilder();
-            foreach (PdfObject obj in textArray) {
-                if (obj is PdfString) {
-                    text.Append(obj);
-                }
-            }
-            document.CheckIsoConformance(new FontValidationContext(text.ToString(), currentGs.GetFont()));
             contentStream.GetOutputStream().WriteBytes(ByteUtils.GetIsoBytes("["));
             foreach (PdfObject obj in textArray) {
                 if (obj.IsString()) {
@@ -982,53 +981,7 @@ namespace iText.Kernel.Pdf.Canvas {
         /// <returns>a list of double[] with the bezier curves.</returns>
         public static IList<double[]> BezierArc(double x1, double y1, double x2, double y2, double startAng, double
              extent) {
-            double tmp;
-            if (x1 > x2) {
-                tmp = x1;
-                x1 = x2;
-                x2 = tmp;
-            }
-            if (y2 > y1) {
-                tmp = y1;
-                y1 = y2;
-                y2 = tmp;
-            }
-            double fragAngle;
-            int Nfrag;
-            if (Math.Abs(extent) <= 90f) {
-                fragAngle = extent;
-                Nfrag = 1;
-            }
-            else {
-                Nfrag = (int)Math.Ceiling(Math.Abs(extent) / 90f);
-                fragAngle = extent / Nfrag;
-            }
-            double x_cen = (x1 + x2) / 2f;
-            double y_cen = (y1 + y2) / 2f;
-            double rx = (x2 - x1) / 2f;
-            double ry = (y2 - y1) / 2f;
-            double halfAng = (fragAngle * Math.PI / 360.0);
-            double kappa = Math.Abs(4.0 / 3.0 * (1.0 - Math.Cos(halfAng)) / Math.Sin(halfAng));
-            IList<double[]> pointList = new List<double[]>();
-            for (int iter = 0; iter < Nfrag; ++iter) {
-                double theta0 = ((startAng + iter * fragAngle) * Math.PI / 180.0);
-                double theta1 = ((startAng + (iter + 1) * fragAngle) * Math.PI / 180.0);
-                double cos0 = Math.Cos(theta0);
-                double cos1 = Math.Cos(theta1);
-                double sin0 = Math.Sin(theta0);
-                double sin1 = Math.Sin(theta1);
-                if (fragAngle > 0.0) {
-                    pointList.Add(new double[] { x_cen + rx * cos0, y_cen - ry * sin0, x_cen + rx * (cos0 - kappa * sin0), y_cen
-                         - ry * (sin0 + kappa * cos0), x_cen + rx * (cos1 + kappa * sin1), y_cen - ry * (sin1 - kappa * cos1), 
-                        x_cen + rx * cos1, y_cen - ry * sin1 });
-                }
-                else {
-                    pointList.Add(new double[] { x_cen + rx * cos0, y_cen - ry * sin0, x_cen + rx * (cos0 + kappa * sin0), y_cen
-                         - ry * (sin0 - kappa * cos0), x_cen + rx * (cos1 - kappa * sin1), y_cen - ry * (sin1 + kappa * cos1), 
-                        x_cen + rx * cos1, y_cen - ry * sin1 });
-                }
-            }
-            return pointList;
+            return Bezier.BezierArc(x1, y1, x2, y2, startAng, extent);
         }
 
         /// <summary>Draws a rectangle.</summary>
@@ -1712,6 +1665,13 @@ namespace iText.Kernel.Pdf.Canvas {
         /// from image and adds it to canvas.
         /// <para />
         /// The float arguments will be used in concatenating the transformation matrix as operands.
+        /// <para />
+        /// Detailed explanation of
+        /// <c>[a b c d e f]</c>
+        /// parameters of transformation
+        /// matrix can be found in
+        /// <see cref="iText.Kernel.Geom.Matrix"/>
+        /// documentation.
         /// </remarks>
         /// <param name="image">
         /// the image from which
@@ -1743,6 +1703,13 @@ namespace iText.Kernel.Pdf.Canvas {
         /// from image and adds it to canvas.
         /// <para />
         /// The float arguments will be used in concatenating the transformation matrix as operands.
+        /// <para />
+        /// Detailed explanation of
+        /// <c>[a b c d e f]</c>
+        /// parameters of transformation
+        /// matrix can be found in
+        /// <see cref="iText.Kernel.Geom.Matrix"/>
+        /// documentation.
         /// </remarks>
         /// <param name="image">
         /// the image from which
@@ -1861,6 +1828,13 @@ namespace iText.Kernel.Pdf.Canvas {
         /// to canvas.
         /// <para />
         /// The float arguments will be used in concatenating the transformation matrix as operands.
+        /// <para />
+        /// Detailed explanation of
+        /// <c>[a b c d e f]</c>
+        /// parameters of transformation
+        /// matrix can be found in
+        /// <see cref="iText.Kernel.Geom.Matrix"/>
+        /// documentation.
         /// </remarks>
         /// <param name="xObject">the xObject to add</param>
         /// <param name="a">an element of the transformation matrix</param>
@@ -2141,6 +2115,18 @@ namespace iText.Kernel.Pdf.Canvas {
         /// <c>PdfImageXObject</c>
         /// to canvas.
         /// </summary>
+        /// <remarks>
+        /// Adds
+        /// <c>PdfImageXObject</c>
+        /// to canvas.
+        /// <para />
+        /// Detailed explanation of
+        /// <c>[a b c d e f]</c>
+        /// parameters of transformation
+        /// matrix can be found in
+        /// <see cref="iText.Kernel.Geom.Matrix"/>
+        /// documentation.
+        /// </remarks>
         /// <param name="imageXObject">
         /// the
         /// <c>PdfImageXObject</c>
@@ -2199,6 +2185,18 @@ namespace iText.Kernel.Pdf.Canvas {
         /// <see cref="iText.Kernel.Pdf.Xobject.PdfFormXObject"/>
         /// to canvas.
         /// </summary>
+        /// <remarks>
+        /// Adds
+        /// <see cref="iText.Kernel.Pdf.Xobject.PdfFormXObject"/>
+        /// to canvas.
+        /// <para />
+        /// Detailed explanation of
+        /// <c>[a b c d e f]</c>
+        /// parameters of transformation
+        /// matrix can be found in
+        /// <see cref="iText.Kernel.Geom.Matrix"/>
+        /// documentation.
+        /// </remarks>
         /// <param name="form">the formXObject to add</param>
         /// <param name="a">an element of the transformation matrix</param>
         /// <param name="b">an element of the transformation matrix</param>
@@ -2273,6 +2271,18 @@ namespace iText.Kernel.Pdf.Canvas {
         /// <see cref="iText.Kernel.Pdf.Xobject.PdfXObject"/>
         /// to canvas.
         /// </summary>
+        /// <remarks>
+        /// Adds
+        /// <see cref="iText.Kernel.Pdf.Xobject.PdfXObject"/>
+        /// to canvas.
+        /// <para />
+        /// Detailed explanation of
+        /// <c>[a b c d e f]</c>
+        /// parameters of transformation
+        /// matrix can be found in
+        /// <see cref="iText.Kernel.Geom.Matrix"/>
+        /// documentation.
+        /// </remarks>
         /// <param name="xObject">the xObject to add</param>
         /// <param name="a">an element of the transformation matrix</param>
         /// <param name="b">an element of the transformation matrix</param>
@@ -2354,6 +2364,7 @@ namespace iText.Kernel.Pdf.Canvas {
                     );
             }
             this.CheckIsoConformanceWritingOnContent();
+            CheckTextOnAddition(text);
             document.CheckIsoConformance(new FontValidationContext(text, currentGs.GetFont()));
             currentGs.GetFont().WriteText(text, contentStream.GetOutputStream());
         }
@@ -2557,6 +2568,18 @@ namespace iText.Kernel.Pdf.Canvas {
             return new double[] { x + rx, y, x + width - rx, y, pt1[2], pt1[3], pt1[4], pt1[5], pt1[6], pt1[7], x + width
                 , y + height - ry, pt2[2], pt2[3], pt2[4], pt2[5], pt2[6], pt2[7], x + rx, y + height, pt3[2], pt3[3], 
                 pt3[4], pt3[5], pt3[6], pt3[7], x, y + ry, pt4[2], pt4[3], pt4[4], pt4[5], pt4[6], pt4[7] };
+        }
+
+        private void CheckTextOnAddition(GlyphLine text) {
+            CheckTextOnAddition(text.ToString());
+        }
+
+        private void CheckTextOnAddition(String text) {
+            PdfDictionary attributes = null;
+            if (!tagStructureStack.IsEmpty()) {
+                attributes = tagStructureStack.Peek().GetSecond();
+            }
+            document.CheckIsoConformance(new CanvasTextAdditionContext(text, attributes, contentStream));
         }
 
         /// <summary>This method is used to traverse parent tree and begin all layers in it.</summary>

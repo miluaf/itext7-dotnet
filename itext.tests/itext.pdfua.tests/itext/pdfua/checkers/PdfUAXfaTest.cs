@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -29,11 +29,9 @@ using iText.Test.Pdfa;
 using iText.Test.Utils;
 
 namespace iText.Pdfua.Checkers {
-    // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf/ua validation on Android)
     [NUnit.Framework.Category("IntegrationTest")]
     public class PdfUAXfaTest : ExtendedITextTest {
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/pdfua/PdfUAXfaTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/pdfua/PdfUAXfaTest/";
 
         private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/pdfua/PdfUAXfaTest/";
@@ -56,7 +54,6 @@ namespace iText.Pdfua.Checkers {
             new VeraPdfValidator().ValidateFailure(output);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf/ua validation on Android)
         [NUnit.Framework.Test]
         public virtual void DynamicRenderForbiddenValueTest() {
             String input = SOURCE_FOLDER + "dynamicForbidden.pdf";
@@ -64,9 +61,19 @@ namespace iText.Pdfua.Checkers {
             PdfDocument pdfDoc = new PdfUATestPdfDocument(new PdfReader(input), new PdfWriter(output));
             NUnit.Framework.Assert.DoesNotThrow(() => pdfDoc.Close());
             String result = new VeraPdfValidator().Validate(output);
-            // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf/ua validation on Android)
             NUnit.Framework.Assert.IsNull(result);
         }
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf/ua validation on Android)
+
+        [NUnit.Framework.Test]
+        public virtual void XfaFormInPdfUA2Test() {
+            String input = SOURCE_FOLDER + "xfaInPdfUA2.pdf";
+            String output = DESTINATION_FOLDER + "xfaFormInPdfUA2_reopen.pdf";
+            PdfDocument pdfDoc = new PdfUA2TestPdfDocument(new PdfReader(input), new PdfWriter(output));
+            Exception e = NUnit.Framework.Assert.Catch(typeof(PdfUAConformanceException), () => pdfDoc.Close());
+            NUnit.Framework.Assert.AreEqual(PdfUAExceptionMessageConstants.XFA_FORMS_SHALL_NOT_BE_PRESENT, e.Message);
+            FileUtil.Copy(input, output);
+            // VeraPdf also complains only about the presence of the XFA forms
+            new VeraPdfValidator().ValidateFailure(output);
+        }
     }
 }

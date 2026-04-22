@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -41,7 +41,7 @@ namespace iText.Commons.Actions {
             AbstractContextBasedEventHandlerTest.TestEventHandler handler = new AbstractContextBasedEventHandlerTest.TestEventHandler
                 (UnknownContext.PERMISSIVE);
             handler.OnEvent(new ITextTestEvent(new SequenceId(), null, "test-event", ProductNameConstant.PDF_HTML));
-            NUnit.Framework.Assert.IsTrue(handler.WasInvoked());
+            NUnit.Framework.Assert.IsFalse(handler.WasInvoked());
         }
 
         [NUnit.Framework.Test]

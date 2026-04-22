@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -43,8 +43,7 @@ namespace iText.Signatures.Sign {
 
         private static readonly String chainWithSeveralUrls = certSrc + "chainWithSeveralUrls.pem";
 
-        private static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/signatures/sign/";
+        private static readonly String destinationFolder = TestUtil.GetOutputPath() + "/signatures/sign/";
 
         [NUnit.Framework.Test]
         public virtual void CrlClientOnlineURLConstructorTest() {
@@ -119,14 +118,14 @@ namespace iText.Signatures.Sign {
         [LogMessage("Checking CRL: ", LogLevel = LogLevelConstants.INFO, Count = 3)]
         [LogMessage("Added CRL found at: ", LogLevel = LogLevelConstants.INFO, Count = 3)]
         public virtual void UnreachableSeveralCrlDistributionPointsFromTheCertChainTest() {
-            CrlClientOnline crlClientOnline = new _CrlClientOnline_151();
+            CrlClientOnline crlClientOnline = new _CrlClientOnline_152();
             IX509Certificate checkCert = (IX509Certificate)PemFileHelper.ReadFirstChain(chainWithSeveralUrls)[1];
             ICollection<byte[]> bytes = crlClientOnline.GetEncoded(checkCert, null);
             NUnit.Framework.Assert.AreEqual(3, bytes.Count);
         }
 
-        private sealed class _CrlClientOnline_151 : CrlClientOnline {
-            public _CrlClientOnline_151() {
+        private sealed class _CrlClientOnline_152 : CrlClientOnline {
+            public _CrlClientOnline_152() {
             }
 
             protected internal override Stream GetCrlResponse(IX509Certificate cert, Uri url) {
@@ -155,6 +154,7 @@ namespace iText.Signatures.Sign {
             )]
         public virtual void UnreachableCrlDistributionPointFromCertChainTest() {
             CrlClientOnline crlClientOnline = new CrlClientOnline();
+            crlClientOnline.SetConnectionTimeout(2000);
             IX509Certificate checkCert = new X509MockCertificate();
             ICollection<byte[]> bytes = crlClientOnline.GetEncoded(checkCert, "http://www.example.com/crl/test.crl");
             NUnit.Framework.Assert.IsTrue(bytes.IsEmpty());

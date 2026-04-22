@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -32,6 +32,7 @@ using iText.Forms.Util;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Tagging;
 using iText.Kernel.Pdf.Tagutils;
 using iText.Layout;
 using iText.Layout.Element;
@@ -266,6 +267,7 @@ namespace iText.Forms.Form.Renderer {
 
         private Paragraph CreateComboBoxOptionFlatElement(String label, bool simulateOptGroupMargin) {
             Paragraph paragraph = new Paragraph().SetMargin(0);
+            paragraph.GetAccessibilityProperties().SetRole(StandardRoles.LBL);
             if (simulateOptGroupMargin) {
                 paragraph.Add("\u200d    ");
             }

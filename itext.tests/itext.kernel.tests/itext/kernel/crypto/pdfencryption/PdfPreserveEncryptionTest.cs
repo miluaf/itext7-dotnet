@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -30,8 +30,7 @@ using iText.Test.Attributes;
 namespace iText.Kernel.Crypto.Pdfencryption {
     [NUnit.Framework.Category("IntegrationTest")]
     public class PdfPreserveEncryptionTest : ExtendedITextTest {
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/kernel/crypto/pdfencryption/PdfPreserveEncryptionTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/kernel/crypto/pdfencryption/PdfPreserveEncryptionTest/";
 
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/kernel/crypto/pdfencryption/PdfPreserveEncryptionTest/";

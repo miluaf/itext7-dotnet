@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -24,6 +24,10 @@ using iText.Kernel.Geom;
 using iText.Svg.Renderers;
 
 namespace iText.Svg.Renderers.Impl {
+    /// <summary>
+    /// <see cref="iText.Svg.Renderers.ISvgNodeRenderer"/>
+    /// implementation for the &lt;symbol&gt; tag.
+    /// </summary>
     public class SymbolSvgNodeRenderer : AbstractContainerSvgNodeRenderer, INoDrawSvgNodeRenderer {
         public override ISvgNodeRenderer CreateDeepCopy() {
             SymbolSvgNodeRenderer copy = new SymbolSvgNodeRenderer();

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -104,6 +104,7 @@ namespace iText.Layout {
             this.pdfDocument = pdfCanvas.GetDocument();
             this.pdfCanvas = pdfCanvas;
             this.rootArea = rootArea;
+            this.EnsureRootTagIsCreated();
         }
 
         /// <summary>Creates a new Canvas to manipulate a specific document and page.</summary>

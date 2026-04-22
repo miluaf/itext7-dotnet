@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -38,30 +38,29 @@ using iText.Test;
 namespace iText.Layout {
     [NUnit.Framework.Category("IntegrationTest")]
     public class FontSelectorTest : ExtendedITextTest {
-        public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+        private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/FontSelectorTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/FontSelectorTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/layout/FontSelectorTest/";
 
-        public static readonly String fontsFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+        private static readonly String FONTS_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/fonts/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
-            CreateDestinationFolder(destinationFolder);
+            CreateDestinationFolder(DESTINATION_FOLDER);
         }
 
         [NUnit.Framework.Test]
         public virtual void CyrillicAndLatinGroup() {
             String fileName = "cyrillicAndLatinGroup";
-            String outFileName = destinationFolder + "cyrillicAndLatinGroup.pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + "cyrillicAndLatinGroup.pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "NotoSans-Regular.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "FreeSans.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "Puritan2.otf", PdfEncodings.IDENTITY_H
-                , "Puritan42"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "FreeSans.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "Puritan-Regular.ttf", PdfEncodings.
+                IDENTITY_H, "Puritan42"));
             String s = "Hello world! Здравствуй мир! Hello world! Здравствуй мир!";
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(FileUtil.GetFileOutputStream(outFileName)));
             Document doc = new Document(pdfDoc);
@@ -71,19 +70,19 @@ namespace iText.Layout {
             Paragraph paragraph = new Paragraph(text);
             doc.Add(paragraph);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
         [NUnit.Framework.Test]
         public virtual void CyrillicAndLatinGroup2() {
             String fileName = "cyrillicAndLatinGroup2";
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "Puritan2.otf"));
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "NotoSans-Regular.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "FreeSans.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "Puritan-Regular.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "FreeSans.ttf"));
             String s = "Hello world! Здравствуй мир! Hello world! Здравствуй мир!";
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(FileUtil.GetFileOutputStream(outFileName)));
             Document doc = new Document(pdfDoc);
@@ -93,19 +92,19 @@ namespace iText.Layout {
             Paragraph paragraph = new Paragraph(text);
             doc.Add(paragraph);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
         [NUnit.Framework.Test]
         public virtual void CyrillicAndLatinGroup3() {
             String fileName = "cyrillicAndLatinGroup3";
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "FreeSans.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "NotoSans-Regular.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "Puritan2.otf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "FreeSans.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "Puritan-Regular.ttf"));
             String s = "Hello world! Здравствуй мир! Hello world! Здравствуй мир!";
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(FileUtil.GetFileOutputStream(outFileName)));
             Document doc = new Document(pdfDoc);
@@ -115,19 +114,19 @@ namespace iText.Layout {
             Paragraph paragraph = new Paragraph(text);
             doc.Add(paragraph);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
         [NUnit.Framework.Test]
         public virtual void CyrillicAndLatinGroupFontAsStringValue() {
             String fileName = "cyrillicAndLatinGroupDeprecatedFontAsStringValue";
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "FreeSans.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "NotoSans-Regular.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "Puritan2.otf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "FreeSans.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "Puritan-Regular.ttf"));
             String s = "Hello world! Здравствуй мир! Hello world! Здравствуй мир!";
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(FileUtil.GetFileOutputStream(outFileName)));
             Document doc = new Document(pdfDoc);
@@ -138,7 +137,7 @@ namespace iText.Layout {
             Exception exception = NUnit.Framework.Assert.Catch(typeof(InvalidOperationException), () => {
                 doc.Add(paragraph);
                 doc.Close();
-                NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+                NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                     , "diff" + fileName));
             }
             );
@@ -148,10 +147,10 @@ namespace iText.Layout {
         [NUnit.Framework.Test]
         public virtual void LatinAndNotdefGroup() {
             String fileName = "latinAndNotdefGroup";
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "Puritan2.otf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "Puritan-Regular.ttf"));
             String s = "Hello мир!";
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(FileUtil.GetFileOutputStream(outFileName)));
             Document doc = new Document(pdfDoc);
@@ -161,15 +160,15 @@ namespace iText.Layout {
             Paragraph paragraph = new Paragraph(text);
             doc.Add(paragraph);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
         [NUnit.Framework.Test]
         public virtual void CustomFontWeight() {
             String fileName = "customFontWeight";
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
             sel.GetFontSet().AddFont(StandardFonts.HELVETICA);
             sel.GetFontSet().AddFont(StandardFonts.HELVETICA_BOLD);
@@ -187,15 +186,15 @@ namespace iText.Layout {
             doc.Add(new Paragraph("UPD: The paragraph above should be written in Helvetica-Bold. The provided alias for Times-Bold was incorrect. It was used as a font's family, but since the name is invalid, the font wasn't selected."
                 ));
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
         [NUnit.Framework.Test]
         public virtual void CustomFontWeight2() {
             String fileName = "customFontWeight2";
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
             sel.GetFontSet().AddFont(StandardFonts.HELVETICA);
             sel.GetFontSet().AddFont(StandardFonts.HELVETICA_BOLD);
@@ -210,15 +209,15 @@ namespace iText.Layout {
             div.Add(paragraph);
             doc.Add(div);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
         [NUnit.Framework.Test]
         public virtual void CustomFontWeight3() {
             String fileName = "customFontWeight3";
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
             sel.GetFontSet().AddFont(StandardFonts.HELVETICA);
             sel.GetFontSet().AddFont(StandardFonts.HELVETICA_BOLD);
@@ -234,15 +233,15 @@ namespace iText.Layout {
             div.Add(paragraph);
             doc.Add(div);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
         [NUnit.Framework.Test]
         public virtual void StandardPdfFonts() {
             String fileName = "standardPdfFonts";
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
             sel.AddStandardPdfFonts();
             String s = "Hello world!";
@@ -256,18 +255,18 @@ namespace iText.Layout {
             paragraph.SetProperty(Property.FONT, new String[] { "Times" });
             doc.Add(paragraph);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
         [NUnit.Framework.Test]
         public virtual void SearchNames() {
             FontProvider sel = new FontProvider();
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "NotoSans-Regular.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.AddFont(fontsFolder + "FreeSans.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "Puritan2.otf", PdfEncodings.IDENTITY_H
-                , "Puritan42"));
-            ICollection<FontInfo> fonts = sel.GetFontSet().Get("puritan2");
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.AddFont(FONTS_FOLDER + "FreeSans.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "Puritan-Regular.ttf", PdfEncodings.
+                IDENTITY_H, "Puritan42"));
+            ICollection<FontInfo> fonts = sel.GetFontSet().Get("Puritan-Regular");
             NUnit.Framework.Assert.IsTrue(fonts.Count != 0, "Puritan not found!");
             FontInfo puritan = GetFirst(fonts);
             NUnit.Framework.Assert.IsFalse(sel.GetFontSet().AddFont(puritan, "Puritan42"), "Replace existed font");
@@ -276,12 +275,12 @@ namespace iText.Layout {
             NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("Noto Sans"), "NotoSans not found!");
             NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("FreeSans"), "FreeSans not found!");
             NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("Free Sans"), "FreeSans not found!");
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("puritan 2.0 regular"), "Puritan 2.0 not found!");
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("puritan2"), "Puritan 2.0 not found!");
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("Puritan-Regular"), "Puritan-Regular not found!");
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("Puritan Regular"), "Puritan not found!");
             NUnit.Framework.Assert.IsFalse(sel.GetFontSet().Contains("puritan42"), "Puritan42 found!");
-            NUnit.Framework.Assert.AreEqual(puritan, GetFirst(sel.GetFontSet().Get("puritan 2.0 regular")), "Puritan 2.0 not found!"
+            NUnit.Framework.Assert.AreEqual(puritan, GetFirst(sel.GetFontSet().Get("Puritan-Regular")), "Puritan-Regular not found!"
                 );
-            NUnit.Framework.Assert.AreEqual(puritan, GetFirst(sel.GetFontSet().Get("puritan2")), "Puritan 2.0 not found!"
+            NUnit.Framework.Assert.AreEqual(puritan, GetFirst(sel.GetFontSet().Get("Puritan-Regular")), "Puritan-regular not found!"
                 );
             NUnit.Framework.Assert.IsTrue(GetFirst(sel.GetFontSet().Get("puritan42")) == null, "Puritan42 found!");
         }
@@ -289,11 +288,11 @@ namespace iText.Layout {
         [NUnit.Framework.Test]
         public virtual void SearchNames2() {
             FontProvider sel = new FontProvider();
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "NotoSans-Regular.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "FreeSans.ttf"));
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "Puritan2.otf", PdfEncodings.IDENTITY_H
-                , "Puritan42"));
-            ICollection<FontInfo> fonts = sel.GetFontSet().Get("puritan2");
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "FreeSans.ttf"));
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "Puritan-Regular.ttf", PdfEncodings.
+                IDENTITY_H, "Puritan42"));
+            ICollection<FontInfo> fonts = sel.GetFontSet().Get("Puritan-Regular");
             NUnit.Framework.Assert.IsTrue(fonts.Count != 0, "Puritan not found!");
             FontInfo puritan = GetFirst(fonts);
             fonts = sel.GetFontSet().Get("NotoSans");
@@ -306,8 +305,8 @@ namespace iText.Layout {
             NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("Noto Sans"), "NotoSans not found!");
             NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("FreeSans"), "FreeSans not found!");
             NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("Free Sans"), "FreeSans not found!");
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("puritan 2.0 regular"), "Puritan 2.0 not found!");
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("puritan2"), "Puritan 2.0 not found!");
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("Puritan-Regular"), "Puritan-Regular not found!");
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Contains("Puritan Regular"), "Puritan Regular not found!");
             NUnit.Framework.Assert.IsFalse(sel.GetFontSet().Contains("puritan42"), "Puritan42 found!");
             NUnit.Framework.Assert.AreEqual(notoSans, GetFirst(sel.GetFontSet().Get("NotoSans")), "NotoSans not found!"
                 );
@@ -317,9 +316,9 @@ namespace iText.Layout {
                 );
             NUnit.Framework.Assert.AreEqual(freeSans, GetFirst(sel.GetFontSet().Get("Free Sans")), "FreeSans not found!"
                 );
-            NUnit.Framework.Assert.AreEqual(puritan, GetFirst(sel.GetFontSet().Get("puritan 2.0 regular")), "Puritan 2.0 not found!"
+            NUnit.Framework.Assert.AreEqual(puritan, GetFirst(sel.GetFontSet().Get("Puritan-Regular")), "Puritan-Regular not found!"
                 );
-            NUnit.Framework.Assert.AreEqual(puritan, GetFirst(sel.GetFontSet().Get("puritan2")), "Puritan 2.0 not found!"
+            NUnit.Framework.Assert.AreEqual(puritan, GetFirst(sel.GetFontSet().Get("Puritan Regular")), "Puritan-regular not found!"
                 );
             NUnit.Framework.Assert.IsTrue(GetFirst(sel.GetFontSet().Get("puritan42")) == null, "Puritan42 found!");
         }
@@ -335,10 +334,10 @@ namespace iText.Layout {
             IDictionary<String, String> aliasToFontName = new LinkedDictionary<String, String>();
             aliasToFontName.Put(cyrillicAlias, "NotoSans-Regular.ttf");
             aliasToFontName.Put(greekAlias, "FreeSans.ttf");
-            aliasToFontName.Put(japaneseAlias, "Puritan2.otf");
+            aliasToFontName.Put(japaneseAlias, "Puritan-Regular.ttf");
             FontProvider provider = new FontProvider();
             foreach (KeyValuePair<String, String> e in aliasToFontName) {
-                provider.GetFontSet().AddFont(fontsFolder + e.Value, PdfEncodings.IDENTITY_H, e.Key);
+                provider.GetFontSet().AddFont(FONTS_FOLDER + e.Value, PdfEncodings.IDENTITY_H, e.Key);
             }
             ICollection<String> actualAliases = new HashSet<String>();
             foreach (FontInfo fontInfo in provider.GetFontSet().GetFonts()) {
@@ -358,14 +357,15 @@ namespace iText.Layout {
         [NUnit.Framework.Test]
         public virtual void WriteTextInFontWhichAliasWithUnicodeChars() {
             String fileName = "writeTextInFontWhichAliasWithUnicodeChars";
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             // フォント3
             String japaneseAlias = "\u30D5\u30A9\u30F3\u30C83";
             FontProvider provider = new FontProvider();
-            provider.AddFont(fontsFolder + "NotoSans-Regular.ttf");
-            provider.GetFontSet().AddFont(fontsFolder + "Puritan2.otf", PdfEncodings.IDENTITY_H, japaneseAlias);
-            provider.AddFont(fontsFolder + "FreeSans.ttf");
+            provider.AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf");
+            provider.GetFontSet().AddFont(FONTS_FOLDER + "Puritan-Regular.ttf", PdfEncodings.IDENTITY_H, japaneseAlias
+                );
+            provider.AddFont(FONTS_FOLDER + "FreeSans.ttf");
             String s = "Hello world!";
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(FileUtil.GetFileOutputStream(outFileName)));
             Document doc = new Document(pdfDoc);
@@ -375,19 +375,19 @@ namespace iText.Layout {
             doc.Add(paragraph);
             doc.Close();
             // Text shall be written in Puritan 2.0
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 ));
         }
 
         [NUnit.Framework.Test]
         public virtual void CyrillicAndLatinWithUnicodeRange() {
             String fileName = "cyrillicAndLatinWithUnicodeRange";
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "NotoSans-Regular.ttf", null, "FontAlias"
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf", null, "FontAlias"
                 , new RangeBuilder(0, 255).Create()));
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "FreeSans.ttf", null, "FontAlias", new 
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "FreeSans.ttf", null, "FontAlias", new 
                 RangeBuilder(1024, 1279).Create()));
             NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Size() == 2);
             String s = "Hello world! Здравствуй мир! Hello world! Здравствуй мир!";
@@ -399,21 +399,45 @@ namespace iText.Layout {
             Paragraph paragraph = new Paragraph(text);
             doc.Add(paragraph);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
         [NUnit.Framework.Test]
+        public virtual void UnicodeNotSymbolTest() {
+            String fileName = "unicodeNotSymbol";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
+            FontProvider fontProvider = new FontProvider();
+            // TODO DEVSIX-9589 Create symbol font with cmap 3,0 for testing
+            NUnit.Framework.Assert.IsTrue(fontProvider.GetFontSet().AddFont(FONTS_FOLDER + "Symbols1.ttf", PdfEncodings
+                .IDENTITY_H));
+            NUnit.Framework.Assert.IsTrue(fontProvider.GetFontSet().AddFont(FONTS_FOLDER + "NotoSansJP-Regular.ttf"));
+            String textString = "佗佘余偂卑卒卓屍屎奆奇慄慅慆慇慈敗敘教時灈灉灊睎";
+            Text text = new Text(textString).SetBackgroundColor(ColorConstants.PINK).SetFontSize(20);
+            Paragraph paragraph = new Paragraph(text);
+            using (PdfDocument pdfDoc = new PdfDocument(new PdfWriter(FileUtil.GetFileOutputStream(outFileName)))) {
+                using (Document doc = new Document(pdfDoc)) {
+                    doc.SetFontProvider(fontProvider);
+                    doc.SetProperty(Property.FONT, new String[] { "Symbols1" });
+                    doc.Add(paragraph);
+                }
+            }
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
+                , "diff_"));
+        }
+
+        [NUnit.Framework.Test]
         public virtual void NotSignificantCharacterOfTheFontWithUnicodeRange() {
-            String outFileName = destinationFolder + "notSignificantCharacterOfTheFontWithUnicodeRange.pdf";
-            String cmpFileName = sourceFolder + "cmp_notSignificantCharacterOfTheFontWithUnicodeRange.pdf";
+            String outFileName = DESTINATION_FOLDER + "notSignificantCharacterOfTheFontWithUnicodeRange.pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_notSignificantCharacterOfTheFontWithUnicodeRange.pdf";
             FontProvider sel = new FontProvider();
             sel.SetFontSelectorStrategyFactory(new BestMatchFontSelectorStrategy.BestMatchFontSelectorStrategyFactory(
                 ));
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "NotoSansCJKjp-Bold.otf", null, "FontAlias"
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "NotoSansCJKjp-Bold.otf", null, "FontAlias"
                 , new RangeBuilder(117, 117).Create()));
             // just 'u' letter
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "FreeSans.ttf", null, "FontAlias", new 
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "FreeSans.ttf", null, "FontAlias", new 
                 RangeBuilder(106, 113).Create()));
             // 'j', 'm' and 'p' are in that interval
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
@@ -422,33 +446,33 @@ namespace iText.Layout {
             doc.SetProperty(Property.FONT, new String[] { "FontAlias" });
             doc.Add(new Paragraph("jump"));
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff"));
         }
 
         [NUnit.Framework.Test]
         public virtual void CheckThreeFontsInOneLineWithUnicodeRange() {
-            String outFileName = destinationFolder + "checkThreeFontsInOneLineWithUnicodeRange.pdf";
-            String cmpFileName = sourceFolder + "cmp_checkThreeFontsInOneLineWithUnicodeRange.pdf";
+            String outFileName = DESTINATION_FOLDER + "checkThreeFontsInOneLineWithUnicodeRange.pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_checkThreeFontsInOneLineWithUnicodeRange.pdf";
             FontProvider sel = new FontProvider();
             sel.SetFontSelectorStrategyFactory(new BestMatchFontSelectorStrategy.BestMatchFontSelectorStrategyFactory(
                 ));
             // 'a', 'b' and 'c' are in that interval
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "NotoSansCJKjp-Bold.otf", null, "FontAlias"
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "NotoSansCJKjp-Bold.otf", null, "FontAlias"
                 , new RangeBuilder(97, 99).Create()));
             // 'd', 'e' and 'f' are in that interval
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "FreeSans.ttf", null, "FontAlias", new 
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "FreeSans.ttf", null, "FontAlias", new 
                 RangeBuilder(100, 102).Create()));
             // 'x', 'y' and 'z' are in that interval
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "Puritan2.otf", null, "FontAlias", new 
-                RangeBuilder(120, 122).Create()));
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "Puritan-Regular.ttf", null, "FontAlias"
+                , new RangeBuilder(120, 122).Create()));
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
             Document doc = new Document(pdfDoc);
             doc.SetFontProvider(sel);
             doc.SetProperty(Property.FONT, new String[] { "FontAlias" });
             doc.Add(new Paragraph("abc def xyz"));
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff"));
         }
 
@@ -456,12 +480,12 @@ namespace iText.Layout {
         public virtual void DuplicateFontWithUnicodeRange() {
             String fileName = "duplicateFontWithUnicodeRange";
             //In the result pdf will be two equal fonts but with different subsets
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "NotoSans-Regular.ttf", null, "FontAlias"
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf", null, "FontAlias"
                 , new RangeBuilder(0, 255).Create()));
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "NotoSans-Regular.ttf", null, "FontAlias"
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf", null, "FontAlias"
                 , new RangeBuilder(1024, 1279).Create()));
             NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Size() == 2);
             String s = "Hello world! Здравствуй мир! Hello world! Здравствуй мир!";
@@ -473,7 +497,7 @@ namespace iText.Layout {
             Paragraph paragraph = new Paragraph(text);
             doc.Add(paragraph);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
@@ -481,12 +505,12 @@ namespace iText.Layout {
         public virtual void SingleFontWithUnicodeRange() {
             String fileName = "singleFontWithUnicodeRange";
             //In the result pdf will be two equal fonts but with different subsets
-            String outFileName = destinationFolder + fileName + ".pdf";
-            String cmpFileName = sourceFolder + "cmp_" + fileName + ".pdf";
+            String outFileName = DESTINATION_FOLDER + fileName + ".pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName + ".pdf";
             FontProvider sel = new FontProvider();
-            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(fontsFolder + "NotoSans-Regular.ttf", null, "FontAlias"
+            NUnit.Framework.Assert.IsTrue(sel.GetFontSet().AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf", null, "FontAlias"
                 ));
-            NUnit.Framework.Assert.IsFalse(sel.GetFontSet().AddFont(fontsFolder + "NotoSans-Regular.ttf", null, "FontAlias"
+            NUnit.Framework.Assert.IsFalse(sel.GetFontSet().AddFont(FONTS_FOLDER + "NotoSans-Regular.ttf", null, "FontAlias"
                 ));
             NUnit.Framework.Assert.IsTrue(sel.GetFontSet().Size() == 1);
             String s = "Hello world! Здравствуй мир! Hello world! Здравствуй мир!";
@@ -498,7 +522,7 @@ namespace iText.Layout {
             Paragraph paragraph = new Paragraph(text);
             doc.Add(paragraph);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 , "diff" + fileName));
         }
 
@@ -828,14 +852,14 @@ namespace iText.Layout {
 
         [NUnit.Framework.Test]
         public virtual void OpenSansFontWeightBoldRenderingTest() {
-            String outFileName = destinationFolder + "openSansFontWeightBoldRendering.pdf";
-            String cmpFileName = sourceFolder + "cmp_openSansFontWeightBoldRendering.pdf";
+            String outFileName = DESTINATION_FOLDER + "openSansFontWeightBoldRendering.pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_openSansFontWeightBoldRendering.pdf";
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
             Document doc = new Document(pdfDoc);
             FontProvider sel = new FontProvider();
-            sel.GetFontSet().AddFont(fontsFolder + "Open_Sans/" + "OpenSans-Bold.ttf");
-            sel.GetFontSet().AddFont(fontsFolder + "Open_Sans/" + "OpenSans-ExtraBold.ttf");
-            sel.GetFontSet().AddFont(fontsFolder + "Open_Sans/" + "OpenSans-SemiBold.ttf");
+            sel.GetFontSet().AddFont(FONTS_FOLDER + "OpenSans-Bold.ttf");
+            sel.GetFontSet().AddFont(FONTS_FOLDER + "OpenSans-ExtraBold.ttf");
+            sel.GetFontSet().AddFont(FONTS_FOLDER + "OpenSans-SemiBold.ttf");
             doc.SetFontProvider(sel);
             Div div = new Div().SetFontFamily("OpenSans");
             Paragraph paragraph1 = new Paragraph("Hello, OpenSansExtraBold! ");
@@ -847,19 +871,19 @@ namespace iText.Layout {
             div.Add(paragraph1).Add(paragraph2).Add(paragraph3);
             doc.Add(div);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 ));
         }
 
         [NUnit.Framework.Test]
         public virtual void OpenSansFontWeightNotBoldRenderingTest() {
-            String outFileName = destinationFolder + "openSansFontWeightNotBoldRendering.pdf";
-            String cmpFileName = sourceFolder + "cmp_openSansFontWeightNotBoldRendering.pdf";
+            String outFileName = DESTINATION_FOLDER + "openSansFontWeightNotBoldRendering.pdf";
+            String cmpFileName = SOURCE_FOLDER + "cmp_openSansFontWeightNotBoldRendering.pdf";
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
             Document doc = new Document(pdfDoc);
             FontProvider sel = new FontProvider();
-            sel.GetFontSet().AddFont(fontsFolder + "Open_Sans/" + "OpenSans-Regular.ttf");
-            sel.GetFontSet().AddFont(fontsFolder + "Open_Sans/" + "OpenSans-Light.ttf");
+            sel.GetFontSet().AddFont(FONTS_FOLDER + "OpenSans-Regular.ttf");
+            sel.GetFontSet().AddFont(FONTS_FOLDER + "OpenSans-Light.ttf");
             doc.SetFontProvider(sel);
             Div div = new Div().SetFontFamily("OpenSans");
             Paragraph paragraph1 = new Paragraph("Hello, OpenSansRegular! ");
@@ -869,16 +893,15 @@ namespace iText.Layout {
             div.Add(paragraph1).Add(paragraph2);
             doc.Add(div);
             doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, DESTINATION_FOLDER
                 ));
         }
 
         [NUnit.Framework.Test]
         public virtual void OpenSansOutOfBoldFontWeightTest() {
-            String openSansFolder = "Open_Sans/";
             FontSet set = new FontSet();
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-Bold.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-ExtraBold.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-Bold.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-ExtraBold.ttf");
             IList<String> fontFamilies = new List<String>();
             fontFamilies.Add("OpenSans");
             FontCharacteristics fc = new FontCharacteristics();
@@ -889,10 +912,9 @@ namespace iText.Layout {
 
         [NUnit.Framework.Test]
         public virtual void OpenSansOutOfMixedFontWeightTest() {
-            String openSansFolder = "Open_Sans/";
             FontSet set = new FontSet();
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-Light.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-SemiBold.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-Light.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-SemiBold.ttf");
             IList<String> fontFamilies = new List<String>();
             fontFamilies.Add("OpenSans");
             FontCharacteristics fc = new FontCharacteristics();
@@ -908,10 +930,9 @@ namespace iText.Layout {
         [NUnit.Framework.Test]
         public virtual void OpenSansOutOfNotBoldFontWeightTest() {
             // TODO: DEVSIX-2120 Currently light and regular fonts have the same score. When fixed update assertion to "OpenSans-Regular"
-            String openSansFolder = "Open_Sans/";
             FontSet set = new FontSet();
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-Light.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-Regular.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-Light.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-Regular.ttf");
             IList<String> fontFamilies = new List<String>();
             fontFamilies.Add("OpenSans");
             FontCharacteristics fc = new FontCharacteristics();
@@ -938,10 +959,10 @@ namespace iText.Layout {
         [NUnit.Framework.Test]
         public virtual void Family2UsedToSortFontsTest() {
             FontSet set = new FontSet();
-            set.AddFont(fontsFolder + "Lato/Lato-Black.ttf");
-            set.AddFont(fontsFolder + "Lato/Lato-Regular.ttf");
-            set.AddFont(fontsFolder + "Lato/Lato-Italic.ttf");
-            set.AddFont(fontsFolder + "Lato/Lato-Hairline.ttf");
+            set.AddFont(FONTS_FOLDER + "Lato-Black.ttf");
+            set.AddFont(FONTS_FOLDER + "Lato-Regular.ttf");
+            set.AddFont(FONTS_FOLDER + "Lato-Italic.ttf");
+            set.AddFont(FONTS_FOLDER + "Lato-Hairline.ttf");
             IList<String> fontFamilies = new List<String>();
             fontFamilies.Add("Lato Hairline");
             FontCharacteristics fc = new FontCharacteristics();
@@ -954,7 +975,7 @@ namespace iText.Layout {
         [NUnit.Framework.Test]
         public virtual void MonospaceFontsTest() {
             FontSet set = new FontSet();
-            set.AddFont(fontsFolder + "SpaceMono-Regular.ttf");
+            set.AddFont(FONTS_FOLDER + "SpaceMono-Regular.ttf");
             IList<String> fontFamilies = new List<String>();
             fontFamilies.Add("SpaceMono");
             FontCharacteristics fc = new FontCharacteristics();
@@ -1058,16 +1079,16 @@ namespace iText.Layout {
         private static FontSet GetOpenSansFontSet() {
             String openSansFolder = "Open_Sans/";
             FontSet set = new FontSet();
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-Bold.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-BoldItalic.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-ExtraBold.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-ExtraBoldItalic.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-Light.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-LightItalic.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-Regular.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-Italic.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-SemiBold.ttf");
-            set.AddFont(fontsFolder + openSansFolder + "OpenSans-SemiBoldItalic.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-Bold.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-BoldItalic.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-ExtraBold.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-ExtraBoldItalic.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-Light.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-LightItalic.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-Regular.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-Italic.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-SemiBold.ttf");
+            set.AddFont(FONTS_FOLDER + "OpenSans-SemiBoldItalic.ttf");
             return set;
         }
 

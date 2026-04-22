@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -35,14 +35,14 @@ using iText.Kernel.Validation.Context;
 namespace iText.Kernel.Pdf {
     /// <summary>A representation of a cross-referenced table of a PDF document.</summary>
     public class PdfXrefTable {
-        private const int INITIAL_CAPACITY = 32;
+        public const int MAX_GENERATION = 65535;
 
-        private const int MAX_GENERATION = 65535;
+        private const int INITIAL_CAPACITY = 32;
 
         /// <summary>The maximum offset in a cross-reference stream.</summary>
         /// <remarks>
         /// The maximum offset in a cross-reference stream. This is a limitation of the PDF specification.
-        /// SPEC1.7: 7.5.4 Cross reference trailer
+        /// SPEC1.7: 7.5.4 Cross-reference trailer
         /// <para />
         /// It states that the offset should be a 10-digit byte, so the maximum value is 9999999999.
         /// This is the max value that can be represented in 10 bytes.
@@ -234,7 +234,7 @@ namespace iText.Kernel.Pdf {
             }
         }
 
-        /// <summary>Writes cross reference table and trailer to PDF.</summary>
+        /// <summary>Writes cross-reference table and trailer to PDF.</summary>
         /// <param name="document">
         /// is the current
         /// <see cref="PdfDocument">document</see>
@@ -262,8 +262,8 @@ namespace iText.Kernel.Pdf {
                 xrefStream.MakeIndirect(document);
             }
             IList<int> sections = CreateSections(document, false);
-            bool noModifiedObjects = (sections.Count == 0) || (xrefStream != null && sections.Count == 2 && sections[0
-                ] == count && sections[1] == 1);
+            bool noModifiedObjects = (sections.IsEmpty()) || (xrefStream != null && sections.Count == 2 && sections[0]
+                 == count && sections[1] == 1);
             if (document.properties.appendMode && noModifiedObjects) {
                 // No modifications in document
                 xref = null;
@@ -576,7 +576,7 @@ namespace iText.Kernel.Pdf {
         /// <summary>Removes indirect reference from free references linked list.</summary>
         /// <remarks>
         /// Removes indirect reference from free references linked list.
-        /// It does not removes it from xref table and affects only the linked list formed by offset values of free references.
+        /// It does not remove it from xref table and affects only the linked list formed by offset values of free references.
         /// </remarks>
         /// <param name="freeRefObjNr">
         /// object number of the reference to be removed.
@@ -633,7 +633,7 @@ namespace iText.Kernel.Pdf {
         }
 
         private void ExtendXref(int capacity) {
-            if (this.memoryLimitsAwareHandler != null) {
+            if (this.memoryLimitsAwareHandler != null && !readingCompleted) {
                 this.memoryLimitsAwareHandler.CheckIfXrefStructureExceedsTheLimit(capacity);
             }
             PdfIndirectReference[] newXref = new PdfIndirectReference[capacity];

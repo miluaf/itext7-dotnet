@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -33,10 +33,12 @@ using iText.Test;
 namespace iText.Forms {
     [NUnit.Framework.Category("IntegrationTest")]
     public class PdfFormFieldTextTest : ExtendedITextTest {
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/forms/PdfFormFieldTextTest/";
+        private static readonly String FONT_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+            .CurrentContext.TestDirectory) + "/resources/itext/forms/fonts/";
 
-        public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+        private static readonly String destinationFolder = TestUtil.GetOutputPath() + "/forms/PdfFormFieldTextTest/";
+
+        private static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/forms/PdfFormFieldTextTest/";
 
         private const String TEXT = "Some text in Russian \u0442\u0435\u043A\u0441\u0442 (text)";
@@ -82,7 +84,7 @@ namespace iText.Forms {
             String filename = "fontsResourcesHelvFontTest.pdf";
             PdfDocument pdfDoc = new PdfDocument(new PdfReader(sourceFolder + "drWithHelv.pdf"), new PdfWriter(destinationFolder
                  + filename));
-            PdfFont font = PdfFontFactory.CreateFont(sourceFolder + "NotoSans-Regular.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont font = PdfFontFactory.CreateFont(FONT_FOLDER + "NotoSans-Regular.ttf", PdfEncodings.IDENTITY_H);
             font.SetSubset(false);
             PdfAcroForm form = PdfFormCreator.GetAcroForm(pdfDoc, false);
             form.GetField("description").SetValue(TEXT, font, 12f);
@@ -109,11 +111,11 @@ namespace iText.Forms {
             String filename = "fontsResourcesHelvCourierNotoFontTest.pdf";
             PdfDocument pdfDoc = new PdfDocument(new PdfReader(sourceFolder + "drWithHelvAndCourier.pdf"), new PdfWriter
                 (destinationFolder + filename));
-            PdfFont font = PdfFontFactory.CreateFont(sourceFolder + "NotoSans-Regular.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont font = PdfFontFactory.CreateFont(FONT_FOLDER + "NotoSans-Regular.ttf", PdfEncodings.IDENTITY_H);
             font.SetSubset(false);
-            PdfAcroForm form = PdfFormCreator.GetAcroForm(pdfDoc, false);
-            form.GetField("description").SetFont(font);
-            form.GetField("description").SetValue(TEXT);
+            PdfFormField formField = PdfFormCreator.GetAcroForm(pdfDoc, false).GetField("description");
+            formField.SetFont(font);
+            formField.SetValue(TEXT);
             pdfDoc.Close();
             PdfDocument document = new PdfDocument(new PdfReader(destinationFolder + filename));
             // Note that we know the structure of the expected pdf file

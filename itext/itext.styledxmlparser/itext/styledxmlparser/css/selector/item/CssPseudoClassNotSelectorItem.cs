@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -42,9 +42,13 @@ namespace iText.StyledXmlParser.Css.Selector.Item {
             return CssSelectorParser.ParseSelectorItems(arguments);
         }
 
+        // TODO DEVSIX-9069 Add notMatches to ICssSelector interface
         public override bool Matches(INode node) {
             if (!(node is IElementNode) || node is ICustomElementNode || node is IDocumentNode) {
                 return false;
+            }
+            if (argumentsSelector is CssSelector) {
+                return ((CssSelector)argumentsSelector).NotMatches(node);
             }
             return !argumentsSelector.Matches(node);
         }

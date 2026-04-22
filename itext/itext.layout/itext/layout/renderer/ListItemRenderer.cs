@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -108,7 +108,7 @@ namespace iText.Layout.Renderer {
                 }
             }
             base.Draw(drawContext);
-            // It will be null in case of overflow (only the "split" part will contain symbol renderer.
+            // It will be null in case of overflow (only the "split" part will contain symbol renderer).
             if (symbolRenderer != null && !symbolAddedInside) {
                 bool isRtl = BaseDirection.RIGHT_TO_LEFT == this.GetProperty<BaseDirection?>(Property.BASE_DIRECTION);
                 symbolRenderer.SetParent(this);
@@ -146,11 +146,11 @@ namespace iText.Layout.Renderer {
                 }
                 ApplyMargins(occupiedArea.GetBBox(), false);
                 ApplyBorderBox(occupiedArea.GetBBox(), false);
-                if (childRenderers.Count > 0) {
+                if (!childRenderers.IsEmpty()) {
                     float? yLine = null;
-                    for (int i = 0; i < childRenderers.Count; i++) {
-                        if (childRenderers[i].GetOccupiedArea().GetBBox().GetHeight() > 0) {
-                            yLine = ((AbstractRenderer)childRenderers[i]).GetFirstYLineRecursively();
+                    foreach (IRenderer childRenderer in childRenderers) {
+                        if (childRenderer.GetOccupiedArea().GetBBox().GetHeight() > 0) {
+                            yLine = ((AbstractRenderer)childRenderer).GetFirstYLineRecursively();
                             if (yLine != null) {
                                 break;
                             }
@@ -254,50 +254,55 @@ namespace iText.Layout.Renderer {
         }
 
         private void ApplyListSymbolPosition() {
-            if (symbolRenderer != null) {
-                ListSymbolPosition symbolPosition = (ListSymbolPosition)ListRenderer.GetListItemOrListProperty(this, parent
-                    , Property.LIST_SYMBOL_POSITION);
-                if (symbolPosition == ListSymbolPosition.INSIDE) {
-                    bool isRtl = BaseDirection.RIGHT_TO_LEFT.Equals(this.GetProperty<BaseDirection?>(Property.BASE_DIRECTION));
-                    if (childRenderers.Count > 0 && childRenderers[0] is ParagraphRenderer) {
-                        ParagraphRenderer paragraphRenderer = (ParagraphRenderer)childRenderers[0];
-                        // TODO DEVSIX-6876 LIST_SYMBOL_INDENT is not inherited
-                        float? symbolIndent = this.GetPropertyAsFloat(Property.LIST_SYMBOL_INDENT);
-                        if (symbolRenderer is LineRenderer) {
-                            if (symbolIndent != null) {
-                                symbolRenderer.GetChildRenderers()[1].SetProperty(isRtl ? Property.MARGIN_LEFT : Property.MARGIN_RIGHT, UnitValue
-                                    .CreatePointValue((float)symbolIndent));
-                            }
-                            if (!paragraphRenderer.childRenderers.Contains(symbolRenderer.GetChildRenderers()[1])) {
-                                foreach (IRenderer childRenderer in symbolRenderer.GetChildRenderers()) {
-                                    paragraphRenderer.childRenderers.Add(0, childRenderer);
-                                }
-                            }
-                        }
-                        else {
-                            if (symbolIndent != null) {
-                                symbolRenderer.SetProperty(isRtl ? Property.MARGIN_LEFT : Property.MARGIN_RIGHT, UnitValue.CreatePointValue
-                                    ((float)symbolIndent));
-                            }
-                            if (!paragraphRenderer.childRenderers.Contains(symbolRenderer)) {
-                                paragraphRenderer.childRenderers.Add(0, symbolRenderer);
-                            }
-                        }
-                        symbolAddedInside = true;
-                    }
-                    else {
-                        if (childRenderers.Count > 0 && childRenderers[0] is ImageRenderer) {
-                            IRenderer paragraphRenderer = RenderSymbolInNeutralParagraph();
-                            paragraphRenderer.AddChild(childRenderers[0]);
-                            childRenderers[0] = paragraphRenderer;
-                            symbolAddedInside = true;
-                        }
-                    }
-                    if (!symbolAddedInside) {
+            if (symbolRenderer == null) {
+                return;
+            }
+            ListSymbolPosition symbolPosition = (ListSymbolPosition)ListRenderer.GetListItemOrListProperty(this, parent
+                , Property.LIST_SYMBOL_POSITION);
+            if (symbolPosition == ListSymbolPosition.INSIDE) {
+                if (!childRenderers.IsEmpty() && childRenderers[0] is ParagraphRenderer) {
+                    ParagraphRenderer paragraphRenderer = (ParagraphRenderer)childRenderers[0];
+                    InjectSymbolRendererIntoParagraphRenderer(paragraphRenderer);
+                    symbolAddedInside = true;
+                }
+                else {
+                    if (!childRenderers.IsEmpty() && childRenderers[0] is ImageRenderer) {
                         IRenderer paragraphRenderer = RenderSymbolInNeutralParagraph();
-                        childRenderers.Add(0, paragraphRenderer);
+                        paragraphRenderer.AddChild(childRenderers[0]);
+                        childRenderers[0] = paragraphRenderer;
                         symbolAddedInside = true;
                     }
+                }
+                if (!symbolAddedInside) {
+                    IRenderer paragraphRenderer = RenderSymbolInNeutralParagraph();
+                    childRenderers.Add(0, paragraphRenderer);
+                    symbolAddedInside = true;
+                }
+            }
+        }
+
+        private void InjectSymbolRendererIntoParagraphRenderer(ParagraphRenderer paragraphRenderer) {
+            bool isRtl = BaseDirection.RIGHT_TO_LEFT.Equals(this.GetProperty<BaseDirection?>(Property.BASE_DIRECTION));
+            // TODO DEVSIX-6876 LIST_SYMBOL_INDENT is not inherited
+            float? symbolIndent = this.GetPropertyAsFloat(Property.LIST_SYMBOL_INDENT);
+            if (symbolRenderer is LineRenderer) {
+                if (symbolIndent != null) {
+                    symbolRenderer.GetChildRenderers()[1].SetProperty(isRtl ? Property.MARGIN_LEFT : Property.MARGIN_RIGHT, UnitValue
+                        .CreatePointValue((float)symbolIndent));
+                }
+                if (!paragraphRenderer.childRenderers.Contains(symbolRenderer.GetChildRenderers()[1])) {
+                    foreach (IRenderer childRenderer in symbolRenderer.GetChildRenderers()) {
+                        paragraphRenderer.childRenderers.Add(0, childRenderer);
+                    }
+                }
+            }
+            else {
+                if (symbolIndent != null) {
+                    symbolRenderer.SetProperty(isRtl ? Property.MARGIN_LEFT : Property.MARGIN_RIGHT, UnitValue.CreatePointValue
+                        ((float)symbolIndent));
+                }
+                if (!paragraphRenderer.childRenderers.Contains(symbolRenderer)) {
+                    paragraphRenderer.childRenderers.Add(0, symbolRenderer);
                 }
             }
         }
@@ -305,23 +310,18 @@ namespace iText.Layout.Renderer {
         private IRenderer RenderSymbolInNeutralParagraph() {
             Paragraph p = new Paragraph().SetNeutralRole();
             IRenderer paragraphRenderer = p.SetMargin(0).CreateRendererSubTree();
-            float? symbolIndent = (float?)ListRenderer.GetListItemOrListProperty(this, parent, Property.LIST_SYMBOL_INDENT
-                );
-            if (symbolIndent != null) {
-                // cast to float is necessary for autoporting reasons
-                symbolRenderer.SetProperty(Property.MARGIN_RIGHT, UnitValue.CreatePointValue((float)symbolIndent));
-            }
-            paragraphRenderer.AddChild(symbolRenderer);
+            InjectSymbolRendererIntoParagraphRenderer((ParagraphRenderer)paragraphRenderer);
             return paragraphRenderer;
         }
 
         private bool IsListSymbolEmpty(IRenderer listSymbolRenderer) {
             if (listSymbolRenderer is TextRenderer) {
-                return ((TextRenderer)listSymbolRenderer).GetText().ToString().Length == 0;
+                return String.IsNullOrEmpty(((TextRenderer)listSymbolRenderer).GetText().ToString());
             }
             else {
                 if (listSymbolRenderer is LineRenderer) {
-                    return ((TextRenderer)listSymbolRenderer.GetChildRenderers()[1]).GetText().ToString().Length == 0;
+                    return String.IsNullOrEmpty(((TextRenderer)listSymbolRenderer.GetChildRenderers()[1]).GetText().ToString()
+                        );
                 }
             }
             return false;

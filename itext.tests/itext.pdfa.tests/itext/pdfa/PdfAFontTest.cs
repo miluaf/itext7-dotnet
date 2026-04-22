@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -37,7 +37,6 @@ using iText.Test;
 using iText.Test.Pdfa;
 
 namespace iText.Pdfa {
-    // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
     [NUnit.Framework.Category("IntegrationTest")]
     public class PdfAFontTest : ExtendedITextTest {
 //\cond DO_NOT_DOCUMENT
@@ -46,9 +45,11 @@ namespace iText.Pdfa {
 //\endcond
 
 //\cond DO_NOT_DOCUMENT
-        internal static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/pdfa/PdfAFontTest/";
+        internal static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/pdfa/PdfAFontTest/";
 //\endcond
+
+        private static readonly String FONTS_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+            .CurrentContext.TestDirectory) + "/resources/itext/pdfa/fonts/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -64,7 +65,7 @@ namespace iText.Pdfa {
             PdfDocument doc = new PdfADocument(writer, PdfAConformance.PDF_A_1B, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "FreeSans.ttf", "WinAnsi", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "FreeSans.ttf", "WinAnsi", PdfFontFactory.EmbeddingStrategy
                 .FORCE_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
@@ -80,7 +81,7 @@ namespace iText.Pdfa {
             PdfDocument doc = new PdfADocument(writer, PdfAConformance.PDF_A_1B, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "FreeSans.ttf", PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "FreeSans.ttf", PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy
                 .FORCE_NOT_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
@@ -100,7 +101,7 @@ namespace iText.Pdfa {
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
             // Identity-H must be embedded
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "FreeSans.ttf", "Identity-H", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "FreeSans.ttf", "Identity-H", PdfFontFactory.EmbeddingStrategy
                 .PREFER_NOT_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
@@ -136,7 +137,7 @@ namespace iText.Pdfa {
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
             // Identity-H must be embedded
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "NotoSansCJKtc-Light.otf", "Identity-H");
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "NotoSansCJKtc-Light.otf", "Identity-H");
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
                 ).ShowText("Hello World! Pdf/A-1B").EndText().RestoreState();
@@ -154,7 +155,7 @@ namespace iText.Pdfa {
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
             // Identity-H must be embedded
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "FreeSans.ttf", "Identity-H", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "FreeSans.ttf", "Identity-H", PdfFontFactory.EmbeddingStrategy
                 .PREFER_NOT_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
@@ -173,7 +174,7 @@ namespace iText.Pdfa {
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
             // Identity-H must be embedded
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "FreeSans.ttf", "Identity-H", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "FreeSans.ttf", "Identity-H", PdfFontFactory.EmbeddingStrategy
                 .PREFER_NOT_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
@@ -194,9 +195,8 @@ namespace iText.Pdfa {
         public virtual void CidFontCheckTest2() {
             String outPdf = DESTINATION_FOLDER + "pdfA2b_cidFontCheckTest2.pdf";
             String cmpPdf = SOURCE_FOLDER + "cmp/PdfAFontTest/cmp_pdfA2b_cidFontCheckTest2.pdf";
-            String expectedVeraPdfWarning = "The following warnings and errors were logged during validation:\n" + "WARNING: The Top DICT does not begin with ROS operator";
-            GeneratePdfA2WithCidFont("Puritan2.otf", outPdf);
-            CompareResult(outPdf, cmpPdf, expectedVeraPdfWarning);
+            GeneratePdfA2WithCidFont("Puritan-Regular.ttf", outPdf);
+            CompareResult(outPdf, cmpPdf, null);
         }
 
         [NUnit.Framework.Test]
@@ -209,6 +209,7 @@ namespace iText.Pdfa {
 
         [NUnit.Framework.Test]
         public virtual void SymbolicTtfCharEncodingsPdfA1Test01() {
+            // TODO DEVSIX-9589 Create symbol font with cmap 3,0 for testing
             // encoding must not be specified
             // Here we produced valid pdfa files in the past by silently removing not valid symbols
             // But right now we check for used glyphs which don't exist in the font and throw exception
@@ -220,6 +221,7 @@ namespace iText.Pdfa {
 
         [NUnit.Framework.Test]
         public virtual void SymbolicTtfCharEncodingsPdfA1Test02() {
+            // TODO DEVSIX-9589 Create symbol font with cmap 3,0 for testing
             // if you specify encoding, symbolic font is treated as non-symbolic
             Exception e = NUnit.Framework.Assert.Catch(typeof(PdfAConformanceException), () => CreateDocumentWithFont(
                 "symbolicTtfCharEncodingsPdfA1Test02.pdf", "Symbols1.ttf", PdfEncodings.MACROMAN, PdfAConformance.PDF_A_1B
@@ -230,6 +232,7 @@ namespace iText.Pdfa {
 
         [NUnit.Framework.Test]
         public virtual void SymbolicTtfCharEncodingsPdfA1Test03() {
+            // TODO DEVSIX-9589 Create symbol font with cmap 3,0 for testing
             // if you specify encoding, symbolic font is treated as non-symbolic
             Exception e = NUnit.Framework.Assert.Catch(typeof(PdfAConformanceException), () => CreateDocumentWithFont(
                 "symbolicTtfCharEncodingsPdfA1Test03.pdf", "Symbols1.ttf", "ISO-8859-1", PdfAConformance.PDF_A_1B));
@@ -239,6 +242,7 @@ namespace iText.Pdfa {
 
         [NUnit.Framework.Test]
         public virtual void SymbolicTtfCharEncodingsPdfA1Test04() {
+            // TODO DEVSIX-9589 Create symbol font with cmap 3,0 for testing
             Exception e = NUnit.Framework.Assert.Catch(typeof(PdfAConformanceException), () => CreateDocumentWithFont(
                 "symbolicTtfCharEncodingsPdfA1Test04.pdf", "Symbols1.ttf", PdfEncodings.WINANSI, PdfAConformance.PDF_A_1B
                 ));
@@ -248,6 +252,7 @@ namespace iText.Pdfa {
 
         [NUnit.Framework.Test]
         public virtual void SymbolicTtfCharEncodingsPdfA1Test05() {
+            // TODO DEVSIX-9589 Create symbol font with cmap 3,0 for testing
             // Identity-H behaviour should be the same as the default one, starting from 7.2
             // Here we produced valid pdfa files in the past by silently removing not valid symbols
             // But right now we check for used glyphs which don't exist in the font and throw exception
@@ -281,7 +286,7 @@ namespace iText.Pdfa {
             Stream @is = FileUtil.GetInputStreamForFile(SOURCE_FOLDER + "sRGB Color Space Profile.icm");
             PdfDocument doc = new PdfADocument(writer, PdfAConformance.PDF_A_4, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB IEC61966-2.1", @is));
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "FreeSans.ttf", "# simple 32 0020 00C5 1987", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "FreeSans.ttf", "# simple 32 0020 00C5 1987", PdfFontFactory.EmbeddingStrategy
                 .PREFER_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(doc.AddNewPage());
             canvas.SaveState().BeginText().MoveText(36, 786).SetFontAndSize(font, 36);
@@ -298,7 +303,7 @@ namespace iText.Pdfa {
             Stream @is = FileUtil.GetInputStreamForFile(SOURCE_FOLDER + "sRGB Color Space Profile.icm");
             PdfDocument doc = new PdfADocument(writer, PdfAConformance.PDF_A_4, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB IEC61966-2.1", @is));
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "NotoSans-Regular.ttf", "", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "NotoSans-Regular.ttf", "", PdfFontFactory.EmbeddingStrategy
                 .PREFER_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(doc.AddNewPage());
             canvas.SaveState().BeginText().MoveText(36, 786).SetFontAndSize(font, 36);
@@ -315,7 +320,7 @@ namespace iText.Pdfa {
             Document document = new Document(new PdfADocument(new PdfWriter(outPdf, new WriterProperties().SetPdfVersion
                 (PdfVersion.PDF_2_0)), PdfAConformance.PDF_A_4, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB ICC preference", icm)));
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "NotoSans-Regular.ttf", "", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "NotoSans-Regular.ttf", "", PdfFontFactory.EmbeddingStrategy
                 .PREFER_EMBEDDED);
             Paragraph p = new Paragraph("\u898B\u7A4D\u3082\u308A");
             p.SetFont(font);
@@ -331,7 +336,7 @@ namespace iText.Pdfa {
             Stream @is = FileUtil.GetInputStreamForFile(SOURCE_FOLDER + "sRGB Color Space Profile.icm");
             PdfDocument doc = new PdfADocument(writer, PdfAConformance.PDF_A_4, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB IEC61966-2.1", @is));
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "NotoSans-Regular.ttf", "", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "NotoSans-Regular.ttf", "", PdfFontFactory.EmbeddingStrategy
                 .PREFER_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(doc.AddNewPage());
             canvas.SaveState().BeginText().MoveText(36, 786).SetFontAndSize(font, 36);
@@ -339,10 +344,8 @@ namespace iText.Pdfa {
             pdfArray.Add(new PdfString("ABC"));
             pdfArray.Add(new PdfNumber(1));
             pdfArray.Add(new PdfString("\u898B\u7A4D\u3082\u308A"));
-            Exception e = NUnit.Framework.Assert.Catch(typeof(PdfAConformanceException), () => canvas.ShowText(pdfArray
-                ));
-            NUnit.Framework.Assert.AreEqual(PdfaExceptionMessageConstant.EMBEDDED_FONTS_SHALL_DEFINE_ALL_REFERENCED_GLYPHS
-                , e.Message);
+            // PdfCanvas#showText(PdfArray) doesn't contain any checks.
+            NUnit.Framework.Assert.DoesNotThrow(() => canvas.ShowText(pdfArray));
         }
 
         [NUnit.Framework.Test]
@@ -384,7 +387,7 @@ namespace iText.Pdfa {
             PdfDocument doc = new PdfADocument(writer, PdfAConformance.PDF_A_4, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "FreeSans.ttf", "WinAnsi", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "FreeSans.ttf", "WinAnsi", PdfFontFactory.EmbeddingStrategy
                 .FORCE_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
@@ -402,7 +405,7 @@ namespace iText.Pdfa {
             PdfDocument doc = new PdfADocument(writer, PdfAConformance.PDF_A_4, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "FreeSans.ttf", PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "FreeSans.ttf", PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy
                 .FORCE_NOT_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
@@ -424,7 +427,7 @@ namespace iText.Pdfa {
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
             // Identity-H must be embedded
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "FreeSans.ttf", "Identity-H", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "FreeSans.ttf", "Identity-H", PdfFontFactory.EmbeddingStrategy
                 .PREFER_NOT_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
@@ -464,7 +467,7 @@ namespace iText.Pdfa {
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
             // Identity-H must be embedded
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "NotoSansCJKtc-Light.otf", "Identity-H");
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "NotoSansCJKtc-Light.otf", "Identity-H");
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
                 ).ShowText("你好世界! Pdf/A-4").EndText().RestoreState();
@@ -473,10 +476,9 @@ namespace iText.Pdfa {
         }
 
         [NUnit.Framework.Test]
-        public virtual void CheckPdfA4Puritan2Test() {
-            String outPdf = DESTINATION_FOLDER + "pdfA4Puritan2Test.pdf";
-            String cmpPdf = SOURCE_FOLDER + "cmp/PdfAFontTest/cmp_pdfA4Puritan2Test.pdf";
-            String expectedVeraPdfWarning = "The following warnings and errors were logged during validation:\n" + "WARNING: The Top DICT does not begin with ROS operator";
+        public virtual void CheckPdfA4PuritanTest() {
+            String outPdf = DESTINATION_FOLDER + "pdfA4PuritanTest.pdf";
+            String cmpPdf = SOURCE_FOLDER + "cmp/PdfAFontTest/cmp_pdfA4PuritanTest.pdf";
             WriterProperties writerProperties = new WriterProperties();
             writerProperties.SetPdfVersion(PdfVersion.PDF_2_0);
             PdfWriter writer = new PdfWriter(outPdf, writerProperties);
@@ -485,12 +487,12 @@ namespace iText.Pdfa {
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
             // Identity-H must be embedded
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "Puritan2.otf", "Identity-H");
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "Puritan-Regular.ttf", "Identity-H");
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
                 ).ShowText("Hello World! Pdf/A-4").EndText().RestoreState();
             doc.Close();
-            CompareResult(outPdf, cmpPdf, expectedVeraPdfWarning);
+            CompareResult(outPdf, cmpPdf, null);
         }
 
         [NUnit.Framework.Test]
@@ -576,7 +578,7 @@ namespace iText.Pdfa {
             PdfDocument doc = new PdfADocument(writer, PdfAConformance.PDF_A_4, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "SourceSerif4-Black.woff", "Identity-H", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "SourceSerif4-Black.woff", "Identity-H", PdfFontFactory.EmbeddingStrategy
                 .FORCE_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
@@ -596,7 +598,7 @@ namespace iText.Pdfa {
             PdfDocument doc = new PdfADocument(writer, PdfAConformance.PDF_A_4, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + "NotoEmoji-Regular.ttf", "Identity-H", PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "NotoEmoji-Regular.ttf", "Identity-H", PdfFontFactory.EmbeddingStrategy
                 .FORCE_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().SetFillColor(ColorConstants.GREEN).BeginText().MoveText(36, 700).SetFontAndSize(font, 36
@@ -614,7 +616,7 @@ namespace iText.Pdfa {
             PdfDocument doc = new PdfADocument(writer, conformance, new PdfOutputIntent("Custom", "", "http://www.color.org"
                 , "sRGB IEC61966-2.1", @is));
             PdfPage page = doc.AddNewPage();
-            PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + fontFileName, encoding, PdfFontFactory.EmbeddingStrategy
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + fontFileName, encoding, PdfFontFactory.EmbeddingStrategy
                 .FORCE_EMBEDDED);
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.SaveState().BeginText().MoveText(36, 700).SetFontAndSize(font, 12).ShowText("Hello World").EndText(
@@ -625,7 +627,6 @@ namespace iText.Pdfa {
 
         private void CompareResult(String outPdf, String cmpPdf, String expectedVeraPdfWarning) {
             new VeraPdfValidator().ValidateWarning(outPdf, expectedVeraPdfWarning);
-            // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
             String result = new CompareTool().CompareByContent(outPdf, cmpPdf, DESTINATION_FOLDER, "diff_");
             if (result != null) {
                 NUnit.Framework.Assert.Fail(result);
@@ -639,7 +640,7 @@ namespace iText.Pdfa {
                         "", "http://www.color.org", "sRGB IEC61966-2.1", @is))) {
                         PdfPage page = doc.AddNewPage();
                         // Identity-H must be embedded
-                        PdfFont font = PdfFontFactory.CreateFont(SOURCE_FOLDER + fontFile, "Identity-H", PdfFontFactory.EmbeddingStrategy
+                        PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + fontFile, "Identity-H", PdfFontFactory.EmbeddingStrategy
                             .FORCE_EMBEDDED);
                         PdfCanvas canvas = new PdfCanvas(page);
                         canvas.SaveState().BeginText().MoveText(36, 700).SetFontAndSize(font, 12).ShowText("Hello World").EndText(

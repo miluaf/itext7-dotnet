@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -62,8 +62,7 @@ namespace iText.Kernel.Crypto {
     public class PdfEncryptionManuallyPortedTest : ExtendedITextTest {
         private static readonly IBouncyCastleFactory FACTORY = BouncyCastleFactoryCreator.GetFactory();
 
-        public static readonly String destinationFolder = TestContext.CurrentContext.TestDirectory
-             + "/test/itext/kernel/crypto/PdfEncryptionManuallyPortedTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/kernel/crypto/PdfEncryptionManuallyPortedTest/";
 
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/kernel/crypto/PdfEncryptionManuallyPortedTest/";

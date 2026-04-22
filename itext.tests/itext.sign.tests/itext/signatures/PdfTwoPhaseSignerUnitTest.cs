@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -34,20 +34,7 @@ namespace iText.Signatures {
     public class PdfTwoPhaseSignerUnitTest : ExtendedITextTest {
         private static readonly IBouncyCastleFactory FACTORY = BouncyCastleFactoryCreator.GetFactory();
 
-        private static readonly byte[] OWNER = "owner".GetBytes(System.Text.Encoding.UTF8);
-
-        private static readonly byte[] USER = "user".GetBytes(System.Text.Encoding.UTF8);
-
-        private static readonly String PDFA_RESOURCES = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
-            .CurrentContext.TestDirectory) + "/resources/itext/signatures/pdfa/";
-
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/signatures/Pdf2PhaseSignerUnitTest/";
-
-        private static readonly String CERTS_SRC = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
-            .CurrentContext.TestDirectory) + "/resources/itext/signatures/certs/";
-
-        private static readonly char[] PASSWORD = "testpassphrase".ToCharArray();
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/signatures/Pdf2PhaseSignerUnitTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void Before() {
@@ -61,8 +48,8 @@ namespace iText.Signatures {
             PdfTwoPhaseSigner signer = new PdfTwoPhaseSigner(reader, outputStream);
             int estimatedSize = 8079;
             SignerProperties signerProperties = new SignerProperties();
-            byte[] digest = signer.PrepareDocumentForSignature(signerProperties, DigestAlgorithms.SHA256, PdfName.Adobe_PPKLite
-                , PdfName.Adbe_pkcs7_detached, estimatedSize, false);
+            signer.PrepareDocumentForSignature(signerProperties, DigestAlgorithms.SHA256, PdfName.Adobe_PPKLite, PdfName
+                .Adbe_pkcs7_detached, estimatedSize, false);
             String fieldName = signerProperties.GetFieldName();
             PdfReader resultReader = new PdfReader(new MemoryStream(outputStream.ToArray()));
             PdfDocument resultDoc = new PdfDocument(resultReader);
@@ -79,8 +66,8 @@ namespace iText.Signatures {
             int estimatedSize = 8079;
             SignerProperties signerProperties = new SignerProperties();
             signer.SetExternalDigest(new BouncyCastleDigest());
-            byte[] digest = signer.PrepareDocumentForSignature(signerProperties, DigestAlgorithms.SHA256, PdfName.Adobe_PPKLite
-                , PdfName.Adbe_pkcs7_detached, estimatedSize, false);
+            signer.PrepareDocumentForSignature(signerProperties, DigestAlgorithms.SHA256, PdfName.Adobe_PPKLite, PdfName
+                .Adbe_pkcs7_detached, estimatedSize, false);
             String fieldName = signerProperties.GetFieldName();
             PdfReader resultReader = new PdfReader(new MemoryStream(outputStream.ToArray()));
             PdfDocument resultDoc = new PdfDocument(resultReader);
@@ -139,6 +126,25 @@ namespace iText.Signatures {
                     }
                 }
             }
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void PrepareDocumentSignatureCreatorTest() {
+            PdfReader reader = new PdfReader(new MemoryStream(CreateSimpleDocument()));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            PdfTwoPhaseSigner signer = new PdfTwoPhaseSigner(reader, outputStream);
+            int estimatedSize = 8079;
+            SignerProperties signerProperties = new SignerProperties();
+            signer.PrepareDocumentForSignature(signerProperties, DigestAlgorithms.SHA256, PdfName.Adobe_PPKLite, PdfName
+                .Adbe_pkcs7_detached, estimatedSize, false);
+            String fieldName = signerProperties.GetFieldName();
+            PdfReader resultReader = new PdfReader(new MemoryStream(outputStream.ToArray()));
+            PdfDocument resultDoc = new PdfDocument(resultReader);
+            SignatureUtil signatureUtil = new SignatureUtil(resultDoc);
+            PdfSignature signature = signatureUtil.GetSignature(fieldName);
+            String creator = signature.GetPdfObject().GetAsDictionary(PdfName.Prop_Build).GetAsDictionary(PdfName.App)
+                .GetAsName(PdfName.Name).GetValue();
+            NUnit.Framework.Assert.AreEqual(resultDoc.GetDocumentInfo().GetProducer(), creator);
         }
 
         private static byte[] CreateSimpleDocument() {

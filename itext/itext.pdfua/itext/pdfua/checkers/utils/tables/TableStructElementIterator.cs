@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -27,6 +27,7 @@ using iText.Commons.Utils;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Tagging;
 using iText.Pdfua.Checkers.Utils;
+using iText.Pdfua.Exceptions;
 
 namespace iText.Pdfua.Checkers.Utils.Tables {
     /// <summary>Creates an iterator to iterate over the table structures.</summary>
@@ -57,60 +58,80 @@ namespace iText.Pdfua.Checkers.Utils.Tables {
         /// <see cref="TableStructElementIterator"/>
         /// instance.
         /// </summary>
-        /// <param name="tableStructElem">the root table struct element.</param>
-        /// <param name="context">the validation context.</param>
+        /// <param name="tableStructElem">the root table struct element</param>
+        /// <param name="context">the validation context</param>
         public TableStructElementIterator(PdfStructElem tableStructElem, PdfUAValidationContext context) {
             this.context = context;
             FlattenElements(tableStructElem);
         }
 
-        /// <summary><inheritDoc/></summary>
+        /// <summary>Checks if there is a next element in the iteration.</summary>
+        /// <returns>
+        /// 
+        /// <see langword="true"/>
+        /// if there is a next element,
+        /// <see langword="false"/>
+        /// otherwise
+        /// </returns>
         public virtual bool HasNext() {
             return iterIndex < all.Count;
         }
 
-        /// <summary><inheritDoc/></summary>
+        /// <summary>Gets the next table structure element in the iteration.</summary>
+        /// <returns>
+        /// the next
+        /// <see cref="iText.Kernel.Pdf.Tagging.PdfStructElem"/>
+        /// in the iteration
+        /// </returns>
         public virtual PdfStructElem Next() {
             currentValue = all[iterIndex++];
             return currentValue;
         }
 
-        /// <summary><inheritDoc/></summary>
+        /// <summary>Gets the number of rows in the body of the table.</summary>
+        /// <returns>the number of rows in the table body</returns>
         public virtual int GetAmountOfRowsBody() {
             return this.amountOfRowsBody;
         }
 
-        /// <summary><inheritDoc/></summary>
+        /// <summary>Gets the number of rows in the header of the table.</summary>
+        /// <returns>the number of rows in the table header</returns>
         public virtual int GetAmountOfRowsHeader() {
             return this.amountOfRowsHeader;
         }
 
-        /// <summary><inheritDoc/></summary>
+        /// <summary>Gets the number of rows in the footer of the table.</summary>
+        /// <returns>the number of rows in the table footer</returns>
         public virtual int GetAmountOfRowsFooter() {
             return this.amountOfRowsFooter;
         }
 
-        /// <summary><inheritDoc/></summary>
+        /// <summary>Gets the total number of columns in the table.</summary>
+        /// <returns>the total number of columns in the table</returns>
         public virtual int GetNumberOfColumns() {
             return this.amountOfCols;
         }
 
-        /// <summary><inheritDoc/></summary>
+        /// <summary>Gets the zero-based row index of the current table element.</summary>
+        /// <returns>the zero-based row index of the current element</returns>
         public virtual int GetRow() {
             return locationCache.Get(currentValue).GetFirst();
         }
 
-        /// <summary><inheritDoc/></summary>
+        /// <summary>Gets the zero-based column index of the current table element.</summary>
+        /// <returns>the zero-based column index of the current element</returns>
         public virtual int GetCol() {
             return locationCache.Get(currentValue).GetSecond();
         }
 
-        /// <summary><inheritDoc/></summary>
+        /// <summary>Gets the rowspan attribute value of the current table element.</summary>
+        /// <returns>the rowspan value of the current element (minimum 1)</returns>
         public virtual int GetRowspan() {
             return GetRowspan(currentValue);
         }
 
-        /// <summary><inheritDoc/></summary>
+        /// <summary>Gets the colspan attribute value of the current table element.</summary>
+        /// <returns>the colspan value of the current element (minimum 1)</returns>
         public virtual int GetColspan() {
             return GetColspan(currentValue);
         }
@@ -184,6 +205,10 @@ namespace iText.Pdfua.Checkers.Utils.Tables {
                             firstOpenColIndex = i;
                             break;
                         }
+                    }
+                    if (firstOpenColIndex == -1) {
+                        throw new PdfUAConformanceException(MessageFormatUtil.Format(PdfUAExceptionMessageConstants.ROWS_SPAN_DIFFERENT_NUMBER_OF_COLUMNS
+                            , rowIdx, rowIdx + 1));
                     }
                     // Set the colspan and rowspan of each cell with a placeholder
                     for (int i = rowIdx; i < rowIdx + rowSpan; i++) {

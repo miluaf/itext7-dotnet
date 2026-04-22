@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -33,12 +33,21 @@ namespace iText.Svg.Renderers.Path {
         /// <returns>
         /// a
         /// <see cref="System.Collections.IDictionary{K, V}"/>
-        /// with Strings as keys and {link @
+        /// with Strings as keys and
         /// <see cref="IPathShape"/>
         /// implementations as values
         /// </returns>
         IDictionary<String, IPathShape> GetMapping();
 
+        /// <summary>
+        /// Provides a mapping of SVG path element's path-data instruction name to the appropriate number of arguments
+        /// for a path command, based on this passed SVG path data instruction tag.
+        /// </summary>
+        /// <returns>
+        /// a
+        /// <see cref="System.Collections.IDictionary{K, V}"/>
+        /// with Strings as keys and Integers as values
+        /// </returns>
         IDictionary<String, int?> GetArgumentCount();
     }
 }

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,6 +21,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
+using iText.Commons.Utils;
 using iText.Kernel.Geom;
 using iText.Layout.Properties;
 using iText.StyledXmlParser.Css.Util;
@@ -206,7 +207,7 @@ namespace iText.Svg.Utils {
                 .GetY() * scaleHeight) + (double)appliedViewBox.GetHeight());
             double xOffset;
             double yOffset;
-            switch (align.ToLowerInvariant()) {
+            switch (StringNormalizer.ToLowerCase(align)) {
                 case SvgConstants.Values.NONE:
                 case SvgConstants.Values.XMIN_YMIN: {
                     xOffset = minXOffset;

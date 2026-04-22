@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -157,6 +157,18 @@ namespace iText.Forms.Form.Element {
         /// </returns>
         public virtual IFormField SetInteractive(bool interactive) {
             SetProperty(FormProperty.FORM_FIELD_FLATTEN, !interactive);
+            return this;
+        }
+
+        /// <summary>Sets the form field's alternative description.</summary>
+        /// <param name="alternativeDescription">form field's alternative description.</param>
+        /// <returns>
+        /// this same
+        /// <see cref="FormField{T}"/>
+        /// element.
+        /// </returns>
+        public virtual IFormField SetAlternativeDescription(String alternativeDescription) {
+            GetAccessibilityProperties().SetAlternateDescription(alternativeDescription);
             return this;
         }
 

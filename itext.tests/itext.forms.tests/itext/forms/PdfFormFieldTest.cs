@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -45,10 +45,12 @@ using iText.Test.Attributes;
 namespace iText.Forms {
     [NUnit.Framework.Category("IntegrationTest")]
     public class PdfFormFieldTest : ExtendedITextTest {
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/forms/PdfFormFieldTest/";
+        private static readonly String FONT_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+            .CurrentContext.TestDirectory) + "/resources/itext/forms/fonts/";
 
-        public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+        private static readonly String destinationFolder = TestUtil.GetOutputPath() + "/forms/PdfFormFieldTest/";
+
+        private static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/forms/PdfFormFieldTest/";
 
         [NUnit.Framework.OneTimeSetUp]
@@ -624,10 +626,10 @@ namespace iText.Forms {
             PdfWriter writer = new PdfWriter(outPdf);
             PdfDocument pdfDoc = new PdfDocument(writer);
             Document document = new Document(pdfDoc);
-            PdfFont hebrew = PdfFontFactory.CreateFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H
+            PdfFont hebrew = PdfFontFactory.CreateFont(FONT_FOLDER + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H
                 );
             hebrew.SetSubset(false);
-            PdfFont sileot = PdfFontFactory.CreateFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont sileot = PdfFontFactory.CreateFont(FONT_FOLDER + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
             sileot.SetSubset(false);
             PdfAcroForm form = PdfFormCreator.GetAcroForm(pdfDoc, true);
             String text = "שלום וברכה";
@@ -650,10 +652,10 @@ namespace iText.Forms {
             PdfWriter writer = new PdfWriter(baos);
             PdfDocument pdfDoc = new PdfDocument(writer);
             Document document = new Document(pdfDoc);
-            PdfFont hebrew = PdfFontFactory.CreateFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H
+            PdfFont hebrew = PdfFontFactory.CreateFont(FONT_FOLDER + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H
                 );
             hebrew.SetSubset(false);
-            PdfFont sileot = PdfFontFactory.CreateFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont sileot = PdfFontFactory.CreateFont(FONT_FOLDER + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
             sileot.SetSubset(false);
             PdfAcroForm form = PdfFormCreator.GetAcroForm(pdfDoc, true);
             CreateAcroForm(pdfDoc, form, hebrew, null, 0);
@@ -678,10 +680,10 @@ namespace iText.Forms {
             String cmpPdf = sourceFolder + "cmp_" + testName + ".pdf";
             PdfWriter writer = new PdfWriter(outPdf);
             PdfDocument pdfDoc = new PdfDocument(writer);
-            PdfFont hebrew = PdfFontFactory.CreateFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H
+            PdfFont hebrew = PdfFontFactory.CreateFont(FONT_FOLDER + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H
                 );
             hebrew.SetSubset(false);
-            PdfFont sileot = PdfFontFactory.CreateFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont sileot = PdfFontFactory.CreateFont(FONT_FOLDER + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
             sileot.SetSubset(false);
             PdfAcroForm form = PdfFormCreator.GetAcroForm(pdfDoc, true);
             String text = "שלום וברכה";
@@ -701,10 +703,10 @@ namespace iText.Forms {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PdfWriter writer = new PdfWriter(baos);
             PdfDocument pdfDoc = new PdfDocument(writer);
-            PdfFont hebrew = PdfFontFactory.CreateFont(sourceFolder + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H
+            PdfFont hebrew = PdfFontFactory.CreateFont(FONT_FOLDER + "OpenSansHebrew-Regular.ttf", PdfEncodings.IDENTITY_H
                 );
             hebrew.SetSubset(false);
-            PdfFont sileot = PdfFontFactory.CreateFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont sileot = PdfFontFactory.CreateFont(FONT_FOLDER + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
             sileot.SetSubset(false);
             PdfAcroForm form = PdfFormCreator.GetAcroForm(pdfDoc, true);
             CreateAcroForm(pdfDoc, form, hebrew, null, 0);
@@ -1019,7 +1021,7 @@ namespace iText.Forms {
             PdfAcroForm form = PdfFormCreator.GetAcroForm(pdfDoc, true);
             form.AddField(new TextFormFieldBuilder(pdfDoc, "text_helvetica").SetWidgetRectangle(new Rectangle(36, 400, 
                 100, 40)).CreateText().SetValue("Helvetica"));
-            PdfFont noto = PdfFontFactory.CreateFont(sourceFolder + "NotoSans-Regular.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont noto = PdfFontFactory.CreateFont(FONT_FOLDER + "NotoSans-Regular.ttf", PdfEncodings.IDENTITY_H);
             noto.SetSubset(false);
             String value = "aAáÁàÀăĂắẮằẰẵẴẳẲâÂấẤầẦẫẪǎǍåÅǻǺäÄǟǞãÃą" + "ĄāĀảẢạẠặẶẬæÆǽǼbBḃḂcCćĆčČċĊçÇdDd̂D̂ďĎḋḊḑḐđĐðÐeE" 
                 + "éÉèÈĕĔêÊếẾềỀễỄěĚëËẽẼėĖęĘēĒẻẺẹẸệỆəƏfFḟḞgGǵǴğĞ" + "ǧǦġĠģĢḡḠǥǤhHȟȞḧḦħĦḥḤiIíÍìÌĭĬîÎǐǏïÏĩĨİįĮīĪỉỈị" + "ỊıjJĵĴǰJ̌kKḱḰǩǨķĶlLĺĹl̂L̂ľĽļĻłŁŀĿmMm̂M̂ṁṀnNńŃn̂N̂ňŇ"
@@ -1123,7 +1125,7 @@ namespace iText.Forms {
             String testString = "Don't cry over spilt milk";
             PdfDocument pdfDocument = new PdfDocument(new PdfWriter(filename));
             PdfAcroForm form = PdfFormCreator.GetAcroForm(pdfDocument, true);
-            PdfFont font = PdfFontFactory.CreateFont(sourceFolder + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont font = PdfFontFactory.CreateFont(FONT_FOLDER + "SILEOT.ttf", PdfEncodings.IDENTITY_H);
             Rectangle rect1 = new Rectangle(10, 700, 200, 25);
             Rectangle rect2 = new Rectangle(30, 600, 200, 25);
             PdfButtonFormField pushButton1 = new PushButtonFormFieldBuilder(pdfDocument, "Name1").SetWidgetRectangle(rect1
@@ -1621,6 +1623,41 @@ namespace iText.Forms {
             pdfDoc.Close();
             NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(fileName, sourceFolder + "cmp_formFieldCycleRefTest.pdf"
                 , destinationFolder, "diff_"));
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void FormFieldAnnotAlternativeDescriptionTest() {
+            String outputFileName = destinationFolder + "formFieldAnnotAlternativeDescriptionTest.pdf";
+            String cmpFileName = sourceFolder + "cmp_formFieldAnnotAlternativeDescriptionTest.pdf";
+            PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outputFileName));
+            pdfDoc.SetTagged();
+            PdfAcroForm acroForm = PdfAcroForm.GetAcroForm(pdfDoc, true);
+            PdfTextFormField textFormField = new TextFormFieldBuilder(pdfDoc, "text name").SetWidgetRectangle(new Rectangle
+                (200, 200, 200, 20)).CreateText();
+            textFormField.GetFirstFormAnnotation().SetAlternativeDescription("text description");
+            PdfButtonFormField buttonFormField = new PushButtonFormFieldBuilder(pdfDoc, "button name").SetWidgetRectangle
+                (new Rectangle(200, 300, 200, 20)).CreatePushButton();
+            buttonFormField.GetFirstFormAnnotation().SetAlternativeDescription("button description");
+            PdfChoiceFormField choiceFormField = new ChoiceFormFieldBuilder(pdfDoc, "choice name").SetWidgetRectangle(
+                new Rectangle(200, 400, 200, 20)).CreateComboBox();
+            choiceFormField.GetFirstFormAnnotation().SetAlternativeDescription("choice description");
+            RadioFormFieldBuilder builder = new RadioFormFieldBuilder(pdfDoc, "radio name");
+            PdfButtonFormField radioGroup = builder.CreateRadioGroup();
+            PdfFormAnnotation radioAnnotation = builder.CreateRadioButton("radio button 1", new Rectangle(200, 500, 20
+                , 20));
+            radioAnnotation.SetAlternativeDescription("radio 1 description");
+            PdfFormAnnotation radioAnnotation2 = builder.CreateRadioButton("radio button 2", new Rectangle(200, 550, 20
+                , 20));
+            radioAnnotation2.SetAlternativeDescription("radio 2 description");
+            radioGroup.AddKid(radioAnnotation);
+            radioGroup.AddKid(radioAnnotation2);
+            acroForm.AddField(textFormField);
+            acroForm.AddField(buttonFormField);
+            acroForm.AddField(choiceFormField);
+            acroForm.AddField(radioGroup);
+            pdfDoc.Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outputFileName, cmpFileName, destinationFolder
+                , "diff_"));
         }
 
 //\cond DO_NOT_DOCUMENT

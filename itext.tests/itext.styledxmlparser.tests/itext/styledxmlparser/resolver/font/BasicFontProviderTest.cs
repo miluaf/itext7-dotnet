@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -25,11 +25,11 @@ using System.Collections.Generic;
 using iText.Commons.Utils;
 using iText.IO.Font.Constants;
 using iText.Layout.Font;
-using iText.Test.Attributes;
+using iText.Test;
 
 namespace iText.StyledXmlParser.Resolver.Font {
     [NUnit.Framework.Category("UnitTest")]
-    public class BasicFontProviderTest {
+    public class BasicFontProviderTest : ExtendedITextTest {
         [NUnit.Framework.Test]
         public virtual void BasicTest() {
             FontProvider fontProvider = new BasicFontProvider();
@@ -79,7 +79,6 @@ namespace iText.StyledXmlParser.Resolver.Font {
         }
 
         [NUnit.Framework.Test]
-        [LogMessage(iText.StyledXmlParser.Logs.StyledXmlParserLogMessageConstant.ERROR_LOADING_FONT)]
         public virtual void InvalidShippedFontTest() {
             FontProvider fontProvider = new BasicFontProviderTest.InvalidTestFontProvider();
             FontSelector fontSelector = fontProvider.GetFontSelector(JavaCollectionsUtil.SingletonList("Courier"), new 

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,6 +21,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
+using System.Collections.Generic;
+using System.Text;
 using iText.IO.Font.Constants;
 using iText.IO.Source;
 using iText.Kernel.Colors;
@@ -29,9 +31,12 @@ using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Kernel.Utils;
 using iText.Layout;
+using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Layout.Font;
 using iText.Layout.Layout;
+using iText.Layout.Logs;
+using iText.Layout.Minmaxwidth;
 using iText.Layout.Properties;
 using iText.Test;
 using iText.Test.Attributes;
@@ -39,11 +44,12 @@ using iText.Test.Attributes;
 namespace iText.Layout.Renderer {
     [NUnit.Framework.Category("IntegrationTest")]
     public class BlockRendererTest : ExtendedITextTest {
+        private const float EPS = 0.001f;
+
         public static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/BlockRendererTest/";
 
-        public static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/BlockRendererTest/";
+        public static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/layout/BlockRendererTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -63,6 +69,34 @@ namespace iText.Layout.Renderer {
             AbstractRenderer renderer = blockRenderer.ApplyMinHeight(OverflowPropertyValue.FIT, new Rectangle(0, 243.40012f
                 , 0, leftHeight));
             NUnit.Framework.Assert.IsNull(renderer);
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void RelativeWidthInMinMaxWidthCalculationsTest() {
+            Div div = new Div();
+            div.SetWidth(UnitValue.CreatePercentValue(42.5F));
+            BlockRenderer divRenderer = (BlockRenderer)div.GetRenderer();
+            MinMaxWidth minMaxWidth = divRenderer.GetMinMaxWidth(200.0F);
+            NUnit.Framework.Assert.AreEqual(85.0F, minMaxWidth.GetMaxWidth(), EPS);
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void RelativeMaxWidthInMinMaxWidthCalculationsTest() {
+            Div div = new Div();
+            div.SetProperty(Property.MAX_WIDTH, UnitValue.CreatePercentValue(42.5F));
+            BlockRenderer divRenderer = (BlockRenderer)div.GetRenderer();
+            MinMaxWidth minMaxWidth = divRenderer.GetMinMaxWidth(200.0F);
+            NUnit.Framework.Assert.AreEqual(85.0F, minMaxWidth.GetMaxWidth(), EPS);
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void RelativeMinWidthInMinMaxWidthCalculationsTest() {
+            Div div = new Div();
+            div.SetProperty(Property.MIN_WIDTH, UnitValue.CreatePercentValue(42.5F));
+            BlockRenderer divRenderer = (BlockRenderer)div.GetRenderer();
+            MinMaxWidth minMaxWidth = divRenderer.GetMinMaxWidth(200.0F);
+            NUnit.Framework.Assert.AreEqual(85.0F, minMaxWidth.GetMinWidth(), EPS);
+            NUnit.Framework.Assert.AreEqual(85.0F, minMaxWidth.GetMaxWidth(), EPS);
         }
 
         [NUnit.Framework.Test]
@@ -145,6 +179,97 @@ namespace iText.Layout.Renderer {
             DivRenderer renderer = (DivRenderer)div.GetRenderer();
             PdfFont font = renderer.GetResolvedFont(null);
             NUnit.Framework.Assert.IsNull(font);
+        }
+
+        [NUnit.Framework.Test]
+        [LogMessage(LayoutLogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA)]
+        public virtual void EnableForcePlacementIfCauseOfNothingNotInOverflowTreeTest() {
+            String cmpFileName = SOURCE_FOLDER + "cmp_enableForcePlacementIfCauseOfNothingNotInOverflowTree.pdf";
+            String outFile = DESTINATION_FOLDER + "enableForcePlacementIfCauseOfNothingNotInOverflowTree.pdf";
+            PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFile));
+            Document doc = new Document(pdfDoc);
+            // In this test we use custom DivRenderer implementation to break parent tree of cause of nothing element to
+            // check that RootRenderer.tryDisableKeepTogether catches that case and switches to enabling forced placement
+            WrongParentTreeDiv parentWrongParentTreeDiv = new WrongParentTreeDiv();
+            parentWrongParentTreeDiv.SetKeepTogether(true);
+            WrongParentTreeDiv wrongParentTreeDiv = new WrongParentTreeDiv();
+            AnonymousInlineBox longParagraph = new AnonymousInlineBox();
+            longParagraph.Add("Hello, iText! Hello, iText! Hello, iText! Hello, iText! " + "Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! "
+                 + "Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! " + "Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! "
+                 + "Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! " + "Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! "
+                 + "Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! " + "Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! "
+                 + "Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! Hello, iText! ");
+            longParagraph.SetFontSize(35);
+            wrongParentTreeDiv.Add(longParagraph);
+            parentWrongParentTreeDiv.Add(wrongParentTreeDiv);
+            doc.Add(parentWrongParentTreeDiv);
+            doc.Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFile, cmpFileName, DESTINATION_FOLDER)
+                );
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void AbsolutePositionedChildIsNotDroppedWhenParentSplitsTest() {
+            String cmpFileName = SOURCE_FOLDER + "cmp_absolutePositionedChildIsNotDroppedWhenParentSplits.pdf";
+            String outFile = DESTINATION_FOLDER + "absolutePositionedChildIsNotDroppedWhenParentSplits.pdf";
+            using (PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFile))) {
+                using (Document doc = new Document(pdfDoc)) {
+                    Div tocEntry = new Div();
+                    tocEntry.SetProperty(Property.POSITION, LayoutPosition.RELATIVE);
+                    Div counter = new Div().Add(new Paragraph("1"));
+                    counter.SetProperty(Property.FLOAT, FloatPropertyValue.LEFT);
+                    counter.SetWidth(40);
+                    Div icons = new Div().Add(new Paragraph("Page 27"));
+                    icons.SetProperty(Property.POSITION, LayoutPosition.ABSOLUTE);
+                    icons.SetProperty(Property.RIGHT, 6f);
+                    icons.SetProperty(Property.TOP, 6f);
+                    String strToFill = "Very long agenda item title intended to force a split across pages. ";
+                    int iterations = 70;
+                    StringBuilder longText = new StringBuilder(iterations * strToFill.Length);
+                    for (int i = 0; i < iterations; ++i) {
+                        longText.Append(strToFill);
+                    }
+                    Paragraph title = new Paragraph(longText.ToString());
+                    title.SetMarginLeft(45);
+                    tocEntry.Add(counter);
+                    tocEntry.Add(title);
+                    tocEntry.Add(icons);
+                    doc.Add(tocEntry);
+                    // Add a control element after
+                    doc.Add(new Paragraph("Control"));
+                }
+            }
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFile, cmpFileName, DESTINATION_FOLDER)
+                );
+        }
+
+        public class WrongParentTreeDivRenderer : DivRenderer {
+            public WrongParentTreeDivRenderer(Div modelElement)
+                : base(modelElement) {
+            }
+
+            public override IRenderer GetNextRenderer() {
+                return new BlockRendererTest.WrongParentTreeDivRenderer((Div)modelElement);
+            }
+
+//\cond DO_NOT_DOCUMENT
+            internal override LayoutResult ProcessNotFullChildResult(LayoutContext layoutContext, IDictionary<int, IRenderer
+                > waitingFloatsSplitRenderers, IList<IRenderer> waitingOverflowFloatRenderers, bool wasHeightClipped, 
+                IList<Rectangle> floatRendererAreas, bool marginsCollapsingEnabled, float clearHeightCorrection, Border
+                [] borders, UnitValue[] paddings, IList<Rectangle> areas, int currentAreaPos, Rectangle layoutBox, ICollection
+                <Rectangle> nonChildFloatingRendererAreas, IRenderer causeOfNothing, bool anythingPlaced, int childPos
+                , LayoutResult result) {
+                LayoutResult layoutResult = base.ProcessNotFullChildResult(layoutContext, waitingFloatsSplitRenderers, waitingOverflowFloatRenderers
+                    , wasHeightClipped, floatRendererAreas, marginsCollapsingEnabled, clearHeightCorrection, borders, paddings
+                    , areas, currentAreaPos, layoutBox, nonChildFloatingRendererAreas, causeOfNothing, anythingPlaced, childPos
+                    , result);
+                bool keepTogether = IsKeepTogether(causeOfNothing);
+                if (keepTogether && this.GetParent() is DocumentRenderer) {
+                    result.GetCauseOfNothing().GetParent().SetParent(this);
+                }
+                return layoutResult;
+            }
+//\endcond
         }
     }
 }

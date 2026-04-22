@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,16 +21,33 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 namespace iText.Svg.Renderers.Path.Impl {
-    /// <summary>Implements closePath(Z) attribute of SVG's path element</summary>
+    /// <summary>Implements closePath(Z) attribute of SVG's path element.</summary>
     public class ClosePath : LineTo {
 //\cond DO_NOT_DOCUMENT
         internal const int ARGUMENT_SIZE = 0;
 //\endcond
 
+        /// <summary>
+        /// Creates new
+        /// <see cref="ClosePath"/>
+        /// instance.
+        /// </summary>
         public ClosePath()
             : this(false) {
         }
 
+        /// <summary>
+        /// Creates new
+        /// <see cref="ClosePath"/>
+        /// instance.
+        /// </summary>
+        /// <param name="relative">
+        /// 
+        /// <see langword="true"/>
+        /// in case it is a relative operator,
+        /// <see langword="false"/>
+        /// if it is an absolute operator
+        /// </param>
         public ClosePath(bool relative)
             : base(relative) {
         }

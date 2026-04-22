@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -25,6 +25,11 @@ using iText.Commons.Bouncycastle.Crypto;
 
 namespace iText.Kernel.Crypto {
     /// <summary>Creates an AES Cipher with CBC and no padding.</summary>
+    [System.ObsoleteAttribute(@"the AES-CBC cipher is a low-level cryptographic primitive
+    that requires careful understanding to use it safely.
+    This class is only a thin wrapper and is not intended for general use.
+    Instead, use API provided by cryptography libraries directly
+    or rely on high-level PDF encryption functionality.")]
     public class AESCipherCBCnoPad {
         private ICipherCBCnoPad cipher;
 
@@ -58,6 +63,13 @@ namespace iText.Kernel.Crypto {
         /// <returns>Processed bytes</returns>
         public virtual byte[] ProcessBlock(byte[] inp, int inpOff, int inpLen) {
             return cipher.ProcessBlock(inp, inpOff, inpLen);
+        }
+
+        /// <summary>Finishes a multiple-part encryption or decryption operation, depending on how this cipher was initialized.
+        /// </summary>
+        /// <returns>byte array with the result</returns>
+        public virtual byte[] DoFinal() {
+            return cipher.DoFinal();
         }
     }
 }

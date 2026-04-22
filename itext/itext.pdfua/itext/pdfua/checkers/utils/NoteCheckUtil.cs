@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -20,21 +20,33 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+using System;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Tagging;
 using iText.Pdfua.Exceptions;
 
 namespace iText.Pdfua.Checkers.Utils {
     /// <summary>Utility class for delegating notes checks to the correct checking logic.</summary>
+    [System.ObsoleteAttribute(@"in favor of iText.Pdfua.Checkers.Utils.Ua1.PdfUA1NotesChecker")]
     public class NoteCheckUtil {
+        /// <summary>
+        /// Creates a new instance of
+        /// <see cref="NoteCheckUtil"/>.
+        /// </summary>
+        public NoteCheckUtil() {
+        }
+
+        //empty constructor
         /// <summary>Handler for checking Note elements in the TagTree.</summary>
+        [System.ObsoleteAttribute(@"in favor of iText.Pdfua.Checkers.Utils.Ua1.PdfUA1NotesChecker.PdfUA1NotesTagHandler"
+            )]
         public class NoteTagHandler : ContextAwareTagTreeIteratorHandler {
             /// <summary>
             /// Creates a new
             /// <see cref="NoteTagHandler"/>
             /// instance.
             /// </summary>
-            /// <param name="context">The validation context.</param>
+            /// <param name="context">The validation context</param>
             public NoteTagHandler(PdfUAValidationContext context)
                 : base(context) {
             }

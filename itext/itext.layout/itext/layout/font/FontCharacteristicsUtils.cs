@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,6 +21,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
+using iText.Commons.Utils;
 using iText.IO.Font.Constants;
 
 namespace iText.Layout.Font {
@@ -44,7 +45,7 @@ namespace iText.Layout.Font {
             if (fw == null || fw.Length == 0) {
                 return -1;
             }
-            fw = fw.Trim().ToLowerInvariant();
+            fw = StringNormalizer.Normalize(fw);
             switch (fw) {
                 case "bold": {
                     return FontWeights.BOLD;

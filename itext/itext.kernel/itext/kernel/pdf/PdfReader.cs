@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -42,6 +42,9 @@ namespace iText.Kernel.Pdf {
         /// </summary>
         public static readonly PdfReader.StrictnessLevel DEFAULT_STRICTNESS_LEVEL = PdfReader.StrictnessLevel.LENIENT;
 
+        /// <summary>The Logger instance.</summary>
+        private static readonly ILogger LOGGER = ITextLogManager.GetLogger(typeof(iText.Kernel.Pdf.PdfReader));
+
         private const String endstream1 = "endstream";
 
         private const String endstream2 = "\nendstream";
@@ -55,17 +58,6 @@ namespace iText.Kernel.Pdf {
         private static readonly byte[] endobj = ByteUtils.GetIsoBytes("endobj");
 
         protected internal static bool correctStreamLength = true;
-
-        private bool unethicalReading;
-
-        private bool memorySavingMode;
-
-        private PdfReader.StrictnessLevel strictnessLevel = DEFAULT_STRICTNESS_LEVEL;
-
-        //indicate nearest first Indirect reference object which includes current reading the object, using for PdfString decrypt
-        private PdfIndirectReference currentIndirectReference;
-
-        private PdfReader.XrefProcessor xrefProcessor = new PdfReader.XrefProcessor();
 
         protected internal PdfTokenizer tokens;
 
@@ -94,6 +86,17 @@ namespace iText.Kernel.Pdf {
         protected internal bool fixedXref = false;
 
         protected internal bool xrefStm = false;
+
+        private bool unethicalReading;
+
+        private bool memorySavingMode;
+
+        private PdfReader.StrictnessLevel strictnessLevel = DEFAULT_STRICTNESS_LEVEL;
+
+        //indicate nearest first Indirect reference object which includes current reading the object, using for PdfString decrypt
+        private PdfIndirectReference currentIndirectReference;
+
+        private PdfReader.XrefProcessor xrefProcessor = new PdfReader.XrefProcessor();
 
         private XMPMeta xmpMeta;
 
@@ -188,7 +191,7 @@ namespace iText.Kernel.Pdf {
         /// </summary>
         /// <param name="unethicalReading">
         /// true to enable unethicalReading, false to disable it.
-        /// By default unethicalReading is disabled.
+        /// By default, unethicalReading is disabled.
         /// </param>
         /// <returns>
         /// this
@@ -204,7 +207,7 @@ namespace iText.Kernel.Pdf {
         /// <remarks>
         /// Defines if memory saving mode is enabled.
         /// <para />
-        /// By default memory saving mode is disabled for the sake of time–memory trade-off.
+        /// By default, memory saving mode is disabled for the sake of time–memory trade-off.
         /// <para />
         /// If memory saving mode is enabled, document processing might slow down, but reading will be less memory demanding.
         /// </remarks>
@@ -397,7 +400,7 @@ namespace iText.Kernel.Pdf {
                 return new byte[0];
             }
             RandomAccessFileOrArray file = tokens.GetSafeFile();
-            byte[] bytes = null;
+            byte[] bytes;
             try {
                 file.Seek(offset);
                 bytes = new byte[length];
@@ -428,6 +431,10 @@ namespace iText.Kernel.Pdf {
                             }
                         }
                         filter.Release();
+                    }
+                    // Skip decryption for document-level metadata stream if EncryptMetadata is false
+                    if (!skip && !decrypt.IsMetadataEncrypted() && PdfName.Metadata.Equals(type)) {
+                        skip = true;
                     }
                     if (!skip) {
                         decrypt.SetHashKeyForNextObject(stream.GetIndirectReference().GetObjNumber(), stream.GetIndirectReference(
@@ -506,7 +513,8 @@ namespace iText.Kernel.Pdf {
             }
             MemoryLimitsAwareHandler memoryLimitsAwareHandler = null;
             if (null != streamDictionary.GetIndirectReference()) {
-                memoryLimitsAwareHandler = streamDictionary.GetIndirectReference().GetDocument().memoryLimitsAwareHandler;
+                memoryLimitsAwareHandler = streamDictionary.GetIndirectReference().GetDocument().GetMemoryLimitsAwareHandler
+                    ();
             }
             bool memoryLimitsAwarenessRequired = null != memoryLimitsAwareHandler && memoryLimitsAwareHandler.IsMemoryLimitsAwarenessRequiredOnDecompression
                 (filters);
@@ -671,6 +679,7 @@ namespace iText.Kernel.Pdf {
                     pdfConformance = PdfConformance.GetConformance(xmpMeta);
                 }
                 catch (XMPException) {
+                    pdfConformance = PdfConformance.PDF_NONE_CONFORMANCE;
                 }
             }
             return pdfConformance;
@@ -876,7 +885,7 @@ namespace iText.Kernel.Pdf {
                         continue;
                     }
                     if (tokens.GetTokenType() == PdfTokenizer.TokenType.Number) {
-                        // This ensure that we don't even try to read as indirect reference token (two numbers and "R")
+                        // This ensures that we don't even try to read as indirect reference token (two numbers and "R")
                         // which are forbidden in object streams.
                         obj = new PdfNumber(tokens.GetByteContent());
                     }
@@ -911,15 +920,13 @@ namespace iText.Kernel.Pdf {
             PdfIndirectReference reference = table.Get(num);
             if (reference != null) {
                 if (reference.IsFree()) {
-                    ILogger logger = ITextLogManager.GetLogger(typeof(iText.Kernel.Pdf.PdfReader));
-                    logger.LogWarning(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.INVALID_INDIRECT_REFERENCE, 
+                    LOGGER.LogWarning(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.INVALID_INDIRECT_REFERENCE, 
                         tokens.GetObjNr(), tokens.GetGenNr()));
                     return CreatePdfNullInstance(readAsDirect);
                 }
                 if (reference.GetGenNumber() != tokens.GetGenNr()) {
                     if (fixedXref) {
-                        ILogger logger = ITextLogManager.GetLogger(typeof(iText.Kernel.Pdf.PdfReader));
-                        logger.LogWarning(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.INVALID_INDIRECT_REFERENCE, 
+                        LOGGER.LogWarning(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.INVALID_INDIRECT_REFERENCE, 
                             tokens.GetObjNr(), tokens.GetGenNr()));
                         return CreatePdfNullInstance(readAsDirect);
                     }
@@ -931,8 +938,7 @@ namespace iText.Kernel.Pdf {
             }
             else {
                 if (table.IsReadingCompleted()) {
-                    ILogger logger = ITextLogManager.GetLogger(typeof(iText.Kernel.Pdf.PdfReader));
-                    logger.LogWarning(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.INVALID_INDIRECT_REFERENCE, 
+                    LOGGER.LogWarning(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.INVALID_INDIRECT_REFERENCE, 
                         tokens.GetObjNr(), tokens.GetGenNr()));
                     return CreatePdfNullInstance(readAsDirect);
                 }
@@ -1449,7 +1455,7 @@ namespace iText.Kernel.Pdf {
                             // if the pdf is linearized it is possible that the trailer has been read
                             // before the actual objects it refers to this causes the trailer to have
                             // objects in READING state that's why we keep track of the position  of the
-                            // trailer and then asign it when the whole pdf has been loaded
+                            // trailer and then assign it when the whole pdf has been loaded
                             trailerIndex = pos;
                         }
                         else {
@@ -1474,33 +1480,6 @@ namespace iText.Kernel.Pdf {
                 // in READING state when the pdf has been linearised now we can assign the trailer
                 // and it will have the right references
                 SetTrailerFromTrailerIndex(trailerIndex);
-            }
-        }
-
-        private bool IsCurrentObjectATrailer() {
-            try {
-                PdfDictionary dic = (PdfDictionary)ReadObject(false);
-                return dic.Get(PdfName.Root, false) != null;
-            }
-            catch (MemoryLimitsAwareException e) {
-                throw;
-            }
-            catch (Exception) {
-                return false;
-            }
-        }
-
-        private void SetTrailerFromTrailerIndex(long? trailerIndex) {
-            if (trailerIndex == null) {
-                throw new PdfException(KernelExceptionMessageConstant.TRAILER_NOT_FOUND);
-            }
-            tokens.Seek((long)trailerIndex);
-            PdfDictionary dic = (PdfDictionary)ReadObject(false);
-            if (dic.Get(PdfName.Root, false) != null) {
-                trailer = dic;
-            }
-            if (trailer == null) {
-                throw new PdfException(KernelExceptionMessageConstant.TRAILER_NOT_FOUND);
             }
         }
 
@@ -1535,12 +1514,38 @@ namespace iText.Kernel.Pdf {
         }
 //\endcond
 
+        private bool IsCurrentObjectATrailer() {
+            try {
+                PdfDictionary dic = (PdfDictionary)ReadObject(false);
+                return dic.Get(PdfName.Root, false) != null;
+            }
+            catch (MemoryLimitsAwareException e) {
+                throw;
+            }
+            catch (Exception) {
+                return false;
+            }
+        }
+
+        private void SetTrailerFromTrailerIndex(long? trailerIndex) {
+            if (trailerIndex == null) {
+                throw new PdfException(KernelExceptionMessageConstant.TRAILER_NOT_FOUND);
+            }
+            tokens.Seek((long)trailerIndex);
+            PdfDictionary dic = (PdfDictionary)ReadObject(false);
+            if (dic.Get(PdfName.Root, false) != null) {
+                trailer = dic;
+            }
+            if (trailer == null) {
+                throw new PdfException(KernelExceptionMessageConstant.TRAILER_NOT_FOUND);
+            }
+        }
+
         private void ProcessArrayReadError() {
             String error = MessageFormatUtil.Format(KernelExceptionMessageConstant.UNEXPECTED_TOKEN, iText.Commons.Utils.JavaUtil.GetStringForBytes
                 (tokens.GetByteContent(), System.Text.Encoding.UTF8));
             if (PdfReader.StrictnessLevel.CONSERVATIVE.IsStricter(this.GetStrictnessLevel())) {
-                ILogger logger = ITextLogManager.GetLogger(typeof(iText.Kernel.Pdf.PdfReader));
-                logger.LogError(error);
+                LOGGER.LogError(error);
             }
             else {
                 tokens.ThrowError(error);
@@ -1635,7 +1640,7 @@ namespace iText.Kernel.Pdf {
             long fileLength = tokens.Length();
             long start = pdfStream.GetOffset();
             bool calc = false;
-            int streamLength = 0;
+            int streamLength;
             PdfNumber pdfNumber = pdfStream.GetAsNumber(PdfName.Length);
             if (pdfNumber != null) {
                 streamLength = pdfNumber.IntValue();
@@ -1746,18 +1751,17 @@ namespace iText.Kernel.Pdf {
         }
 
         private static void LogXrefException(Exception ex) {
-            ILogger logger = ITextLogManager.GetLogger(typeof(iText.Kernel.Pdf.PdfReader));
             if (ex.InnerException != null) {
-                logger.LogError(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.XREF_ERROR_WHILE_READING_TABLE_WILL_BE_REBUILT_WITH_CAUSE
+                LOGGER.LogError(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.XREF_ERROR_WHILE_READING_TABLE_WILL_BE_REBUILT_WITH_CAUSE
                     , ex.InnerException.Message));
             }
             else {
                 if (ex.Message != null) {
-                    logger.LogError(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.XREF_ERROR_WHILE_READING_TABLE_WILL_BE_REBUILT_WITH_CAUSE
+                    LOGGER.LogError(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.XREF_ERROR_WHILE_READING_TABLE_WILL_BE_REBUILT_WITH_CAUSE
                         , ex.Message));
                 }
                 else {
-                    logger.LogError(iText.IO.Logs.IoLogMessageConstant.XREF_ERROR_WHILE_READING_TABLE_WILL_BE_REBUILT);
+                    LOGGER.LogError(iText.IO.Logs.IoLogMessageConstant.XREF_ERROR_WHILE_READING_TABLE_WILL_BE_REBUILT);
                 }
             }
         }
@@ -1767,7 +1771,7 @@ namespace iText.Kernel.Pdf {
 
             public ReusableRandomAccessSource(ByteBuffer buffer) {
                 if (buffer == null) {
-                    throw new ArgumentException("Passed byte buffer can not be null.");
+                    throw new ArgumentException(KernelExceptionMessageConstant.PASSED_BYTE_BUFFER_CAN_NOT_BE_NULL);
                 }
                 this.buffer = buffer;
             }
@@ -1781,7 +1785,7 @@ namespace iText.Kernel.Pdf {
 
             public virtual int Get(long offset, byte[] bytes, int off, int len) {
                 if (buffer == null) {
-                    throw new InvalidOperationException("Already closed");
+                    throw new InvalidOperationException(KernelExceptionMessageConstant.ALREADY_CLOSED);
                 }
                 if (offset >= buffer.Size()) {
                     return -1;

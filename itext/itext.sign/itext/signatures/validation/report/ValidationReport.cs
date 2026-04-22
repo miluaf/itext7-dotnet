@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -24,11 +24,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using iText.Commons.Json;
 using iText.Commons.Utils;
+using iText.Commons.Utils.Collections;
 
 namespace iText.Signatures.Validation.Report {
     /// <summary>Validation report, which contains detailed validation results.</summary>
-    public class ValidationReport {
+    public class ValidationReport : IJsonSerializable {
+        private const String JSON_KEY_REPORT_ITEMS = "reportItems";
+
         private readonly IList<ReportItem> reportItems = new List<ReportItem>();
 
         /// <summary>
@@ -39,6 +43,14 @@ namespace iText.Signatures.Validation.Report {
         }
 
         // Declaring default constructor explicitly to avoid removing it unintentionally.
+        /// <summary>Create a copy of another validation report.</summary>
+        /// <param name="report">to be copied</param>
+        public ValidationReport(iText.Signatures.Validation.Report.ValidationReport report) {
+            foreach (ReportItem item in report.reportItems) {
+                this.AddReportItem(new ReportItem(item));
+            }
+        }
+
         /// <summary>Get the result of a validation process.</summary>
         /// <returns>
         /// 
@@ -137,8 +149,100 @@ namespace iText.Signatures.Validation.Report {
         /// </returns>
         public virtual iText.Signatures.Validation.Report.ValidationReport Merge(iText.Signatures.Validation.Report.ValidationReport
              subReport) {
-            foreach (ReportItem item in subReport.GetLogs()) {
-                AddReportItem(item);
+            if (subReport != null) {
+                foreach (ReportItem item in subReport.GetLogs()) {
+                    AddReportItem(item);
+                }
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// <inheritDoc/>.
+        /// </summary>
+        /// <returns>
+        /// 
+        /// <inheritDoc/>
+        /// </returns>
+        public virtual JsonValue ToJson() {
+            // Sort the items by check name to ensure consistent order
+            IList<ReportItem> sortedItems = GetLogs().Sorted((item1, item2) => {
+                if (item1.GetCheckName() == null && item2.GetCheckName() == null) {
+                    return 0;
+                }
+                else {
+                    if (item1.GetCheckName() == null) {
+                        return -1;
+                    }
+                    else {
+                        if (item2.GetCheckName() == null) {
+                            return 1;
+                        }
+                        else {
+                            return string.CompareOrdinal(item1.GetCheckName(), item2.GetCheckName());
+                        }
+                    }
+                }
+            }
+            ).ToList();
+            JsonArray reportItemsJson = new JsonArray();
+            foreach (ReportItem reportItem in sortedItems) {
+                reportItemsJson.Add(reportItem.ToJson());
+            }
+            JsonObject validationReportJson = new JsonObject();
+            validationReportJson.Add(JSON_KEY_REPORT_ITEMS, reportItemsJson);
+            return validationReportJson;
+        }
+
+        /// <summary>
+        /// Deserializes
+        /// <see cref="iText.Commons.Json.JsonValue"/>
+        /// into
+        /// <see cref="ValidationReport"/>.
+        /// </summary>
+        /// <param name="jsonValue">
+        /// 
+        /// <see cref="iText.Commons.Json.JsonValue"/>
+        /// to deserialize
+        /// </param>
+        /// <returns>
+        /// deserialized
+        /// <see cref="ValidationReport"/>
+        /// </returns>
+        public static iText.Signatures.Validation.Report.ValidationReport FromJson(JsonValue jsonValue) {
+            JsonObject validationReportJson = (JsonObject)jsonValue;
+            JsonArray reportItemsJson = (JsonArray)validationReportJson.GetField(JSON_KEY_REPORT_ITEMS);
+            iText.Signatures.Validation.Report.ValidationReport validationReportFromJson = new iText.Signatures.Validation.Report.ValidationReport
+                ();
+            foreach (ReportItem reportItem in reportItemsJson.GetValues().Select((reportItemJson) => ReportItem.FromJson
+                (reportItemJson)).ToList()) {
+                validationReportFromJson.AddReportItem(reportItem);
+            }
+            return validationReportFromJson;
+        }
+
+        /// <summary>
+        /// Merge all
+        /// <see cref="ReportItem"/>
+        /// objects from sub report into this one with different status.
+        /// </summary>
+        /// <param name="subReport">report from which items will be merged</param>
+        /// <param name="newStatus">
+        /// 
+        /// <see cref="ReportItemStatus"/>
+        /// which will be used instead of provided ones
+        /// </param>
+        /// <returns>
+        /// 
+        /// <see cref="ValidationReport"/>
+        /// the same updated validation report instance.
+        /// </returns>
+        public virtual iText.Signatures.Validation.Report.ValidationReport MergeWithDifferentStatus(iText.Signatures.Validation.Report.ValidationReport
+             subReport, ReportItem.ReportItemStatus newStatus) {
+            if (subReport != null) {
+                foreach (ReportItem item in subReport.GetLogs()) {
+                    AddReportItem(new ReportItem(item).SetStatus(newStatus));
+                }
             }
             return this;
         }

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -65,8 +65,7 @@ namespace iText.Kernel.Crypto.Pdfencryption {
     public class PdfEncryptionTest : ExtendedITextTest {
         private static readonly IBouncyCastleFactory FACTORY = BouncyCastleFactoryCreator.GetFactory();
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/kernel/crypto/pdfencryption/PdfEncryptionTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/kernel/crypto/pdfencryption/PdfEncryptionTest/";
 
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/kernel/crypto/pdfencryption/PdfEncryptionTest/";
@@ -339,6 +338,35 @@ namespace iText.Kernel.Crypto.Pdfencryption {
         }
 
         [NUnit.Framework.Test]
+        public virtual void EncryptWithPasswordAes256EmbeddedFilesOnly2() {
+            String filename = "encryptWithPasswordAes256EmbeddedFilesOnly2.pdf";
+            int encryptionType = EncryptionConstants.ENCRYPTION_AES_256 | EncryptionConstants.EMBEDDED_FILES_ONLY;
+            String outFileName = destinationFolder + filename;
+            int permissions = EncryptionConstants.ALLOW_SCREENREADERS;
+            PdfWriter writer = new PdfWriter(outFileName, new WriterProperties().SetStandardEncryption(PdfEncryptionTestUtils
+                .USER, PdfEncryptionTestUtils.OWNER, permissions, encryptionType).AddXmpMetadata().SetPdfVersion(PdfVersion
+                .PDF_2_0));
+            PdfDocument document = new PdfDocument(writer);
+            document.GetDocumentInfo().SetMoreInfo(PdfEncryptionTestUtils.CUSTOM_INFO_ENTRY_KEY, PdfEncryptionTestUtils
+                .CUSTOM_INFO_ENTRY_VALUE);
+            PdfPage page = document.AddNewPage();
+            String textContent = "Hello world!";
+            PdfEncryptionTestUtils.WriteTextBytesOnPageContent(page, textContent);
+            String descripton = "encryptedFile";
+            document.AddFileAttachment(descripton, PdfFileSpec.CreateEmbeddedFileSpec(document, "TEST".GetBytes(System.Text.Encoding
+                .UTF8), descripton, "test.txt", null, null));
+            page.Flush();
+            document.Close();
+            //TODO DEVSIX-5355 Specific crypto filters for EFF StmF and StrF are not supported at the moment.
+            // However we can read embedded files only mode.
+            bool ERROR_IS_EXPECTED = false;
+            encryptionUtil.CheckDecryptedWithPasswordContent(destinationFolder + filename, PdfEncryptionTestUtils.OWNER
+                , textContent, ERROR_IS_EXPECTED);
+            encryptionUtil.CheckDecryptedWithPasswordContent(destinationFolder + filename, PdfEncryptionTestUtils.USER
+                , textContent, ERROR_IS_EXPECTED);
+        }
+
+        [NUnit.Framework.Test]
         public virtual void EncryptAes256Pdf2NotEncryptMetadata() {
             String filename = "encryptAes256Pdf2NotEncryptMetadata.pdf";
             int encryptionType = EncryptionConstants.ENCRYPTION_AES_256 | EncryptionConstants.DO_NOT_ENCRYPT_METADATA;
@@ -483,6 +511,29 @@ namespace iText.Kernel.Crypto.Pdfencryption {
                         Length));
                 }
             }
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void CheckPermissionsLongValue() {
+            // The test checks
+            // that no IoLogMessageConstant.ENCRYPTION_ENTRIES_P_AND_ENCRYPT_METADATA_NOT_CORRESPOND_PERMS_ENTRY is logged
+            PdfDocument doc = new PdfDocument(new PdfReader(sourceFolder + "encryptedWithPasswordAes256_modifiedPermissions.pdf"
+                , new ReaderProperties().SetPassword(PdfEncryptionTestUtils.OWNER)));
+            doc.Close();
+        }
+
+        //TODO DEVSIX-9588: this test logs ERROR_WHILE_FINALIZING_AES_CIPHER under FIPS mode
+        [LogMessage(KernelLogMessageConstant.MD5_IS_NOT_FIPS_COMPLIANT, Ignore = true)]
+        [NUnit.Framework.Test]
+        public virtual void ReadPdfWithEmptyStreamTest() {
+            String inFileName = sourceFolder + "empty-aes256.pdf";
+            String outFileName = destinationFolder + "empty-aes256.pdf";
+            PdfReader pdfReader = new PdfReader(inFileName).SetUnethicalReading(true);
+            using (PdfDocument pdfDocument = new PdfDocument(pdfReader, CompareTool.CreateTestPdfWriter(outFileName), 
+                new StampingProperties().UseAppendMode().PreserveEncryption())) {
+            }
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, inFileName, destinationFolder
+                ));
         }
 
         public virtual void EncryptWithPassword2(String filename, int encryptionType, int compression) {

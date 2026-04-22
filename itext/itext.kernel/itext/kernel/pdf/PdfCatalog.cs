@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -32,6 +32,7 @@ using iText.Kernel.Pdf.Collection;
 using iText.Kernel.Pdf.Layer;
 using iText.Kernel.Pdf.Navigation;
 using iText.Kernel.Utils;
+using iText.Kernel.Validation.Context;
 
 namespace iText.Kernel.Pdf {
     /// <summary>The root of a document’s object hierarchy.</summary>
@@ -47,8 +48,6 @@ namespace iText.Kernel.Pdf {
         private static readonly ICollection<PdfName> PAGE_LAYOUTS = JavaCollectionsUtil.UnmodifiableSet(new HashSet
             <PdfName>(JavaUtil.ArraysAsList(PdfName.SinglePage, PdfName.OneColumn, PdfName.TwoColumnLeft, PdfName.
             TwoColumnRight, PdfName.TwoPageLeft, PdfName.TwoPageRight)));
-
-        private readonly PdfPagesTree pageTree;
 
         /// <summary>
         /// Map of the
@@ -69,6 +68,8 @@ namespace iText.Kernel.Pdf {
 
         /// <summary>The document’s optional content properties dictionary.</summary>
         protected internal PdfOCProperties ocProperties;
+
+        private readonly PdfPagesTree pageTree;
 
         private PdfOutline outlines;
 
@@ -183,10 +184,6 @@ namespace iText.Kernel.Pdf {
             logger.LogWarning("PdfCatalog cannot be flushed manually");
         }
 
-        protected internal override bool IsWrappedObjectMustBeIndirect() {
-            return true;
-        }
-
         /// <summary>A value specifying a destination that shall be displayed when the document is opened.</summary>
         /// <remarks>
         /// A value specifying a destination that shall be displayed when the document is opened.
@@ -198,6 +195,7 @@ namespace iText.Kernel.Pdf {
         /// </param>
         /// <returns>destination</returns>
         public virtual iText.Kernel.Pdf.PdfCatalog SetOpenAction(PdfDestination destination) {
+            CheckIsoConformanceForDestination(destination);
             return Put(PdfName.OpenAction, destination.GetPdfObject());
         }
 
@@ -212,6 +210,7 @@ namespace iText.Kernel.Pdf {
         /// </param>
         /// <returns>action</returns>
         public virtual iText.Kernel.Pdf.PdfCatalog SetOpenAction(PdfAction action) {
+            CheckIsoConformanceForAction(action);
             return Put(PdfName.OpenAction, action.GetPdfObject());
         }
 
@@ -228,6 +227,7 @@ namespace iText.Kernel.Pdf {
         /// </param>
         /// <returns>additional action</returns>
         public virtual iText.Kernel.Pdf.PdfCatalog SetAdditionalAction(PdfName key, PdfAction action) {
+            CheckIsoConformanceForAction(action);
             PdfAction.SetAdditionalAction(this, key, action);
             return this;
         }
@@ -317,7 +317,7 @@ namespace iText.Kernel.Pdf {
         }
 
         /// <summary>This method gets Names tree from the catalog.</summary>
-        /// <param name="treeType">type of the tree (Dests, AP, EmbeddedFiles etc).</param>
+        /// <param name="treeType">type of the tree (Dests, AP, EmbeddedFiles etc.).</param>
         /// <returns>
         /// returns
         /// <see cref="PdfNameTree"/>
@@ -525,6 +525,10 @@ namespace iText.Kernel.Pdf {
             return this;
         }
 
+        protected internal override bool IsWrappedObjectMustBeIndirect() {
+            return true;
+        }
+
         /// <summary>
         /// True indicates that getOCProperties() was called, may have been modified,
         /// and thus its dictionary needs to be reconstructed.
@@ -555,8 +559,8 @@ namespace iText.Kernel.Pdf {
 //\endcond
 
 //\cond DO_NOT_DOCUMENT
-        /// <summary>This methods adds new name to the Dests NameTree.</summary>
-        /// <remarks>This methods adds new name to the Dests NameTree. It throws an exception, if the name already exists.
+        /// <summary>This method adds new name to the Dests NameTree.</summary>
+        /// <remarks>This method adds new name to the Dests NameTree. It throws an exception, if the name already exists.
         ///     </remarks>
         /// <param name="key">Name of the destination.</param>
         /// <param name="value">
@@ -569,8 +573,8 @@ namespace iText.Kernel.Pdf {
 //\endcond
 
 //\cond DO_NOT_DOCUMENT
-        /// <summary>This methods adds a new name to the specified NameTree.</summary>
-        /// <remarks>This methods adds a new name to the specified NameTree. It throws an exception, if the name already exists.
+        /// <summary>This method adds a new name to the specified NameTree.</summary>
+        /// <remarks>This method adds a new name to the specified NameTree. It throws an exception, if the name already exists.
         ///     </remarks>
         /// <param name="key">key in the name tree</param>
         /// <param name="value">value in the name tree</param>
@@ -603,11 +607,12 @@ namespace iText.Kernel.Pdf {
             outlineMode = true;
             PdfNameTree destsTree = GetNameTree(PdfName.Dests);
             PdfDictionary outlineRoot = GetPdfObject().GetAsDictionary(PdfName.Outlines);
+            PdfDocument document = GetDocument();
             if (outlineRoot == null) {
-                if (null == GetDocument().GetWriter()) {
+                if (null == document.GetWriter()) {
                     return null;
                 }
-                outlines = new PdfOutline(GetDocument());
+                outlines = new PdfOutline(document);
             }
             else {
                 ConstructOutlines(outlineRoot, destsTree);
@@ -652,11 +657,9 @@ namespace iText.Kernel.Pdf {
             }
             if (HasOutlines()) {
                 GetOutlines(false);
-                if (pagesWithOutlines.Count > 0) {
-                    if (pagesWithOutlines.Get(page.GetPdfObject()) != null) {
-                        foreach (PdfOutline outline in pagesWithOutlines.Get(page.GetPdfObject())) {
-                            outline.RemoveOutline();
-                        }
+                if (!pagesWithOutlines.IsEmpty() && pagesWithOutlines.Get(page.GetPdfObject()) != null) {
+                    foreach (PdfOutline outline in pagesWithOutlines.Get(page.GetPdfObject())) {
+                        outline.RemoveOutline();
                     }
                 }
             }
@@ -670,7 +673,7 @@ namespace iText.Kernel.Pdf {
             if (!outlineMode) {
                 return;
             }
-            if (pagesWithOutlines.Count == 0) {
+            if (pagesWithOutlines.IsEmpty()) {
                 Put(PdfName.Outlines, outline.GetContent());
             }
         }
@@ -792,9 +795,15 @@ namespace iText.Kernel.Pdf {
             }
             else {
                 if (dest.IsString() || dest.IsName()) {
+                    PdfString srcDestName;
+                    if (dest.IsName()) {
+                        srcDestName = new PdfString(((PdfName)dest).GetValue());
+                    }
+                    else {
+                        srcDestName = new PdfString(((PdfString)dest).GetValueBytes());
+                    }
                     PdfNameTree destsTree = GetNameTree(PdfName.Dests);
                     IDictionary<PdfString, PdfObject> dests = destsTree.GetNames();
-                    PdfString srcDestName = dest.IsString() ? (PdfString)dest : new PdfString(((PdfName)dest).GetValue());
                     PdfArray srcDestArray = (PdfArray)dests.Get(srcDestName);
                     if (srcDestArray != null) {
                         PdfObject pageObject = srcDestArray.Get(0);
@@ -840,21 +849,18 @@ namespace iText.Kernel.Pdf {
         }
 //\endcond
 
-        private PdfDestination CreateDestinationFromPageNum(PdfObject dest, PdfDocument toDocument) {
-            return new PdfExplicitDestination((PdfArray)dest.CopyTo(toDocument, false, NullCopyFilter.GetInstance()));
+        private void CheckIsoConformanceForDestination(PdfDestination destination) {
+            GetDocument().CheckIsoConformance(new PdfDestinationAdditionContext(destination));
         }
 
-        private static PdfDestination CreateDestinationFromPageRef(PdfObject dest, IDictionary<PdfPage, PdfPage> page2page
-            , PdfDocument toDocument, PdfObject pageObject) {
-            foreach (PdfPage oldPage in page2page.Keys) {
-                if (oldPage.GetPdfObject() == pageObject) {
-                    // in the copiedArray old page ref will be correctly replaced by the new page ref
-                    // as this page is already copied
-                    PdfArray copiedArray = (PdfArray)dest.CopyTo(toDocument, false, NullCopyFilter.GetInstance());
-                    return new PdfExplicitDestination(copiedArray);
-                }
+        private void CheckIsoConformanceForAction(PdfAction action) {
+            if (action != null && action.GetPdfObject() != null) {
+                GetDocument().CheckIsoConformance(new PdfDestinationAdditionContext(action));
             }
-            return null;
+        }
+
+        private PdfDestination CreateDestinationFromPageNum(PdfObject dest, PdfDocument toDocument) {
+            return new PdfExplicitDestination((PdfArray)dest.CopyTo(toDocument, false, NullCopyFilter.GetInstance()));
         }
 
         private bool IsEqualSameNameDestExist(IDictionary<PdfPage, PdfPage> page2page, PdfDocument toDocument, PdfString
@@ -865,8 +871,8 @@ namespace iText.Kernel.Pdf {
             if (sameNameDest != null && sameNameDest.GetAsDictionary(0) != null) {
                 PdfIndirectReference existingDestPageRef = sameNameDest.GetAsDictionary(0).GetIndirectReference();
                 PdfIndirectReference newDestPageRef = page2page.Get(oldPage).GetPdfObject().GetIndirectReference();
-                if (equalSameNameDestExists = existingDestPageRef.Equals(newDestPageRef) && sameNameDest.Size() == srcDestArray
-                    .Size()) {
+                equalSameNameDestExists = existingDestPageRef.Equals(newDestPageRef);
+                if (equalSameNameDestExists && sameNameDest.Size() == srcDestArray.Size()) {
                     for (int i = 1; i < sameNameDest.Size(); ++i) {
                         equalSameNameDestExists = equalSameNameDestExists && sameNameDest.Get(i).Equals(srcDestArray.Get(i));
                     }
@@ -902,6 +908,7 @@ namespace iText.Kernel.Pdf {
             PdfObject dest = item.Get(PdfName.Dest);
             if (dest != null) {
                 PdfDestination destination = PdfDestination.MakeDestination(dest);
+                CheckIsoConformanceForDestination(destination);
                 outline.SetDestination(destination);
                 AddOutlineToPage(outline, names);
             }
@@ -910,19 +917,39 @@ namespace iText.Kernel.Pdf {
                 PdfDictionary action = item.GetAsDictionary(PdfName.A);
                 if (action != null) {
                     PdfName actionType = action.GetAsName(PdfName.S);
-                    //Check if it is a go to action
+                    //Check if it is a go-to action
                     if (PdfName.GoTo.Equals(actionType)) {
-                        //Retrieve destination if it is.
-                        PdfObject destObject = action.Get(PdfName.D);
-                        if (destObject != null) {
-                            //Page is always the first object
-                            PdfDestination destination = PdfDestination.MakeDestination(destObject);
+                        CheckIsoConformanceForAction(new PdfAction(action));
+                        //First check if structure destination is present.
+                        PdfObject structureDestinationObject = action.Get(PdfName.SD);
+                        if (structureDestinationObject != null) {
+                            PdfDestination destination = PdfDestination.MakeDestination(structureDestinationObject);
                             outline.SetDestination(destination);
                             AddOutlineToPage(outline, names);
+                        }
+                        else {
+                            if (action.Get(PdfName.D) != null) {
+                                PdfDestination destination = PdfDestination.MakeDestination(action.Get(PdfName.D));
+                                outline.SetDestination(destination);
+                                AddOutlineToPage(outline, names);
+                            }
                         }
                     }
                 }
             }
+        }
+
+        private static PdfDestination CreateDestinationFromPageRef(PdfObject dest, IDictionary<PdfPage, PdfPage> page2page
+            , PdfDocument toDocument, PdfObject pageObject) {
+            foreach (PdfPage oldPage in page2page.Keys) {
+                if (oldPage.GetPdfObject() == pageObject) {
+                    // in the copiedArray old page ref will be correctly replaced by the new page ref
+                    // as this page is already copied
+                    PdfArray copiedArray = (PdfArray)dest.CopyTo(toDocument, false, NullCopyFilter.GetInstance());
+                    return new PdfExplicitDestination(copiedArray);
+                }
+            }
+            return null;
         }
     }
 }

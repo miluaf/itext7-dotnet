@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -238,7 +238,8 @@ namespace iText.Forms.Fields {
                 if (extractedBorderColor != null) {
                     borderColor = extractedBorderColor;
                 }
-                if (parent != null) {
+                // We take into account CA only for buttons according to specification
+                if (parent != null && PdfName.Btn.Equals(parent.GetFormType())) {
                     parent.text = AppearancePropToCaption(appearanceCharacteristics);
                 }
             }
@@ -595,6 +596,24 @@ namespace iText.Forms.Fields {
             return this;
         }
 
+        /// <summary>Changes the alternative description of the annotation to the specified value.</summary>
+        /// <param name="alternativeDescription">string to be used as alternative description.</param>
+        /// <returns>
+        /// The edited
+        /// <see cref="PdfFormAnnotation"/>.
+        /// </returns>
+        public virtual iText.Forms.Fields.PdfFormAnnotation SetAlternativeDescription(String alternativeDescription
+            ) {
+            Put(PdfName.Contents, new PdfString(alternativeDescription));
+            return this;
+        }
+
+        /// <summary>Gets the current alternative description.</summary>
+        /// <returns>the current alternative description.</returns>
+        public virtual PdfString GetAlternativeDescription() {
+            return GetPdfObject().GetAsString(PdfName.Contents);
+        }
+
         /// <summary>
         /// Gets a
         /// <see cref="iText.Kernel.Geom.Rectangle"/>
@@ -922,9 +941,12 @@ namespace iText.Forms.Fields {
                 }
                 formFieldElement.SetProperty(Property.FONT_SIZE, UnitValue.CreatePointValue(fontSize));
                 value = iText.Commons.Utils.StringUtil.ReplaceAll(value, LINE_ENDINGS_REGEXP, " ");
-                ((InputField)formFieldElement).SetComb(this.IsCombTextFormField());
-                ((InputField)formFieldElement).SetMaxLen((parent is PdfTextFormField ? (PdfTextFormField)parent : PdfFormCreator
-                    .CreateTextFormField(parent.GetPdfObject())).GetMaxLen());
+                bool isComb = this.IsCombTextFormField();
+                ((InputField)formFieldElement).SetComb(isComb);
+                if (isComb) {
+                    ((InputField)formFieldElement).SetMaxLen((parent is PdfTextFormField ? (PdfTextFormField)parent : PdfFormCreator
+                        .CreateTextFormField(parent.GetPdfObject())).GetMaxLen());
+                }
                 ((InputField)formFieldElement).UseAsPassword(parent.IsPassword());
             }
             formFieldElement.SetValue(value);
@@ -1045,7 +1067,7 @@ namespace iText.Forms.Fields {
             iText.Layout.Canvas canvasOff = new iText.Layout.Canvas(xObjectOff, GetDocument());
             SetMetaInfoToCanvas(canvasOff);
             canvasOff.Add(formFieldElement);
-            if (GetPdfConformance() == null || !GetPdfConformance().IsPdfAOrUa()) {
+            if (GetPdfConformance() == null || !GetPdfConformance().ConformsToAny()) {
                 xObjectOff.GetResources().AddFont(GetDocument(), GetFont());
             }
             normalAppearance.Put(new PdfName(OFF_STATE_VALUE), xObjectOff.GetPdfObject());

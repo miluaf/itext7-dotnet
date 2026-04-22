@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -82,7 +82,7 @@ namespace iText.Layout.Font {
             this.encoding = encoding;
             this.descriptor = descriptor;
             this.range = unicodeRange != null ? unicodeRange : RangeBuilder.GetFullRange();
-            this.alias = alias != null ? alias.ToLowerInvariant() : null;
+            this.alias = StringNormalizer.ToLowerCase(alias);
             this.hash = CalculateHashCode(this.fontName, this.fontData, this.encoding, this.range);
         }
 

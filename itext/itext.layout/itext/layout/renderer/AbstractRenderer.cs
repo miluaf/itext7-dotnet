@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -206,9 +206,10 @@ namespace iText.Layout.Renderer {
                     }
                 }
             }
-            // Fetch positioned renderers from non-positioned child because they might be stuck there because child's parent was null previously
+            // Fetch positioned renderers from non-positioned child because they might be stuck there
+            // because child's parent was null previously
             if (renderer is iText.Layout.Renderer.AbstractRenderer && !((iText.Layout.Renderer.AbstractRenderer)renderer
-                ).IsPositioned() && ((iText.Layout.Renderer.AbstractRenderer)renderer).positionedRenderers.Count > 0) {
+                ).IsPositioned() && !((iText.Layout.Renderer.AbstractRenderer)renderer).positionedRenderers.IsEmpty()) {
                 // For position=absolute, if none of the top, bottom, left, right properties are provided,
                 // the content should be displayed in the flow of the current content, not overlapping it.
                 // The behavior is just if it would be statically positioned except it does not affect other elements
@@ -478,10 +479,9 @@ namespace iText.Layout.Renderer {
         /// property if specified by setting corresponding values in graphic state dictionary
         /// opacity will be applied to all elements drawn after calling this method and before
         /// calling
-        /// <see cref="EndElementOpacityApplying(DrawContext)"/>
-        /// ()}.
+        /// <see cref="EndElementOpacityApplying(DrawContext)"/>.
         /// </summary>
-        /// <param name="drawContext">the context (canvas, document, etc) of this drawing operation.</param>
+        /// <param name="drawContext">the context (canvas, document, etc.) of this drawing operation.</param>
         protected internal virtual void BeginElementOpacityApplying(DrawContext drawContext) {
             float? opacity = this.GetPropertyAsFloat(Property.OPACITY);
             if (opacity != null && opacity < 1f) {
@@ -494,7 +494,7 @@ namespace iText.Layout.Renderer {
         /// <summary>
         /// <see cref="BeginElementOpacityApplying(DrawContext)"/>.
         /// </summary>
-        /// <param name="drawContext">the context (canvas, document, etc) of this drawing operation.</param>
+        /// <param name="drawContext">the context (canvas, document, etc.) of this drawing operation.</param>
         protected internal virtual void EndElementOpacityApplying(DrawContext drawContext) {
             float? opacity = this.GetPropertyAsFloat(Property.OPACITY);
             if (opacity != null && opacity < 1f) {
@@ -509,7 +509,7 @@ namespace iText.Layout.Renderer {
         /// <see cref="IRenderer"/>
         /// itself.
         /// </summary>
-        /// <param name="drawContext">the context (canvas, document, etc) of this drawing operation.</param>
+        /// <param name="drawContext">the context (canvas, document, etc.) of this drawing operation.</param>
         public virtual void DrawBackground(DrawContext drawContext) {
             Background background = this.GetProperty<Background>(Property.BACKGROUND);
             IList<BackgroundImage> backgroundImagesList = this.GetProperty<IList<BackgroundImage>>(Property.BACKGROUND_IMAGE
@@ -551,13 +551,22 @@ namespace iText.Layout.Renderer {
 
         private void DrawColorBackground(Background background, DrawContext drawContext, Rectangle colorBackgroundArea
             ) {
+            double backgroundRectangleWidth = (double)colorBackgroundArea.GetWidth() + background.GetExtraLeft() + background
+                .GetExtraRight();
+            double backgroundRectangleHeight = (double)colorBackgroundArea.GetHeight() + background.GetExtraTop() + background
+                .GetExtraBottom();
+            if (backgroundRectangleWidth < EPS || backgroundRectangleHeight < EPS) {
+                ILogger logger = ITextLogManager.GetLogger(typeof(iText.Layout.Renderer.AbstractRenderer));
+                logger.LogInformation(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.RECTANGLE_HAS_NEGATIVE_OR_ZERO_SIZES
+                    , "background"));
+                return;
+            }
             TransparentColor backgroundColor = new TransparentColor(background.GetColor(), background.GetOpacity());
             drawContext.GetCanvas().SaveState().SetFillColor(backgroundColor.GetColor());
             backgroundColor.ApplyFillTransparency(drawContext.GetCanvas());
             drawContext.GetCanvas().Rectangle((double)colorBackgroundArea.GetX() - background.GetExtraLeft(), (double)
-                colorBackgroundArea.GetY() - background.GetExtraBottom(), (double)colorBackgroundArea.GetWidth() + background
-                .GetExtraLeft() + background.GetExtraRight(), (double)colorBackgroundArea.GetHeight() + background.GetExtraTop
-                () + background.GetExtraBottom()).Fill().RestoreState();
+                colorBackgroundArea.GetY() - background.GetExtraBottom(), backgroundRectangleWidth, backgroundRectangleHeight
+                ).Fill().RestoreState();
         }
 
         private Rectangle ApplyBackgroundBoxProperty(Rectangle rectangle, BackgroundBox clip) {
@@ -609,17 +618,14 @@ namespace iText.Layout.Renderer {
                 // fullWidth and fullHeight is 0 because percentage shifts are ignored for linear-gradients
                 backgroundImage.GetBackgroundPosition().CalculatePositionValues(0, 0, xPosition, yPosition);
                 backgroundXObject = CreateXObject(gradientBuilder, originBackgroundArea, drawContext.GetDocument());
-                imageRectangle = new Rectangle(originBackgroundArea.GetLeft() + xPosition.GetValue(), originBackgroundArea
-                    .GetTop() - imageWidthAndHeight[1] - yPosition.GetValue(), imageWidthAndHeight[0], imageWidthAndHeight
-                    [1]);
             }
             else {
                 backgroundImage.GetBackgroundPosition().CalculatePositionValues(originBackgroundArea.GetWidth() - imageWidthAndHeight
                     [0], originBackgroundArea.GetHeight() - imageWidthAndHeight[1], xPosition, yPosition);
-                imageRectangle = new Rectangle(originBackgroundArea.GetLeft() + xPosition.GetValue(), originBackgroundArea
-                    .GetTop() - imageWidthAndHeight[1] - yPosition.GetValue(), imageWidthAndHeight[0], imageWidthAndHeight
-                    [1]);
             }
+            imageRectangle = new Rectangle(originBackgroundArea.GetLeft() + xPosition.GetValue(), originBackgroundArea
+                .GetTop() - imageWidthAndHeight[1] - yPosition.GetValue(), imageWidthAndHeight[0], imageWidthAndHeight
+                [1]);
             if (imageRectangle.GetWidth() <= 0 || imageRectangle.GetHeight() <= 0) {
                 ILogger logger = ITextLogManager.GetLogger(typeof(iText.Layout.Renderer.AbstractRenderer));
                 logger.LogInformation(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.RECTANGLE_HAS_NEGATIVE_OR_ZERO_SIZES
@@ -723,22 +729,22 @@ namespace iText.Layout.Renderer {
         }
 
         protected internal virtual bool ClipBorderArea(DrawContext drawContext, Rectangle outerBorderBox) {
-            return ClipArea(drawContext, outerBorderBox, true, true, false, true);
+            return ClipArea(drawContext, outerBorderBox, true, false, true);
         }
 
         protected internal virtual bool ClipBackgroundArea(DrawContext drawContext, Rectangle outerBorderBox) {
-            return ClipArea(drawContext, outerBorderBox, true, false, false, false);
+            return ClipArea(drawContext, outerBorderBox, false, false, false);
         }
 
         protected internal virtual bool ClipBackgroundArea(DrawContext drawContext, Rectangle outerBorderBox, bool
              considerBordersBeforeClipping) {
-            return ClipArea(drawContext, outerBorderBox, true, false, considerBordersBeforeClipping, false);
+            return ClipArea(drawContext, outerBorderBox, false, considerBordersBeforeClipping, false);
         }
 
-        private bool ClipArea(DrawContext drawContext, Rectangle outerBorderBox, bool clipOuter, bool clipInner, bool
-             considerBordersBeforeOuterClipping, bool considerBordersBeforeInnerClipping) {
+        private bool ClipArea(DrawContext drawContext, Rectangle outerBorderBox, bool clipInner, bool considerBordersBeforeOuterClipping
+            , bool considerBordersBeforeInnerClipping) {
             // border widths should be considered only once
-            System.Diagnostics.Debug.Assert(false == considerBordersBeforeOuterClipping || false == considerBordersBeforeInnerClipping
+            System.Diagnostics.Debug.Assert(!considerBordersBeforeOuterClipping || !considerBordersBeforeInnerClipping
                 );
             // border widths
             float[] borderWidths = new float[] { 0, 0, 0, 0 };
@@ -770,9 +776,7 @@ namespace iText.Layout.Renderer {
                         );
                 }
                 // clip border area outside
-                if (clipOuter) {
-                    ClipOuterArea(canvas, horizontalRadii, verticalRadii, outerBox, cornersX, cornersY);
-                }
+                ClipOuterArea(canvas, horizontalRadii, verticalRadii, outerBox, cornersX, cornersY);
                 if (considerBordersBeforeInnerClipping) {
                     borderWidths = DecreaseBorderRadiiWithBorders(horizontalRadii, verticalRadii, outerBox, cornersX, cornersY
                         );
@@ -945,7 +949,7 @@ namespace iText.Layout.Renderer {
         /// <see cref="IRenderer">children</see>
         /// of this renderer.
         /// </summary>
-        /// <param name="drawContext">the context (canvas, document, etc) of this drawing operation.</param>
+        /// <param name="drawContext">the context (canvas, document, etc.) of this drawing operation.</param>
         public virtual void DrawChildren(DrawContext drawContext) {
             IList<IRenderer> waitingRenderers = new List<IRenderer>();
             foreach (IRenderer child in childRenderers) {
@@ -1484,7 +1488,8 @@ namespace iText.Layout.Renderer {
         protected internal virtual float? RetrieveHeight() {
             float? height = null;
             UnitValue heightUV = GetPropertyAsUnitValue(Property.HEIGHT);
-            float? parentResolvedHeight = RetrieveResolvedParentDeclaredHeight();
+            float? parentResolvedHeight = parent == null ? null : ((iText.Layout.Renderer.AbstractRenderer)parent).RetrieveResolvedDeclaredHeight
+                ();
             float? minHeight = null;
             float? maxHeight = null;
             if (heightUV != null) {
@@ -1576,14 +1581,14 @@ namespace iText.Layout.Renderer {
             SetProperty(Property.HEIGHT, updatedHeight);
         }
 
-        /// <summary>Retrieve element's content box max-ehight, if it's set.</summary>
+        /// <summary>Retrieve element's content box max-height, if it's set.</summary>
         /// <remarks>
-        /// Retrieve element's content box max-ehight, if it's set.
+        /// Retrieve element's content box max-height, if it's set.
         /// Takes into account
         /// <see cref="iText.Layout.Properties.Property.BOX_SIZING"/>
         /// property value.
         /// </remarks>
-        /// <returns>element's content box max-height or null if it's not set.</returns>
+        /// <returns>element's content box max-height or null if it's not set</returns>
         protected internal virtual float? RetrieveMaxHeight() {
             float? maxHeight = null;
             float? minHeight = null;
@@ -1727,11 +1732,11 @@ namespace iText.Layout.Renderer {
         /// <remarks>
         /// Gets the first yLine of the nested children recursively. E.g. for a list, this will be the yLine of the
         /// first item (if the first item is indeed a paragraph).
-        /// NOTE: this method will no go further than the first child.
+        /// NOTE: this method will not go further than the first child.
         /// </remarks>
-        /// <returns>the first yline of the nested children, null if there is no text found</returns>
+        /// <returns>the first y line of the nested children, null if there is no text found</returns>
         protected internal virtual float? GetFirstYLineRecursively() {
-            if (childRenderers.Count == 0) {
+            if (childRenderers.IsEmpty()) {
                 return null;
             }
             return ((iText.Layout.Renderer.AbstractRenderer)childRenderers[0]).GetFirstYLineRecursively();
@@ -1930,46 +1935,51 @@ namespace iText.Layout.Renderer {
         }
 
         protected internal virtual void ApplyDestination(PdfDocument document) {
-            Object destination = this.GetProperty<Object>(Property.DESTINATION);
-            if (destination == null) {
+            ICollection<Object> destinations = this.GetProperty<ICollection<Object>>(Property.DESTINATION);
+            if (destinations == null) {
                 return;
             }
-            String destinationName = null;
-            PdfDictionary linkActionDict = null;
-            if (destination is String) {
-                destinationName = (String)destination;
-            }
-            else {
-                if (CHECK_TUPLE2_TYPE.GetType().Equals(destination.GetType())) {
-                    // 'If' above is the only autoportable way it seems
-                    Tuple2<String, PdfDictionary> destTuple = (Tuple2<String, PdfDictionary>)destination;
-                    destinationName = destTuple.GetFirst();
-                    linkActionDict = destTuple.GetSecond();
+            foreach (Object destination in destinations) {
+                String destinationName = null;
+                PdfDictionary linkActionDict = null;
+                if (destination == null) {
+                    continue;
                 }
-            }
-            if (destinationName != null) {
-                int pageNumber = occupiedArea.GetPageNumber();
-                if (pageNumber < 1 || pageNumber > document.GetNumberOfPages()) {
-                    ILogger logger = ITextLogManager.GetLogger(typeof(iText.Layout.Renderer.AbstractRenderer));
-                    String logMessageArg = "Property.DESTINATION, which specifies this element location as destination, see ElementPropertyContainer.setDestination.";
-                    logger.LogWarning(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.UNABLE_TO_APPLY_PAGE_DEPENDENT_PROP_UNKNOWN_PAGE_ON_WHICH_ELEMENT_IS_DRAWN
-                        , logMessageArg));
-                    return;
+                if (destination is String) {
+                    destinationName = (String)destination;
                 }
-                PdfArray array = new PdfArray();
-                array.Add(document.GetPage(pageNumber).GetPdfObject());
-                array.Add(PdfName.XYZ);
-                array.Add(new PdfNumber(occupiedArea.GetBBox().GetX()));
-                array.Add(new PdfNumber(occupiedArea.GetBBox().GetY() + occupiedArea.GetBBox().GetHeight()));
-                array.Add(new PdfNumber(0));
-                document.AddNamedDestination(destinationName, array.MakeIndirect(document));
-            }
-            bool isPdf20 = document.GetPdfVersion().CompareTo(PdfVersion.PDF_2_0) >= 0;
-            if (linkActionDict != null && isPdf20 && document.IsTagged()) {
-                // Add structure destination for the action for tagged pdf 2.0
-                PdfStructElem structElem = GetCurrentStructElem(document);
-                PdfStructureDestination dest = PdfStructureDestination.CreateFit(structElem);
-                linkActionDict.Put(PdfName.SD, dest.GetPdfObject());
+                else {
+                    if (CHECK_TUPLE2_TYPE.GetType().Equals(destination.GetType())) {
+                        // 'If' above is the only autoportable way it seems
+                        Tuple2<String, PdfDictionary> destTuple = (Tuple2<String, PdfDictionary>)destination;
+                        destinationName = destTuple.GetFirst();
+                        linkActionDict = destTuple.GetSecond();
+                    }
+                }
+                if (destinationName != null) {
+                    int pageNumber = occupiedArea.GetPageNumber();
+                    if (pageNumber < 1 || pageNumber > document.GetNumberOfPages()) {
+                        ILogger logger = ITextLogManager.GetLogger(typeof(iText.Layout.Renderer.AbstractRenderer));
+                        String logMessageArg = "Property.DESTINATION, which specifies this element location as destination, " + "see ElementPropertyContainer.setDestination.";
+                        logger.LogWarning(MessageFormatUtil.Format(iText.IO.Logs.IoLogMessageConstant.UNABLE_TO_APPLY_PAGE_DEPENDENT_PROP_UNKNOWN_PAGE_ON_WHICH_ELEMENT_IS_DRAWN
+                            , logMessageArg));
+                        return;
+                    }
+                    PdfArray array = new PdfArray();
+                    array.Add(document.GetPage(pageNumber).GetPdfObject());
+                    array.Add(PdfName.XYZ);
+                    array.Add(new PdfNumber(occupiedArea.GetBBox().GetX()));
+                    array.Add(new PdfNumber(occupiedArea.GetBBox().GetY() + occupiedArea.GetBBox().GetHeight()));
+                    array.Add(new PdfNumber(0));
+                    document.AddNamedDestination(destinationName, array.MakeIndirect(document));
+                }
+                bool isPdf20 = document.GetPdfVersion().CompareTo(PdfVersion.PDF_2_0) >= 0;
+                if (linkActionDict != null && isPdf20 && document.IsTagged()) {
+                    // Add structure destination for the action for tagged pdf 2.0
+                    PdfStructElem structElem = GetCurrentStructElem(document);
+                    PdfStructureDestination dest = PdfStructureDestination.CreateFit(structElem);
+                    linkActionDict.Put(PdfName.SD, dest.GetPdfObject());
+                }
             }
             DeleteProperty(Property.DESTINATION);
         }
@@ -2026,28 +2036,30 @@ namespace iText.Layout.Renderer {
             }
         }
 
-        /// <summary>Retrieve the parent's resolved height declaration.</summary>
+        /// <summary>Retrieve the resolved height declaration.</summary>
         /// <remarks>
-        /// Retrieve the parent's resolved height declaration.
-        /// If the parent has a relative height declaration, it will check it's parent recursively,
+        /// Retrieve the resolved height declaration.
+        /// If it has a relative height declaration,
+        /// <see cref="RetrieveHeight()"/>
+        /// is called.
         /// </remarks>
         /// <returns>
-        /// null if no height declaration is set on the parent, or if it's own height declaration cannot be resolved
-        /// The float value of the resolved height otherwiser
+        /// 
+        /// <see langword="null"/>
+        /// if no height declaration is set on the parent, or if its own height declaration
+        /// cannot be resolved. The float value of the resolved height otherwise
         /// </returns>
-        private float? RetrieveResolvedParentDeclaredHeight() {
-            if (parent != null && parent.GetProperty<UnitValue>(Property.HEIGHT) != null) {
-                UnitValue parentHeightUV = GetPropertyAsUnitValue(parent, Property.HEIGHT);
-                if (parentHeightUV.IsPointValue()) {
-                    return parentHeightUV.GetValue();
+        protected internal virtual float? RetrieveResolvedDeclaredHeight() {
+            if (this.GetProperty<UnitValue>(Property.HEIGHT) != null) {
+                UnitValue heightUV = GetPropertyAsUnitValue(this, Property.HEIGHT);
+                if (heightUV.IsPointValue()) {
+                    return heightUV.GetValue();
                 }
                 else {
-                    return ((iText.Layout.Renderer.AbstractRenderer)parent).RetrieveHeight();
+                    return RetrieveHeight();
                 }
             }
-            else {
-                return null;
-            }
+            return null;
         }
 
         /// <summary>Retrieve the direct parent's absolute height property</summary>
@@ -2087,7 +2099,8 @@ namespace iText.Layout.Renderer {
             }
             // Update height related properties on split or overflow
             // For relative heights, we need the parent's resolved height declaration
-            float? parentResolvedHeightPropertyValue = RetrieveResolvedParentDeclaredHeight();
+            float? parentResolvedHeightPropertyValue = parent == null ? null : ((iText.Layout.Renderer.AbstractRenderer
+                )parent).RetrieveResolvedDeclaredHeight();
             UnitValue maxHeightUV = GetPropertyAsUnitValue(this, Property.MAX_HEIGHT);
             if (maxHeightUV != null) {
                 if (maxHeightUV.IsPointValue()) {
@@ -2111,8 +2124,8 @@ namespace iText.Layout.Renderer {
             if (minHeightUV != null) {
                 if (minHeightUV.IsPointValue()) {
                     float? minHeight = RetrieveMinHeight();
-                    UnitValue updateminHeight = UnitValue.CreatePointValue((float)(minHeight - usedHeight));
-                    overflowRenderer.UpdateMinHeight(updateminHeight);
+                    UnitValue updateMinHeight = UnitValue.CreatePointValue((float)(minHeight - usedHeight));
+                    overflowRenderer.UpdateMinHeight(updateMinHeight);
                 }
                 else {
                     if (parentResolvedHeightPropertyValue != null) {
@@ -2155,6 +2168,17 @@ namespace iText.Layout.Renderer {
         /// </returns>
         public virtual MinMaxWidth GetMinMaxWidth() {
             return MinMaxWidthUtils.CountDefaultMinMaxWidth(this);
+        }
+
+        /// <summary>Calculates min and max width values for current renderer.</summary>
+        /// <param name="areaMaxWidth">max width of the area on which current renderer will be laid out</param>
+        /// <returns>
+        /// instance of
+        /// <see cref="iText.Layout.Minmaxwidth.MinMaxWidth"/>
+        /// </returns>
+        public virtual MinMaxWidth GetMinMaxWidth(float? areaMaxWidth) {
+            return areaMaxWidth == null ? GetMinMaxWidth() : MinMaxWidthUtils.CountDefaultMinMaxWidth(this, areaMaxWidth
+                .Value);
         }
 
         protected internal virtual bool SetMinMaxWidthBasedOnFixedWidth(MinMaxWidth minMaxWidth) {
@@ -2321,7 +2345,7 @@ namespace iText.Layout.Renderer {
         /// a
         /// <see cref="iText.Kernel.Geom.Rectangle"/>
         /// which is a bbox of the content not relative to the parent's layout area but rather to
-        /// the some pdf entity coordinate system.
+        /// some pdf entity coordinate system.
         /// </returns>
         protected internal virtual Rectangle CalculateAbsolutePdfBBox() {
             Rectangle contentBox = GetOccupiedAreaBBox();
@@ -2493,14 +2517,20 @@ namespace iText.Layout.Renderer {
 //\endcond
 
 //\cond DO_NOT_DOCUMENT
-        /// <summary>Returns the property of the renderer as a UnitValue if it exists and is a UnitValue, null otherwise
-        ///     </summary>
+        /// <summary>
+        /// Returns the property of the renderer as a UnitValue if it exists and is a UnitValue,
+        /// <see langword="null"/>
+        /// otherwise.
+        /// </summary>
         /// <param name="renderer">renderer to retrieve the property from</param>
         /// <param name="property">key for the property to retrieve</param>
-        /// <returns>A UnitValue if the property is present and is a UnitValue, null otherwise</returns>
+        /// <returns>
+        /// UnitValue if the property is present and is a UnitValue,
+        /// <see langword="null"/>
+        /// otherwise
+        /// </returns>
         internal static UnitValue GetPropertyAsUnitValue(IRenderer renderer, int property) {
-            UnitValue result = renderer.GetProperty<UnitValue>(property);
-            return result;
+            return renderer.GetProperty<UnitValue>(property);
         }
 //\endcond
 
@@ -2562,7 +2592,7 @@ namespace iText.Layout.Renderer {
         /// and
         /// <see cref="iText.Layout.Properties.Property.FONT_SET"/>
         /// properties.
-        /// This method will not change font property of renderer. Also it is not guarantied that returned font will contain
+        /// This method will not change font property of renderer. Also, it is not guarantied that returned font will contain
         /// all glyphs used in renderer or its children.
         /// <para />
         /// This method is usually needed for evaluating some layout characteristics like ascender or descender.
@@ -2611,7 +2641,7 @@ namespace iText.Layout.Renderer {
         /// Get first valid
         /// <see cref="iText.Kernel.Font.PdfFont"/>
         /// for this renderer, based on given font-families, font provider and font characteristics.
-        /// This method will not change font property of renderer. Also it is not guarantied that returned font will contain
+        /// This method will not change font property of renderer. Also, it is not guarantied that returned font will contain
         /// all glyphs used in renderer or its children.
         /// <para />
         /// This method is usually needed for evaluating some layout characteristics like ascender or descender.
@@ -2775,7 +2805,7 @@ namespace iText.Layout.Renderer {
         /// <param name="child">
         /// the
         /// <see cref="IRenderer">child renderer</see>
-        /// to be add
+        /// to add
         /// </param>
         internal virtual void AddChildRenderer(IRenderer child) {
             child.SetParent(this);
@@ -2794,7 +2824,7 @@ namespace iText.Layout.Renderer {
         /// <param name="children">
         /// the collection of
         /// <see cref="IRenderer">child renderers</see>
-        /// to be add
+        /// to add
         /// </param>
         internal virtual void AddAllChildRenderers(IList<IRenderer> children) {
             if (children == null) {
@@ -2817,7 +2847,7 @@ namespace iText.Layout.Renderer {
         /// <param name="children">
         /// the collection of
         /// <see cref="IRenderer">child renderers</see>
-        /// to be add
+        /// to add
         /// </param>
         internal virtual void AddAllChildRenderers(int index, IList<IRenderer> children) {
             SetThisAsParent(children);
@@ -2873,7 +2903,8 @@ namespace iText.Layout.Renderer {
         /// <c>this</c>
         /// and it would not present in the children list after
         /// removal, then the parent link of the removed renderer would be erased (i.e. set to
-        /// <see langword="null"/>.
+        /// <see langword="null"/>
+        /// ).
         /// </remarks>
         /// <param name="index">the index of the renderer to be removed</param>
         /// <returns>the removed renderer</returns>
@@ -2898,7 +2929,8 @@ namespace iText.Layout.Renderer {
         /// <c>this</c>
         /// , then
         /// the parent link of the removed renderer would be erased (i.e. set to
-        /// <see langword="null"/>.
+        /// <see langword="null"/>
+        /// ).
         /// </remarks>
         /// <param name="children">the collections of renderers to be removed from children list</param>
         /// <returns>

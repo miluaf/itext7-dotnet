@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -27,6 +27,7 @@ using iText.Forms.Fields;
 using iText.Forms.Form.Element;
 using iText.Kernel.Colors;
 using iText.Kernel.Exceptions;
+using iText.Kernel.Font;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Kernel.Utils;
@@ -38,8 +39,7 @@ using iText.Test.Attributes;
 namespace iText.Forms.Fields.Merging {
     [NUnit.Framework.Category("IntegrationTest")]
     public class OnDuplicateFormFieldNameStrategyTest : ExtendedITextTest {
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/forms/merging/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/forms/merging/";
 
         private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/forms/merging/";
@@ -239,9 +239,24 @@ namespace iText.Forms.Fields.Merging {
         }
 
         [NUnit.Framework.Test]
+        public virtual void MergeFieldsStrategyTest() {
+            String destination = SOURCE_FOLDER + "mergeFieldsStrategyTest.pdf";
+            using (PdfDocument pdfDocument = new PdfDocument(new PdfReader(destination), new PdfWriter(new MemoryStream
+                ()))) {
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDocument, true, new MergeFieldsStrategy());
+                PdfTextFormField firstField = new TextFormFieldBuilder(pdfDocument, "samplefield").SetWidgetRectangle(new 
+                    Rectangle(30, 850, 100, 30)).CreateText();
+                PdfFont pdfFont = pdfDocument.GetDefaultFont();
+                firstField.SetValue("text").SetFont(pdfFont).SetFontSize(20f);
+                form.AddField(firstField);
+                NUnit.Framework.Assert.AreEqual(1, form.GetAllFormFields().Count);
+            }
+        }
+
+        [NUnit.Framework.Test]
         public virtual void AddIndexStrategySeparatesTheFields() {
             try {
-                PdfFormCreator.SetFactory(new _PdfFormFactory_282());
+                PdfFormCreator.SetFactory(new _PdfFormFactory_303());
                 using (PdfDocument pdfInnerDoc = new PdfDocument(new PdfWriter(DESTINATION_FOLDER + "add_index.pdf"))) {
                     Document doc = new Document(pdfInnerDoc);
                     doc.Add(new CheckBox("test1").SetBorder(new SolidBorder(ColorConstants.RED, 1)));
@@ -257,8 +272,8 @@ namespace iText.Forms.Fields.Merging {
             }
         }
 
-        private sealed class _PdfFormFactory_282 : PdfFormFactory {
-            public _PdfFormFactory_282() {
+        private sealed class _PdfFormFactory_303 : PdfFormFactory {
+            public _PdfFormFactory_303() {
             }
 
             public override PdfAcroForm GetAcroForm(PdfDocument document, bool createIfNotExist) {

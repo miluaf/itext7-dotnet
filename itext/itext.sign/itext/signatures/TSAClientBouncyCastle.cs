@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -224,7 +224,7 @@ namespace iText.Signatures {
                 baos.Write(buffer, 0, bytesRead);
             }
             byte[] respBytes = baos.ToArray();
-            if (response.encoding != null && response.encoding.ToLowerInvariant().Equals("base64".ToLowerInvariant())) {
+            if (response.encoding != null && StringNormalizer.ToLowerCase(response.encoding).Equals("base64")) {
                 respBytes = Convert.FromBase64String(iText.Commons.Utils.JavaUtil.GetStringForBytes(respBytes, "US-ASCII")
                     );
             }

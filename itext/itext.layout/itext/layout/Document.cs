@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -94,6 +94,7 @@ namespace iText.Layout {
             this.pdfDocument = pdfDoc;
             this.pdfDocument.SetDefaultPageSize(pageSize);
             this.immediateFlush = immediateFlush;
+            this.EnsureRootTagIsCreated();
         }
 
         /// <summary>Closes the document and associated PdfDocument.</summary>
@@ -293,7 +294,7 @@ namespace iText.Layout {
         public override T1 GetDefaultProperty<T1>(int property) {
             switch (property) {
                 case Property.FONT: {
-                    if (GetPdfDocument().GetConformance().IsPdfAOrUa()) {
+                    if (GetPdfDocument().GetConformance() != null && GetPdfDocument().GetConformance().ConformsToAny()) {
                         return (T1)(Object)GetPdfDocument().GetDefaultFont();
                     }
                     return base.GetDefaultProperty<T1>(property);

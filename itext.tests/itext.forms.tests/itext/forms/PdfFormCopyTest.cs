@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
 using iText.Forms.Fields;
+using iText.Forms.Logs;
 using iText.IO.Source;
 using iText.Kernel.Pdf;
 using iText.Kernel.Utils;
@@ -34,8 +35,7 @@ namespace iText.Forms {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/forms/PdfFormCopyTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/forms/PdfFormCopyTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/forms/PdfFormCopyTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -578,6 +578,21 @@ namespace iText.Forms {
             String sourceFileName = sourceFolder + "fieldThreeWidgets.pdf";
             String destFileName = destinationFolder + "widgetContainsNoTEntryTest.pdf";
             String cmpFileName = sourceFolder + "cmp_widgetContainsNoTEntryTest.pdf";
+            PdfDocument sourcePdfDocument = new PdfDocument(new PdfReader(sourceFileName));
+            PdfDocument resultPdfDocument = new PdfDocument(new PdfWriter(destFileName));
+            sourcePdfDocument.CopyPagesTo(1, sourcePdfDocument.GetNumberOfPages(), resultPdfDocument, new PdfPageFormCopier
+                ());
+            resultPdfDocument.Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(destFileName, cmpFileName, destinationFolder
+                , "diff_"));
+        }
+
+        [NUnit.Framework.Test]
+        [LogMessage(FormsLogMessageConstants.ANNOTATION_WITHOUT_SUBTYPE_NOT_COPIED, Count = 1)]
+        public virtual void CopyWithNoSubtypeInAnnotationTest() {
+            String sourceFileName = sourceFolder + "copyWithNoSubtypeInAnnotationTest.pdf";
+            String destFileName = destinationFolder + "copyWithNoSubtypeInAnnotationTest.pdf";
+            String cmpFileName = sourceFolder + "cmp_copyWithNoSubtypeInAnnotationTest.pdf";
             PdfDocument sourcePdfDocument = new PdfDocument(new PdfReader(sourceFileName));
             PdfDocument resultPdfDocument = new PdfDocument(new PdfWriter(destFileName));
             sourcePdfDocument.CopyPagesTo(1, sourcePdfDocument.GetNumberOfPages(), resultPdfDocument, new PdfPageFormCopier

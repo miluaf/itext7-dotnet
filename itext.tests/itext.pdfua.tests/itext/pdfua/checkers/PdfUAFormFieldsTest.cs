@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -26,14 +26,21 @@ using iText.Forms;
 using iText.Forms.Fields;
 using iText.Forms.Fields.Properties;
 using iText.Forms.Form.Element;
+using iText.IO.Font;
+using iText.IO.Image;
 using iText.Kernel.Colors;
+using iText.Kernel.Exceptions;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Annot;
+using iText.Kernel.Pdf.Canvas.Draw;
 using iText.Kernel.Pdf.Tagging;
 using iText.Kernel.Pdf.Tagutils;
+using iText.Kernel.Pdf.Xobject;
 using iText.Layout.Borders;
 using iText.Layout.Element;
+using iText.Layout.Properties;
 using iText.Pdfua;
 using iText.Pdfua.Exceptions;
 using iText.Test;
@@ -44,105 +51,74 @@ namespace iText.Pdfua.Checkers {
         private static readonly String FONT = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/pdfua/font/FreeSans.ttf";
 
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/pdfua/PdfUATest/PdfUAFormFieldTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/pdfua/PdfUAFormFieldTest/";
 
-        private UaValidationTestFramework framework;
+        private static readonly String DOG = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+            .CurrentContext.TestDirectory) + "/resources/itext/pdfua/img/DOG.bmp";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void Before() {
             CreateOrClearDestinationFolder(DESTINATION_FOLDER);
         }
 
-        [NUnit.Framework.SetUp]
-        public virtual void SetUp() {
-            framework = new UaValidationTestFramework(DESTINATION_FOLDER, false);
+        public static IList<PdfConformance> Data() {
+            return UaValidationTestFramework.GetConformanceList();
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestCheckBox() {
-            framework.AddSuppliers(new _Generator_95());
-            framework.AssertBothValid("testCheckBox.pdf");
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestCheckBox(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => new CheckBox("name"));
+            framework.AssertBothValid("testCheckBox");
         }
 
-        private sealed class _Generator_95 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_95() {
-            }
-
-            public IBlockElement Generate() {
-                return new CheckBox("name");
-            }
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestCheckBoxWithCustomAppearance() {
-            framework.AddSuppliers(new _Generator_106());
-            framework.AssertBothValid("testCheckBoxWithCustomAppearance.pdf");
-        }
-
-        private sealed class _Generator_106 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_106() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestCheckBoxWithCustomAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 CheckBox cb = new CheckBox("name");
-                cb.SetPdfConformance(PdfConformance.PDF_UA_1);
+                cb.SetPdfConformance(conformance);
                 cb.SetBorder(new SolidBorder(ColorConstants.MAGENTA, 2));
                 cb.SetBackgroundColor(ColorConstants.YELLOW);
                 return cb;
             }
+            );
+            framework.AssertBothValid("testCheckBoxWithCustomAppearance");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestCheckBoxChecked() {
-            framework.AddSuppliers(new _Generator_121());
-            framework.AssertBothValid("testCheckBox");
-        }
-
-        private sealed class _Generator_121 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_121() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestCheckBoxChecked(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 CheckBox cb = new CheckBox("name");
-                cb.SetPdfConformance(PdfConformance.PDF_UA_1);
+                cb.SetPdfConformance(conformance);
                 cb.SetChecked(true);
                 return cb;
             }
+            );
+            framework.AssertBothValid("testCheckBoxChecked");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestCheckBoxCheckedAlternativeDescription() {
-            framework.AddSuppliers(new _Generator_135());
-            framework.AssertBothValid("testCheckBoxCheckedAlternativeDescription");
-        }
-
-        private sealed class _Generator_135 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_135() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestCheckBoxCheckedAlternativeDescription(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 CheckBox cb = new CheckBox("name");
-                cb.SetPdfConformance(PdfConformance.PDF_UA_1);
+                cb.SetPdfConformance(conformance);
                 cb.GetAccessibilityProperties().SetAlternateDescription("Yello");
                 cb.SetChecked(true);
                 return cb;
             }
+            );
+            framework.AssertBothValid("testCheckBoxCheckedAlternativeDescription");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestCheckBoxCheckedCustomAppearance() {
-            framework.AddSuppliers(new _Generator_150());
-            framework.AssertBothValid("testCheckBoxCheckedCustomAppearance");
-        }
-
-        private sealed class _Generator_150 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_150() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestCheckBoxCheckedCustomAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 CheckBox cb = new CheckBox("name");
-                cb.SetPdfConformance(PdfConformance.PDF_UA_1);
+                cb.SetPdfConformance(conformance);
                 cb.SetChecked(true);
                 cb.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 cb.SetBackgroundColor(ColorConstants.GREEN);
@@ -150,39 +126,29 @@ namespace iText.Pdfua.Checkers {
                 cb.SetSize(20);
                 return cb;
             }
+            );
+            framework.AssertBothValid("testCheckBoxCheckedCustomAppearance");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestCheckBoxInteractive() {
-            framework.AddSuppliers(new _Generator_168());
-            framework.AssertBothValid("testCheckBoxInteractive");
-        }
-
-        private sealed class _Generator_168 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_168() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestCheckBoxInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 CheckBox checkBox = (CheckBox)new CheckBox("name").SetInteractive(true);
-                checkBox.SetPdfConformance(PdfConformance.PDF_UA_1);
+                checkBox.SetPdfConformance(conformance);
                 checkBox.GetAccessibilityProperties().SetAlternateDescription("Alternative description");
                 return checkBox;
             }
+            );
+            framework.AssertBothValid("testCheckBoxInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestCheckBoxInteractiveCustomAppearance() {
-            framework.AddSuppliers(new _Generator_182());
-            framework.AssertBothValid("testCheckBoxInteractiveCustomAppearance");
-        }
-
-        private sealed class _Generator_182 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_182() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestCheckBoxInteractiveCustomAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 CheckBox checkBox = (CheckBox)new CheckBox("name").SetInteractive(true);
-                checkBox.SetPdfConformance(PdfConformance.PDF_UA_1);
+                checkBox.SetPdfConformance(conformance);
                 checkBox.GetAccessibilityProperties().SetAlternateDescription("Alternative description");
                 checkBox.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 checkBox.SetBackgroundColor(ColorConstants.GREEN);
@@ -190,21 +156,16 @@ namespace iText.Pdfua.Checkers {
                 checkBox.SetCheckBoxType(CheckBoxType.SQUARE);
                 return checkBox;
             }
+            );
+            framework.AssertBothValid("testCheckBoxInteractiveCustomAppearance");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestCheckBoxInteractiveCustomAppearanceChecked() {
-            framework.AddSuppliers(new _Generator_200());
-            framework.AssertBothValid("testCheckBoxInteractiveCustomAppearanceChecked");
-        }
-
-        private sealed class _Generator_200 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_200() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestCheckBoxInteractiveCustomAppearanceChecked(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 CheckBox checkBox = (CheckBox)new CheckBox("name").SetInteractive(true);
-                checkBox.SetPdfConformance(PdfConformance.PDF_UA_1);
+                checkBox.SetPdfConformance(conformance);
                 checkBox.GetAccessibilityProperties().SetAlternateDescription("Alternative description");
                 checkBox.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 checkBox.SetBackgroundColor(ColorConstants.GREEN);
@@ -213,70 +174,47 @@ namespace iText.Pdfua.Checkers {
                 checkBox.SetCheckBoxType(CheckBoxType.SQUARE);
                 return checkBox;
             }
+            );
+            framework.AssertBothValid("checkBoxInteractiveCustomAppChecked");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButton() {
-            framework.AddSuppliers(new _Generator_219());
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButton(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => new Radio("name"));
             framework.AssertBothValid("testRadioButton");
         }
 
-        private sealed class _Generator_219 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_219() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonChecked(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                Radio radio = new Radio("name");
+                radio.SetChecked(true);
+                return radio;
             }
-
-            public IBlockElement Generate() {
-                return new Radio("name");
-            }
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonChecked() {
-            framework.AddSuppliers(new _Generator_230());
+            );
             framework.AssertBothValid("testRadioButtonChecked");
         }
 
-        private sealed class _Generator_230 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_230() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonCustomAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio radio = new Radio("name");
-                radio.SetChecked(true);
+                radio.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
+                radio.SetBackgroundColor(ColorConstants.GREEN);
+                radio.SetSize(20);
                 return radio;
             }
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonCustomAppearance() {
-            framework.AddSuppliers(new _Generator_243());
+            );
             framework.AssertBothValid("testRadioButtonCustomAppearance");
         }
 
-        private sealed class _Generator_243 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_243() {
-            }
-
-            public IBlockElement Generate() {
-                Radio radio = new Radio("name");
-                radio.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
-                radio.SetBackgroundColor(ColorConstants.GREEN);
-                radio.SetSize(20);
-                return radio;
-            }
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonCustomAppearanceChecked() {
-            framework.AddSuppliers(new _Generator_258());
-            framework.AssertBothValid("testRadioButtonCustomAppearanceChecked");
-        }
-
-        private sealed class _Generator_258 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_258() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonCustomAppearanceChecked(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio radio = new Radio("name");
                 radio.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 radio.SetBackgroundColor(ColorConstants.GREEN);
@@ -284,91 +222,52 @@ namespace iText.Pdfua.Checkers {
                 radio.SetChecked(true);
                 return radio;
             }
+            );
+            framework.AssertBothValid("testRadioButtonCustomAppearanceChecked");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonGroup() {
-            framework.AddSuppliers(new _Generator_274());
-            framework.AddSuppliers(new _Generator_280());
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonGroup(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => new Radio("name", "group"));
+            framework.AddSuppliers((document) => new Radio("name2", "group"));
             framework.AssertBothValid("testRadioButtonGroup");
         }
 
-        private sealed class _Generator_274 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_274() {
-            }
-
-            public IBlockElement Generate() {
-                return new Radio("name", "group");
-            }
-        }
-
-        private sealed class _Generator_280 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_280() {
-            }
-
-            public IBlockElement Generate() {
-                return new Radio("name2", "group");
-            }
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonGroupCustomAppearance() {
-            framework.AddSuppliers(new _Generator_292());
-            framework.AddSuppliers(new _Generator_302());
-            framework.AssertBothValid("testRadioButtonGroup");
-        }
-
-        private sealed class _Generator_292 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_292() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonGroupCustomAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name", "group");
                 r.SetSize(20);
                 r.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 r.SetBackgroundColor(ColorConstants.GREEN);
                 return r;
             }
-        }
-
-        private sealed class _Generator_302 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_302() {
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name2", "group");
                 r.SetSize(20);
                 r.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 r.SetBackgroundColor(ColorConstants.GREEN);
                 return r;
             }
+            );
+            framework.AssertBothValid("testRadioButtonGroupCustom");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonGroupCustomAppearanceChecked() {
-            framework.AddSuppliers(new _Generator_317());
-            framework.AddSuppliers(new _Generator_327());
-            framework.AssertBothValid("testRadioButtonGroupCustomAppearanceChecked");
-        }
-
-        private sealed class _Generator_317 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_317() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonGroupCustomAppearanceChecked(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name", "group");
                 r.SetSize(20);
                 r.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 r.SetBackgroundColor(ColorConstants.GREEN);
                 return r;
             }
-        }
-
-        private sealed class _Generator_327 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_327() {
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name2", "group");
                 r.SetSize(20);
                 r.SetChecked(true);
@@ -376,56 +275,41 @@ namespace iText.Pdfua.Checkers {
                 r.SetBackgroundColor(ColorConstants.GREEN);
                 return r;
             }
+            );
+            framework.AssertBothValid("testRadioButtonGroupCustomAppearanceChecked");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonInteractive() {
-            framework.AddSuppliers(new _Generator_344());
-            framework.AssertBothValid("testRadioButtonInteractive");
-        }
-
-        private sealed class _Generator_344 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_344() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name", "group");
                 r.SetInteractive(true);
                 r.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return r;
             }
+            );
+            framework.AssertBothValid("testRadioButtonInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonCheckedInteractive() {
-            framework.AddSuppliers(new _Generator_358());
-            framework.AssertBothValid("testRadioButtonChecked");
-        }
-
-        private sealed class _Generator_358 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_358() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonCheckedInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio radio = new Radio("name", "group");
                 radio.SetInteractive(true);
                 radio.SetChecked(true);
                 radio.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return radio;
             }
+            );
+            framework.AssertBothValid("testRadioButtonCheckedInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonCustomAppearanceInteractive() {
-            framework.AddSuppliers(new _Generator_373());
-            framework.AssertBothValid("testRadioButtonCustomAppearance");
-        }
-
-        private sealed class _Generator_373 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_373() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonCustomAppearanceInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio radio = new Radio("name", "group");
                 radio.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 radio.SetBackgroundColor(ColorConstants.GREEN);
@@ -434,19 +318,14 @@ namespace iText.Pdfua.Checkers {
                 radio.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return radio;
             }
+            );
+            framework.AssertBothValid("testRadioButtonCustomAppearanceInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonCustomAppearanceCheckedInteractive() {
-            framework.AddSuppliers(new _Generator_390());
-            framework.AssertBothValid("testRadioButtonCustomAppearanceCheckedInteractive");
-        }
-
-        private sealed class _Generator_390 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_390() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonCustomAppearanceCheckedInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio radio = new Radio("name", "Group");
                 radio.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 radio.SetBackgroundColor(ColorConstants.GREEN);
@@ -456,51 +335,34 @@ namespace iText.Pdfua.Checkers {
                 radio.SetInteractive(true);
                 return radio;
             }
+            );
+            framework.AssertBothValid("radioBtnCustomAppCheckedInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonGroupInteractive() {
-            framework.AddSuppliers(new _Generator_408());
-            framework.AddSuppliers(new _Generator_417());
-            framework.AssertBothValid("testRadioButtonGroupInteractive");
-        }
-
-        private sealed class _Generator_408 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_408() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonGroupInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name", "group");
                 r.SetInteractive(true);
                 r.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return r;
             }
-        }
-
-        private sealed class _Generator_417 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_417() {
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name2", "group");
                 r.SetInteractive(true);
                 r.GetAccessibilityProperties().SetAlternateDescription("Hello2");
                 return r;
             }
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonGroupCustomAppearanceInteractive() {
-            framework.AddSuppliers(new _Generator_432());
-            framework.AddSuppliers(new _Generator_444());
+            );
             framework.AssertBothValid("testRadioButtonGroupInteractive");
         }
 
-        private sealed class _Generator_432 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_432() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonGroupCustomAppearanceInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name", "group");
                 r.SetSize(20);
                 r.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
@@ -509,13 +371,8 @@ namespace iText.Pdfua.Checkers {
                 r.SetInteractive(true);
                 return r;
             }
-        }
-
-        private sealed class _Generator_444 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_444() {
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name2", "group");
                 r.SetSize(20);
                 r.SetInteractive(true);
@@ -524,20 +381,14 @@ namespace iText.Pdfua.Checkers {
                 r.SetBackgroundColor(ColorConstants.GREEN);
                 return r;
             }
+            );
+            framework.AssertBothValid("radioBtnCustomAppInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonGroupCustomAppearanceCheckedInteractive() {
-            framework.AddSuppliers(new _Generator_461());
-            framework.AddSuppliers(new _Generator_473());
-            framework.AssertBothValid("testRadioButtonGroupCustomAppearanceCheckedInteractive");
-        }
-
-        private sealed class _Generator_461 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_461() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonGroupCustomAppearanceCheckedInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name", "group");
                 r.SetSize(20);
                 r.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
@@ -546,13 +397,8 @@ namespace iText.Pdfua.Checkers {
                 r.SetInteractive(true);
                 return r;
             }
-        }
-
-        private sealed class _Generator_473 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_473() {
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 Radio r = new Radio("name2", "group");
                 r.SetSize(20);
                 r.SetChecked(true);
@@ -562,224 +408,149 @@ namespace iText.Pdfua.Checkers {
                 r.SetBackgroundColor(ColorConstants.GREEN);
                 return r;
             }
+            );
+            framework.AssertBothValid("radioBtnCustomAppGrCheckedInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButton() {
-            framework.AddSuppliers(new _Generator_492(this));
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButton(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                Button b = new Button("name");
+                b.SetValue("Click me");
+                b.SetFont(GetFont());
+                return b;
+            }
+            );
             framework.AssertBothValid("testButton");
         }
 
-        private sealed class _Generator_492 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_492(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonCustomAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
                 b.SetValue("Click me");
-                b.SetFont(this._enclosing.GetFont());
-                return b;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestButtonCustomAppearance() {
-            framework.AddSuppliers(new _Generator_506(this));
-            framework.AssertBothValid("testButtonCustomAppearance");
-        }
-
-        private sealed class _Generator_506 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_506(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                Button b = new Button("name");
-                b.SetValue("Click me");
-                b.SetFont(this._enclosing.GetFont());
+                b.SetFont(GetFont());
                 b.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 b.SetBackgroundColor(ColorConstants.GREEN);
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testButtonCustomAppearance");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButtonSingleLine() {
-            framework.AddSuppliers(new _Generator_522(this));
-            framework.AssertBothValid("testButtonSingleLine");
-        }
-
-        private sealed class _Generator_522 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_522(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonSingleLine(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
-                b.SetFont(this._enclosing.GetFont());
+                b.SetFont(GetFont());
                 b.SetSingleLineValue("Click me?");
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestButtonCustomContent() {
-            framework.AddSuppliers(new _Generator_536(this));
+            );
             framework.AssertBothValid("testButtonSingleLine");
         }
 
-        private sealed class _Generator_536 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_536(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonCustomContent(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
-                Paragraph p = new Paragraph("Click me?").SetFont(this._enclosing.GetFont()).SetBorder(new SolidBorder(ColorConstants
-                    .CYAN, 2));
+                Paragraph p = new Paragraph("Click me?").SetFont(GetFont()).SetBorder(new SolidBorder(ColorConstants.CYAN, 
+                    2));
                 b.Add(p);
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testButtonCustomContent");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButtonCustomContentIsAlsoForm() {
-            framework.AddSuppliers(new _Generator_551());
-            framework.AssertBothValid("testButtonSingleLine");
-        }
-
-        private sealed class _Generator_551 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_551() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonCustomContentIsAlsoForm(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
                 CheckBox cb = new CheckBox("name2");
                 cb.SetChecked(true);
                 b.Add(cb);
                 return b;
             }
+            );
+            framework.AssertBothValid("testButtonCustomContentIsAlsoForm");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButtonInteractive() {
-            framework.AddSuppliers(new _Generator_566(this));
-            framework.AssertBothValid("testButtonInteractive");
-        }
-
-        private sealed class _Generator_566 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_566(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
                 b.SetValue("Click me");
-                b.SetFont(this._enclosing.GetFont());
+                b.SetFont(GetFont());
                 b.SetInteractive(true);
                 b.GetAccessibilityProperties().SetAlternateDescription("Click me button");
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testButtonInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButtonCustomAppearanceInteractive() {
-            framework.AddSuppliers(new _Generator_583(this));
-            framework.AssertBothValid("testButtonCustomAppearanceInteractive");
-        }
-
-        private sealed class _Generator_583 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_583(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonCustomAppearanceInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
                 b.SetValue("Click me");
-                b.SetFont(this._enclosing.GetFont());
+                b.SetFont(GetFont());
                 b.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 b.SetInteractive(true);
                 b.SetBackgroundColor(ColorConstants.GREEN);
                 b.GetAccessibilityProperties().SetAlternateDescription("Click me button");
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testButtonCustomAppearanceInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButtonSingleLineInteractive() {
-            framework.AddSuppliers(new _Generator_602(this));
-            framework.AssertBothValid("testButtonSingleLineInteractive");
-        }
-
-        private sealed class _Generator_602 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_602(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonSingleLineInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
-                b.SetFont(this._enclosing.GetFont());
+                b.SetFont(GetFont());
                 b.SetSingleLineValue("Click me?");
                 b.GetAccessibilityProperties().SetAlternateDescription("Click me button");
                 b.SetInteractive(true);
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestButtonCustomContentInteractive() {
-            framework.AddSuppliers(new _Generator_619(this));
+            );
             framework.AssertBothValid("testButtonSingleLineInteractive");
         }
 
-        private sealed class _Generator_619 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_619(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonCustomContentInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
-                Paragraph p = new Paragraph("Click me?").SetFont(this._enclosing.GetFont()).SetBorder(new SolidBorder(ColorConstants
-                    .CYAN, 2));
+                Paragraph p = new Paragraph("Click me?").SetFont(GetFont()).SetBorder(new SolidBorder(ColorConstants.CYAN, 
+                    2));
                 b.Add(p);
-                b.SetFont(this._enclosing.GetFont());
+                b.SetFont(GetFont());
                 b.GetAccessibilityProperties().SetAlternateDescription("Click me button");
                 b.SetInteractive(true);
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testButtonCustomContentInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButtonCustomContentIsAlsoFormInteractive() {
-            framework.AddSuppliers(new _Generator_637(this));
-            framework.AssertBothValid("testButtonSingleLineInteractive");
-        }
-
-        private sealed class _Generator_637 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_637(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonCustomContentIsAlsoFormInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
-                b.SetFont(this._enclosing.GetFont());
+                b.SetFont(GetFont());
                 CheckBox cb = new CheckBox("name2");
                 cb.SetChecked(true);
                 cb.SetInteractive(true);
@@ -789,801 +560,530 @@ namespace iText.Pdfua.Checkers {
                 cb.GetAccessibilityProperties().SetAlternateDescription("Check me checkbox");
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testButtonCustomContentIsAlsoFormInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestInputField() {
-            framework.AddSuppliers(new _Generator_657(this));
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputField(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                InputField inputField = new InputField("name");
+                inputField.SetFont(GetFont());
+                return inputField;
+            }
+            );
             framework.AssertBothValid("testInputField");
         }
 
-        private sealed class _Generator_657 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_657(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputFieldWithValue(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
-                inputField.SetFont(this._enclosing.GetFont());
+                inputField.SetFont(GetFont());
+                inputField.SetValue("Hello");
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInputFieldWithValue() {
-            framework.AddSuppliers(new _Generator_670(this));
+            );
             framework.AssertBothValid("testInputFieldWithValue");
         }
 
-        private sealed class _Generator_670 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_670(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputFieldWithCustomAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
-                inputField.SetFont(this._enclosing.GetFont());
-                inputField.SetValue("Hello");
+                inputField.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
+                inputField.SetBackgroundColor(ColorConstants.GREEN);
+                inputField.SetFont(GetFont());
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInputFieldWithCustomAppearance() {
-            framework.AddSuppliers(new _Generator_684(this));
+            );
             framework.AssertBothValid("testInputFieldWithCustomAppearance");
         }
 
-        private sealed class _Generator_684 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_684(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputFieldWithCustomAppearanceAndValue(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
                 inputField.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 inputField.SetBackgroundColor(ColorConstants.GREEN);
-                inputField.SetFont(this._enclosing.GetFont());
-                return inputField;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInputFieldWithCustomAppearanceAndValue() {
-            framework.AddSuppliers(new _Generator_699(this));
-            framework.AssertBothValid("testInputFieldWithCustomAppearanceAndValue");
-        }
-
-        private sealed class _Generator_699 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_699(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                InputField inputField = new InputField("name");
-                inputField.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
-                inputField.SetBackgroundColor(ColorConstants.GREEN);
-                inputField.SetFont(this._enclosing.GetFont());
+                inputField.SetFont(GetFont());
                 inputField.SetValue("Hello");
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInputFieldWithCustomAppearanceAndPlaceHolder() {
-            framework.AddSuppliers(new _Generator_715(this));
+            );
             framework.AssertBothValid("testInputFieldWithCustomAppearanceAndValue");
         }
 
-        private sealed class _Generator_715 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_715(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputFieldWithCustomAppearanceAndPlaceHolder(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
                 inputField.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 inputField.SetBackgroundColor(ColorConstants.GREEN);
-                inputField.SetFont(this._enclosing.GetFont());
-                inputField.SetPlaceholder(new Paragraph("Placeholder").SetFont(this._enclosing.GetFont()));
+                inputField.SetFont(GetFont());
+                inputField.SetPlaceholder(new Paragraph("Placeholder").SetFont(GetFont()));
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testInputFieldWithCustomAppearanceAndPlaceHolder");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestInputFieldInteractive() {
-            framework.AddSuppliers(new _Generator_731(this));
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputFieldInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                InputField inputField = new InputField("name");
+                inputField.SetFont(GetFont());
+                inputField.SetInteractive(true);
+                inputField.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
+                return inputField;
+            }
+            );
             framework.AssertBothValid("testInputFieldInteractive");
         }
 
-        private sealed class _Generator_731 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_731(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputFieldWithValueInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
-                inputField.SetFont(this._enclosing.GetFont());
+                inputField.SetFont(GetFont());
+                inputField.SetValue("Hello");
                 inputField.SetInteractive(true);
                 inputField.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInputFieldWithValueInteractive() {
-            framework.AddSuppliers(new _Generator_746(this));
+            );
             framework.AssertBothValid("testInputFieldWithValueInteractive");
         }
 
-        private sealed class _Generator_746 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_746(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputFieldWithCustomAppearanceInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
-                inputField.SetFont(this._enclosing.GetFont());
+                inputField.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
+                inputField.SetBackgroundColor(ColorConstants.GREEN);
+                inputField.SetFont(GetFont());
+                inputField.SetInteractive(true);
+                inputField.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
+                return inputField;
+            }
+            );
+            framework.AssertBothValid("inputFieldCustomAppInteractive");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputFieldWithCustomAppearanceAndValueInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                InputField inputField = new InputField("name");
+                inputField.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
+                inputField.SetBackgroundColor(ColorConstants.GREEN);
+                inputField.SetFont(GetFont());
                 inputField.SetValue("Hello");
                 inputField.SetInteractive(true);
                 inputField.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("inputFieldCustomAppValueInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestInputFieldWithCustomAppearanceInteractive() {
-            framework.AddSuppliers(new _Generator_762(this));
-            framework.AssertBothValid("testInputFieldWithCustomAppearanceInteractive");
-        }
-
-        private sealed class _Generator_762 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_762(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputFieldWithCustomAppearanceAndPlaceHolderInteractive(PdfConformance conformance
+            ) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
                 inputField.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 inputField.SetBackgroundColor(ColorConstants.GREEN);
-                inputField.SetFont(this._enclosing.GetFont());
+                inputField.SetFont(GetFont());
+                inputField.SetPlaceholder(new Paragraph("Placeholder").SetFont(GetFont()));
                 inputField.SetInteractive(true);
                 inputField.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("inpFieldCustomAppPlaceholderInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestInputFieldWithCustomAppearanceAndValueInteractive() {
-            framework.AddSuppliers(new _Generator_779(this));
-            framework.AssertBothValid("testInputFieldWithCustomAppearanceAndValueInteractive");
-        }
-
-        private sealed class _Generator_779 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_779(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextArea(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                TextArea textArea = new TextArea("name");
+                textArea.SetFont(GetFont());
+                return textArea;
             }
-
-            public IBlockElement Generate() {
-                InputField inputField = new InputField("name");
-                inputField.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
-                inputField.SetBackgroundColor(ColorConstants.GREEN);
-                inputField.SetFont(this._enclosing.GetFont());
-                inputField.SetValue("Hello");
-                inputField.SetInteractive(true);
-                inputField.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
-                return inputField;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInputFieldWithCustomAppearanceAndPlaceHolderInteractive() {
-            framework.AddSuppliers(new _Generator_797(this));
-            framework.AssertBothValid("testInputFieldWithCustomAppearanceAndPlaceHolderInteractive");
-        }
-
-        private sealed class _Generator_797 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_797(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                InputField inputField = new InputField("name");
-                inputField.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
-                inputField.SetBackgroundColor(ColorConstants.GREEN);
-                inputField.SetFont(this._enclosing.GetFont());
-                inputField.SetPlaceholder(new Paragraph("Placeholder").SetFont(this._enclosing.GetFont()));
-                inputField.SetInteractive(true);
-                inputField.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
-                return inputField;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestTextArea() {
-            framework.AddSuppliers(new _Generator_815(this));
+            );
             framework.AssertBothValid("testTextArea");
         }
 
-        private sealed class _Generator_815 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_815(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextAreaWithValue(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
-                textArea.SetFont(this._enclosing.GetFont());
+                textArea.SetFont(GetFont());
+                textArea.SetValue("Hello");
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestTextAreaWithValue() {
-            framework.AddSuppliers(new _Generator_828(this));
+            );
             framework.AssertBothValid("testTextAreaWithValue");
         }
 
-        private sealed class _Generator_828 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_828(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextAreaWithCustomAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
-                textArea.SetFont(this._enclosing.GetFont());
-                textArea.SetValue("Hello");
+                textArea.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
+                textArea.SetBackgroundColor(ColorConstants.GREEN);
+                textArea.SetFont(GetFont());
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestTextAreaWithCustomAppearance() {
-            framework.AddSuppliers(new _Generator_842(this));
+            );
             framework.AssertBothValid("testTextAreaWithCustomAppearance");
         }
 
-        private sealed class _Generator_842 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_842(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextAreaWithCustomAppearanceAndValue(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
                 textArea.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 textArea.SetBackgroundColor(ColorConstants.GREEN);
-                textArea.SetFont(this._enclosing.GetFont());
-                return textArea;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestTextAreaWithCustomAppearanceAndValue() {
-            framework.AddSuppliers(new _Generator_857(this));
-            framework.AssertBothValid("testTextAreaWithCustomAppearanceAndValue");
-        }
-
-        private sealed class _Generator_857 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_857(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                TextArea textArea = new TextArea("name");
-                textArea.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
-                textArea.SetBackgroundColor(ColorConstants.GREEN);
-                textArea.SetFont(this._enclosing.GetFont());
+                textArea.SetFont(GetFont());
                 textArea.SetValue("Hello");
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestTextAreaWithCustomAppearanceAndPlaceHolder() {
-            framework.AddSuppliers(new _Generator_873(this));
+            );
             framework.AssertBothValid("testTextAreaWithCustomAppearanceAndValue");
         }
 
-        private sealed class _Generator_873 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_873(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextAreaWithCustomAppearanceAndPlaceHolder(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
                 textArea.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 textArea.SetBackgroundColor(ColorConstants.GREEN);
-                textArea.SetFont(this._enclosing.GetFont());
-                textArea.SetPlaceholder(new Paragraph("Placeholder").SetFont(this._enclosing.GetFont()));
+                textArea.SetFont(GetFont());
+                textArea.SetPlaceholder(new Paragraph("Placeholder").SetFont(GetFont()));
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testTextAreaWithCustomAppearanceAndPlaceHolder");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestTextAreaInteractive() {
-            framework.AddSuppliers(new _Generator_889(this));
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextAreaInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                TextArea textArea = new TextArea("name");
+                textArea.SetFont(GetFont());
+                textArea.SetInteractive(true);
+                textArea.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
+                return textArea;
+            }
+            );
             framework.AssertBothValid("testTextAreaInteractive");
         }
 
-        private sealed class _Generator_889 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_889(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextAreaWithValueInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
-                textArea.SetFont(this._enclosing.GetFont());
+                textArea.SetFont(GetFont());
+                textArea.SetValue("Hello");
                 textArea.SetInteractive(true);
                 textArea.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestTextAreaWithValueInteractive() {
-            framework.AddSuppliers(new _Generator_904(this));
+            );
             framework.AssertBothValid("testTextAreaWithValueInteractive");
         }
 
-        private sealed class _Generator_904 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_904(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextAreaWithCustomAppearanceInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
-                textArea.SetFont(this._enclosing.GetFont());
+                textArea.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
+                textArea.SetBackgroundColor(ColorConstants.GREEN);
+                textArea.SetFont(GetFont());
+                textArea.SetInteractive(true);
+                textArea.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
+                return textArea;
+            }
+            );
+            framework.AssertBothValid("textAreaWithCustomAppearanceInteractive");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextAreaWithCustomAppearanceAndValueInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                TextArea textArea = new TextArea("name");
+                textArea.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
+                textArea.SetBackgroundColor(ColorConstants.GREEN);
+                textArea.SetFont(GetFont());
                 textArea.SetValue("Hello");
                 textArea.SetInteractive(true);
                 textArea.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("textAreaCustomAppValueInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestTextAreaWithCustomAppearanceInteractive() {
-            framework.AddSuppliers(new _Generator_920(this));
-            framework.AssertBothValid("testTextAreaWithCustomAppearanceInteractive");
-        }
-
-        private sealed class _Generator_920 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_920(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextAreaWithCustomAppearanceAndPlaceHolderInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
                 textArea.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 textArea.SetBackgroundColor(ColorConstants.GREEN);
-                textArea.SetFont(this._enclosing.GetFont());
+                textArea.SetFont(GetFont());
+                textArea.SetPlaceholder(new Paragraph("Placeholder").SetFont(GetFont()));
                 textArea.SetInteractive(true);
                 textArea.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("textAreaCustomAppPlaceHolderInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestTextAreaWithCustomAppearanceAndValueInteractive() {
-            framework.AddSuppliers(new _Generator_937(this));
-            framework.AssertBothValid("testTextAreaWithCustomAppearanceAndValueInteractive");
-        }
-
-        private sealed class _Generator_937 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_937(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestListBox(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                ListBoxField list = new ListBoxField("name", 1, false);
+                list.SetFont(GetFont());
+                list.AddOption("value1");
+                list.AddOption("value2");
+                return list;
             }
-
-            public IBlockElement Generate() {
-                TextArea textArea = new TextArea("name");
-                textArea.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
-                textArea.SetBackgroundColor(ColorConstants.GREEN);
-                textArea.SetFont(this._enclosing.GetFont());
-                textArea.SetValue("Hello");
-                textArea.SetInteractive(true);
-                textArea.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
-                return textArea;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestTextAreaWithCustomAppearanceAndPlaceHolderInteractive() {
-            framework.AddSuppliers(new _Generator_955(this));
-            framework.AssertBothValid("testTextAreaWithCustomAppearanceAndPlaceHolderInteractive");
-        }
-
-        private sealed class _Generator_955 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_955(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                TextArea textArea = new TextArea("name");
-                textArea.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
-                textArea.SetBackgroundColor(ColorConstants.GREEN);
-                textArea.SetFont(this._enclosing.GetFont());
-                textArea.SetPlaceholder(new Paragraph("Placeholder").SetFont(this._enclosing.GetFont()));
-                textArea.SetInteractive(true);
-                textArea.GetAccessibilityProperties().SetAlternateDescription("Name of the cat");
-                return textArea;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestListBox() {
-            framework.AddSuppliers(new _Generator_973(this));
+            );
             framework.AssertBothValid("testListBox");
         }
 
-        private sealed class _Generator_973 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_973(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestListBoxCustomAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ListBoxField list = new ListBoxField("name", 1, false);
-                list.SetFont(this._enclosing.GetFont());
+                list.SetBackgroundColor(ColorConstants.GREEN);
+                list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
+                list.SetSize(200);
+                list.SetFont(GetFont());
                 list.AddOption("value1");
                 list.AddOption("value2");
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestListBoxCustomAppearance() {
-            framework.AddSuppliers(new _Generator_988(this));
+            );
             framework.AssertBothValid("testListBoxCustomAppearance");
         }
 
-        private sealed class _Generator_988 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_988(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestListBoxCustomAppearanceSelected(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ListBoxField list = new ListBoxField("name", 1, false);
                 list.SetBackgroundColor(ColorConstants.GREEN);
                 list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 list.SetSize(200);
-                list.SetFont(this._enclosing.GetFont());
-                list.AddOption("value1");
-                list.AddOption("value2");
-                return list;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestListBoxCustomAppearanceSelected() {
-            framework.AddSuppliers(new _Generator_1006(this));
-            framework.AssertBothValid("testListBoxCustomAppearanceSelected");
-        }
-
-        private sealed class _Generator_1006 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1006(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                ListBoxField list = new ListBoxField("name", 1, false);
-                list.SetBackgroundColor(ColorConstants.GREEN);
-                list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
-                list.SetSize(200);
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 list.AddOption("value1", true);
                 list.AddOption("value2");
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testListBoxCustomAppearanceSelected");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestListBoxInteractive() {
-            framework.AddSuppliers(new _Generator_1024(this));
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestListBoxInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                ListBoxField list = new ListBoxField("name", 1, false);
+                list.SetFont(GetFont());
+                list.AddOption("value1");
+                list.GetAccessibilityProperties().SetAlternateDescription("Hello");
+                list.AddOption("value2");
+                list.SetInteractive(true);
+                return list;
+            }
+            );
             framework.AssertBothValid("testListBoxInteractive");
         }
 
-        private sealed class _Generator_1024 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1024(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestListBoxCustomAppearanceInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ListBoxField list = new ListBoxField("name", 1, false);
-                list.SetFont(this._enclosing.GetFont());
-                list.AddOption("value1");
+                list.SetBackgroundColor(ColorConstants.GREEN);
+                list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
+                list.SetSize(200);
                 list.GetAccessibilityProperties().SetAlternateDescription("Hello");
-                list.AddOption("value2");
+                list.SetFont(GetFont());
                 list.SetInteractive(true);
+                list.AddOption("value1");
+                list.AddOption("value2");
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestListBoxCustomAppearanceInteractive() {
-            framework.AddSuppliers(new _Generator_1041(this));
+            );
             framework.AssertBothValid("testListBoxCustomAppearanceInteractive");
         }
 
-        private sealed class _Generator_1041 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1041(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestListBoxCustomAppearanceSelectedInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ListBoxField list = new ListBoxField("name", 1, false);
                 list.SetBackgroundColor(ColorConstants.GREEN);
                 list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 list.SetSize(200);
-                list.GetAccessibilityProperties().SetAlternateDescription("Hello");
-                list.SetFont(this._enclosing.GetFont());
-                list.SetInteractive(true);
-                list.AddOption("value1");
-                list.AddOption("value2");
-                return list;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestListBoxCustomAppearanceSelectedInteractive() {
-            framework.AddSuppliers(new _Generator_1061(this));
-            framework.AssertBothValid("testListBoxCustomAppearanceSelectedInteractive");
-        }
-
-        private sealed class _Generator_1061 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1061(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                ListBoxField list = new ListBoxField("name", 1, false);
-                list.SetBackgroundColor(ColorConstants.GREEN);
-                list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
-                list.SetSize(200);
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 list.SetInteractive(true);
                 list.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 list.AddOption("value1", true);
                 list.AddOption("value2");
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("listBoxCustomAppSelectedInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestComboBox() {
-            framework.AddSuppliers(new _Generator_1081(this));
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestComboBox(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                ComboBoxField list = new ComboBoxField("name");
+                list.SetFont(GetFont());
+                list.AddOption(new SelectFieldItem("value1"));
+                list.AddOption(new SelectFieldItem("value2"));
+                return list;
+            }
+            );
             framework.AssertBothValid("testComboBox");
         }
 
-        private sealed class _Generator_1081 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1081(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestComboBoxCustomAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ComboBoxField list = new ComboBoxField("name");
-                list.SetFont(this._enclosing.GetFont());
+                list.SetBackgroundColor(ColorConstants.GREEN);
+                list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
+                list.SetSize(200);
+                list.SetFont(GetFont());
                 list.AddOption(new SelectFieldItem("value1"));
                 list.AddOption(new SelectFieldItem("value2"));
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestComboBoxCustomAppearance() {
-            framework.AddSuppliers(new _Generator_1096(this));
+            );
             framework.AssertBothValid("testComboBoxCustomAppearance");
         }
 
-        private sealed class _Generator_1096 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1096(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestComboBoxCustomAppearanceSelected(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ComboBoxField list = new ComboBoxField("name");
                 list.SetBackgroundColor(ColorConstants.GREEN);
                 list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 list.SetSize(200);
-                list.SetFont(this._enclosing.GetFont());
-                list.AddOption(new SelectFieldItem("value1"));
-                list.AddOption(new SelectFieldItem("value2"));
-                return list;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestComboBoxCustomAppearanceSelected() {
-            framework.AddSuppliers(new _Generator_1114(this));
-            framework.AssertBothValid("testListBoxCustomAppearanceSelected");
-        }
-
-        private sealed class _Generator_1114 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1114(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                ComboBoxField list = new ComboBoxField("name");
-                list.SetBackgroundColor(ColorConstants.GREEN);
-                list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
-                list.SetSize(200);
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 list.AddOption(new SelectFieldItem("Value 1"), true);
                 list.AddOption(new SelectFieldItem("Value 1"), false);
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testComboBoxCustomAppearanceSelected");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestComboBoxInteractive() {
-            framework.AddSuppliers(new _Generator_1132(this));
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestComboBoxInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                ComboBoxField list = new ComboBoxField("name");
+                list.SetFont(GetFont());
+                list.AddOption(new SelectFieldItem("Value 1"));
+                list.AddOption(new SelectFieldItem("Value 2"));
+                list.GetAccessibilityProperties().SetAlternateDescription("Hello");
+                list.SetInteractive(true);
+                return list;
+            }
+            );
             framework.AssertBothValid("testComboBoxInteractive");
         }
 
-        private sealed class _Generator_1132 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1132(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                ComboBoxField list = new ComboBoxField("name");
-                list.SetFont(this._enclosing.GetFont());
-                list.AddOption(new SelectFieldItem("Value 1"));
-                list.AddOption(new SelectFieldItem("Value 2"));
-                list.GetAccessibilityProperties().SetAlternateDescription("Hello");
-                list.SetInteractive(true);
-                return list;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestComboBoxCustomAppearanceInteractive() {
-            framework.AddSuppliers(new _Generator_1149(this));
-            framework.AssertBothValid("testComboBoxCustomAppearanceInteractive");
-        }
-
-        private sealed class _Generator_1149 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1149(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestComboBoxCustomAppearanceInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ComboBoxField list = new ComboBoxField("name");
                 list.SetBackgroundColor(ColorConstants.GREEN);
                 list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 list.SetSize(200);
                 list.GetAccessibilityProperties().SetAlternateDescription("Hello");
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 list.SetInteractive(true);
                 list.AddOption(new SelectFieldItem("Value 1"));
                 list.AddOption(new SelectFieldItem("Value 2"));
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("comboBoxCustomAppearanceInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestComboBoxCustomAppearanceSelectedInteractive() {
-            framework.AddSuppliers(new _Generator_1169(this));
-            framework.AssertBothValid("testComboBoxCustomAppearanceSelectedInteractive");
-        }
-
-        private sealed class _Generator_1169 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1169(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestComboBoxCustomAppearanceSelectedInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ComboBoxField list = new ComboBoxField("name");
                 list.SetBackgroundColor(ColorConstants.GREEN);
                 list.SetBorder(new SolidBorder(ColorConstants.CYAN, 2));
                 list.SetSize(200);
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 list.SetInteractive(true);
                 list.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 list.AddOption(new SelectFieldItem("hello1"), true);
                 list.AddOption(new SelectFieldItem("hello1"), false);
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("comboBoxCustomAppInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestSignatureAppearance() {
-            framework.AddSuppliers(new _Generator_1189(this));
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignatureAppearance(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
+                appearance.SetFont(GetFont());
+                appearance.SetContent("Hello");
+                return appearance;
+            }
+            );
             framework.AssertBothValid("testSignatureAppearance");
         }
 
-        private sealed class _Generator_1189 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1189(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignatureAppearanceWithSignedAppearanceText(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
-                appearance.SetFont(this._enclosing.GetFont());
-                appearance.SetContent("Hello");
-                return appearance;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestSignatureAppearanceWithSignedAppearanceText() {
-            framework.AddSuppliers(new _Generator_1203(this));
-            framework.AssertBothValid("testSignatureAppearanceWithSignedAppearanceText");
-        }
-
-        private sealed class _Generator_1203 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1203(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
-                appearance.SetFont(this._enclosing.GetFont());
+                appearance.SetFont(GetFont());
                 SignedAppearanceText signedAppearanceText = new SignedAppearanceText();
                 signedAppearanceText.SetLocationLine("Location");
                 signedAppearanceText.SetSignedBy("Leelah");
@@ -1591,47 +1091,32 @@ namespace iText.Pdfua.Checkers {
                 appearance.SetContent(signedAppearanceText);
                 return appearance;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("signatureAppearanceSignedAppearanceText");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestSignatureAppearanceWithCustomContent() {
-            framework.AddSuppliers(new _Generator_1221(this));
-            framework.AssertBothValid("testSignatureAppearanceWithSignedAppearanceText");
-        }
-
-        private sealed class _Generator_1221 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1221(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignatureAppearanceWithCustomContent(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
-                appearance.SetFont(this._enclosing.GetFont());
+                appearance.SetFont(GetFont());
                 Div div = new Div();
-                div.Add(new Paragraph("Hello").SetFont(this._enclosing.GetFont()));
+                div.Add(new Paragraph("Hello").SetFont(GetFont()));
                 appearance.SetContent(div);
                 return appearance;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("signatureAppearanceWithCustomContent");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestSignatureAppearanceWithSignedAppearanceAndCustomAppearanceText() {
-            framework.AddSuppliers(new _Generator_1238(this));
-            framework.AssertBothValid("testSignatureAppearanceWithSignedAppearanceAndCustomAppearanceText");
-        }
-
-        private sealed class _Generator_1238 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1238(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignatureAppearanceWithSignedAppearanceAndCustomAppearanceText(PdfConformance conformance
+            ) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
-                appearance.SetFont(this._enclosing.GetFont());
+                appearance.SetFont(GetFont());
                 SignedAppearanceText signedAppearanceText = new SignedAppearanceText();
                 signedAppearanceText.SetLocationLine("Location");
                 signedAppearanceText.SetSignedBy("Leelah");
@@ -1641,47 +1126,31 @@ namespace iText.Pdfua.Checkers {
                 appearance.SetBackgroundColor(ColorConstants.GREEN);
                 return appearance;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("signAppSignedAppCustomAppText");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestSignatureAppearanceInteractive() {
-            framework.AddSuppliers(new _Generator_1258(this));
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignatureAppearanceInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
+                appearance.SetFont(GetFont());
+                appearance.SetContent("Hello");
+                appearance.SetInteractive(true);
+                appearance.GetAccessibilityProperties().SetAlternateDescription("Hello");
+                return appearance;
+            }
+            );
             framework.AssertBothValid("testSignatureAppearanceInteractive");
         }
 
-        private sealed class _Generator_1258 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1258(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignatureAppearanceWithSignedAppearanceTextInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
-                appearance.SetFont(this._enclosing.GetFont());
-                appearance.SetContent("Hello");
-                appearance.SetInteractive(true);
-                appearance.GetAccessibilityProperties().SetAlternateDescription("Hello");
-                return appearance;
-            }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestSignatureAppearanceWithSignedAppearanceTextInteractive() {
-            framework.AddSuppliers(new _Generator_1274(this));
-            framework.AssertBothValid("testSignatureAppearanceWithSignedAppearanceTextInteractive");
-        }
-
-        private sealed class _Generator_1274 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1274(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
-                SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
-                appearance.SetFont(this._enclosing.GetFont());
+                appearance.SetFont(GetFont());
                 SignedAppearanceText signedAppearanceText = new SignedAppearanceText();
                 signedAppearanceText.SetLocationLine("Location");
                 signedAppearanceText.SetSignedBy("Leelah");
@@ -1691,49 +1160,33 @@ namespace iText.Pdfua.Checkers {
                 appearance.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return appearance;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("signAppSignedTextInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestSignatureAppearanceWithCustomContentInteractive() {
-            framework.AddSuppliers(new _Generator_1295(this));
-            framework.AssertBothValid("testSignatureAppearanceWithSignedAppearanceTextInteractive");
-        }
-
-        private sealed class _Generator_1295 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1295(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignatureAppearanceWithCustomContentInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
-                appearance.SetFont(this._enclosing.GetFont());
+                appearance.SetFont(GetFont());
                 Div div = new Div();
-                div.Add(new Paragraph("Hello").SetFont(this._enclosing.GetFont()));
+                div.Add(new Paragraph("Hello").SetFont(GetFont()));
                 appearance.SetContent(div);
                 appearance.SetInteractive(true);
                 appearance.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return appearance;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("signedAppearanceTextInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestSignedAndCustomAppearanceTextInteractive() {
-            framework.AddSuppliers(new _Generator_1315(this));
-            framework.AssertBothValid("testSignedAndCustomAppearanceTextInteractive");
-        }
-
-        private sealed class _Generator_1315 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1315(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignedAndCustomAppearanceTextInteractive(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
-                appearance.SetFont(this._enclosing.GetFont());
+                appearance.SetFont(GetFont());
                 SignedAppearanceText signedAppearanceText = new SignedAppearanceText();
                 signedAppearanceText.SetLocationLine("Location");
                 signedAppearanceText.SetSignedBy("Leelah");
@@ -1745,621 +1198,545 @@ namespace iText.Pdfua.Checkers {
                 appearance.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return appearance;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("signedCustomAppTextInteractive");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestInteractiveCheckBoxNoAlternativeDescription() {
-            framework.AddSuppliers(new _Generator_1337());
-            framework.AssertBothFail("testInteractiveCheckBoxNoAlternativeDescription", PdfUAExceptionMessageConstants
-                .MISSING_FORM_FIELD_DESCRIPTION);
-        }
-
-        private sealed class _Generator_1337 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1337() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInteractiveCheckBoxNoAlternativeDescription(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 CheckBox cb = new CheckBox("name");
-                cb.SetPdfConformance(PdfConformance.PDF_UA_1);
                 cb.SetInteractive(true);
                 return cb;
             }
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInteractiveRadioButtonNoAlternativeDescription() {
-            framework.AddSuppliers(new _Generator_1352());
-            framework.AssertBothFail("testInteractiveRadioButtonNoAlternativeDescription", PdfUAExceptionMessageConstants
-                .MISSING_FORM_FIELD_DESCRIPTION);
-        }
-
-        private sealed class _Generator_1352 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1352() {
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("interactiveCheckBoxNoAlternativeDescription", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
             }
+            else {
+                framework.AssertBothFail("interactiveCheckBoxNoAlternativeDescription", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
+        }
 
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInteractiveRadioButtonNoAlternativeDescription(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Radio radio = new Radio("name", "group");
                 radio.SetInteractive(true);
                 return radio;
             }
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInteractiveButtonNoAlternativeDescription() {
-            framework.AddSuppliers(new _Generator_1366(this));
-            framework.AssertBothFail("testInteractiveButtonNoAlternativeDescription", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
-                );
-        }
-
-        private sealed class _Generator_1366 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1366(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("interactiveRadioButtonNoAltDescr", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
             }
+            else {
+                framework.AssertBothFail("interactiveRadioButtonNoAltDescr", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
+        }
 
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInteractiveButtonNoAlternativeDescription(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
                 b.SetInteractive(true);
-                b.SetFont(this._enclosing.GetFont());
+                b.SetFont(GetFont());
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInteractiveInputFieldNoAlternativeDescription() {
-            framework.AddSuppliers(new _Generator_1381(this));
-            framework.AssertBothFail("testInteractiveInputFieldNoAlternativeDescription", PdfUAExceptionMessageConstants
-                .MISSING_FORM_FIELD_DESCRIPTION);
-        }
-
-        private sealed class _Generator_1381 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1381(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("interactiveButtonNoAlternativeDescription", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
             }
+            else {
+                framework.AssertBothFail("interactiveButtonNoAlternativeDescription", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
+        }
 
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInteractiveInputFieldNoAlternativeDescription(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
                 inputField.SetInteractive(true);
-                inputField.SetFont(this._enclosing.GetFont());
+                inputField.SetFont(GetFont());
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInteractiveTextAreaNoAlternativeDescription() {
-            framework.AddSuppliers(new _Generator_1396(this));
-            framework.AssertBothFail("testInteractiveTextAreaNoAlternativeDescription", PdfUAExceptionMessageConstants
-                .MISSING_FORM_FIELD_DESCRIPTION);
-        }
-
-        private sealed class _Generator_1396 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1396(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("interactiveInputFieldNoAltDescr", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
             }
+            else {
+                framework.AssertBothFail("interactiveInputFieldNoAltDescr", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
+        }
 
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInteractiveTextAreaNoAlternativeDescription(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
                 textArea.SetInteractive(true);
-                textArea.SetFont(this._enclosing.GetFont());
+                textArea.SetFont(GetFont());
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInteractiveListBoxNoAlternativeDescription() {
-            framework.AddSuppliers(new _Generator_1411(this));
-            framework.AssertBothFail("testInteractiveListBoxNoAlternativeDescription", PdfUAExceptionMessageConstants.
-                MISSING_FORM_FIELD_DESCRIPTION);
-        }
-
-        private sealed class _Generator_1411 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1411(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("interactiveTextAreaNoAlternativeDescription", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
             }
+            else {
+                framework.AssertBothFail("interactiveTextAreaNoAlternativeDescription", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
+        }
 
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInteractiveListBoxNoAlternativeDescription(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ListBoxField list = new ListBoxField("name", 1, false);
                 list.SetInteractive(true);
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInteractiveComboBoxNoAlternativeDescription() {
-            framework.AddSuppliers(new _Generator_1426(this));
-            framework.AssertBothFail("testInteractiveComboBoxNoAlternativeDescription", PdfUAExceptionMessageConstants
-                .MISSING_FORM_FIELD_DESCRIPTION);
-        }
-
-        private sealed class _Generator_1426 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1426(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("interactiveListBoxNoAlternativeDescription", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
             }
+            else {
+                framework.AssertBothFail("interactiveListBoxNoAlternativeDescription", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
+        }
 
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInteractiveComboBoxNoAlternativeDescription(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ComboBoxField list = new ComboBoxField("name");
                 list.SetInteractive(true);
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestInteractiveSignatureAppearanceNoAlternativeDescription() {
-            framework.AddSuppliers(new _Generator_1441(this));
-            framework.AssertBothFail("testInteractiveSignatureAppearanceNoAlternativeDescription", PdfUAExceptionMessageConstants
-                .MISSING_FORM_FIELD_DESCRIPTION);
-        }
-
-        private sealed class _Generator_1441 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1441(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("interactiveComboBoxNoAlternativeDescription", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
             }
+            else {
+                framework.AssertBothFail("interactiveComboBoxNoAlternativeDescription", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
+        }
 
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInteractiveSignatureAppearanceNoAlternativeDescription(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
                 appearance.SetInteractive(true);
-                appearance.SetFont(this._enclosing.GetFont());
+                appearance.SetFont(GetFont());
                 return appearance;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void TestCheckBoxDifferentRole() {
-            framework.AddSuppliers(new _Generator_1456());
-            framework.AddSuppliers(new _Generator_1466());
-            framework.AssertBothValid("testCheckBoxDifferentRole");
-        }
-
-        private sealed class _Generator_1456 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1456() {
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("interactiveSignAppearanceNoAltDescription", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
             }
+            else {
+                framework.AssertBothFail("interactiveSignAppearanceNoAltDescription", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
+        }
 
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestCheckBoxDifferentRole(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 CheckBox cb = new CheckBox("name");
-                cb.SetPdfConformance(PdfConformance.PDF_UA_1);
+                cb.SetPdfConformance(conformance);
                 cb.GetAccessibilityProperties().SetRole(StandardRoles.FIGURE);
                 cb.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return cb;
             }
+            );
+            framework.AssertBothValid("testCheckBoxDifferentRole");
         }
 
-        private sealed class _Generator_1466 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1466() {
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestCheckBoxArtifactRole(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 CheckBox cb = new CheckBox("name");
-                cb.SetPdfConformance(PdfConformance.PDF_UA_1);
+                cb.SetPdfConformance(conformance);
                 cb.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
                 return cb;
             }
+            );
+            framework.AssertBothValid("testCheckBoxArtifactRole");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonDifferentRole() {
-            framework.AddSuppliers(new _Generator_1480());
-            framework.AddSuppliers(new _Generator_1490());
-            framework.AddSuppliers(new _Generator_1500());
-            framework.AssertBothValid("testRadioButtonDifferentRole");
-        }
-
-        private sealed class _Generator_1480 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1480() {
-            }
-
-            public IBlockElement Generate() {
-                Radio radio = new Radio("name", "group");
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonDifferentRole(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                Radio radio = new Radio("name1", "group");
                 radio.GetAccessibilityProperties().SetRole(StandardRoles.FIGURE);
                 radio.GetAccessibilityProperties().SetAlternateDescription("Radio " + "that " + "was " + "not " + "checked"
                     );
                 return radio;
             }
-        }
-
-        private sealed class _Generator_1490 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1490() {
-            }
-
-            public IBlockElement Generate() {
-                Radio radio = new Radio("name", "group");
+            );
+            framework.AddSuppliers((document) => {
+                Radio radio = new Radio("name2", "group");
                 radio.SetChecked(true);
                 radio.GetAccessibilityProperties().SetRole(StandardRoles.FIGURE);
                 radio.GetAccessibilityProperties().SetAlternateDescription("Radio that was not checked");
                 return radio;
             }
-        }
-
-        private sealed class _Generator_1500 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1500() {
-            }
-
-            public IBlockElement Generate() {
-                Radio radio = new Radio("name", "group");
+            );
+            framework.AddSuppliers((document) => {
+                Radio radio = new Radio("name3", "group");
                 radio.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
                 return radio;
             }
+            );
+            framework.AssertBothValid("testRadioButtonDifferentRole");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButtonDifferentRole() {
-            framework.AddSuppliers(new _Generator_1513(this));
-            framework.AddSuppliers(new _Generator_1524(this));
-            framework.AssertBothValid("testButtonDifferentRole");
-        }
-
-        private sealed class _Generator_1513 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1513(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonArtifactRole(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                Radio radio = new Radio("name1", "group");
+                radio.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
+                radio.GetAccessibilityProperties().SetAlternateDescription("Radio that was not checked");
+                return radio;
             }
+            );
+            framework.AddSuppliers((document) => {
+                Radio radio = new Radio("name2", "group");
+                radio.SetChecked(true);
+                radio.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
+                radio.GetAccessibilityProperties().SetAlternateDescription("Radio that was not checked");
+                return radio;
+            }
+            );
+            framework.AddSuppliers((document) => {
+                Radio radio = new Radio("name3", "group");
+                radio.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
+                return radio;
+            }
+            );
+            framework.AssertBothValid("testRadioButtonArtifactRole");
+        }
 
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonDifferentRole(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
                 b.GetAccessibilityProperties().SetRole(StandardRoles.FIGURE);
                 b.SetValue("Click me");
                 b.GetAccessibilityProperties().SetAlternateDescription("Hello");
-                b.SetFont(this._enclosing.GetFont());
+                b.SetFont(GetFont());
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        private sealed class _Generator_1524 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1524(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 Button b = new Button("name");
                 b.SetValue("Click me");
                 b.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
-                b.SetFont(this._enclosing.GetFont());
+                b.SetFont(GetFont());
                 return b;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testButtonDifferentRole");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestInputFieldDifferentRole() {
-            framework.AddSuppliers(new _Generator_1539(this));
-            framework.AddSuppliers(new _Generator_1550(this));
-            framework.AddSuppliers(new _Generator_1561(this));
-            framework.AssertBothValid("testInputFieldDifferentRole");
-        }
-
-        private sealed class _Generator_1539 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1539(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestInputFieldDifferentRole(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
-                inputField.SetFont(this._enclosing.GetFont());
+                inputField.SetFont(GetFont());
                 inputField.GetAccessibilityProperties().SetRole(StandardRoles.FIGURE);
                 inputField.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 inputField.SetValue("Hello");
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        private sealed class _Generator_1550 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1550(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
-                inputField.SetFont(this._enclosing.GetFont());
+                inputField.SetFont(GetFont());
                 inputField.GetAccessibilityProperties().SetRole(StandardRoles.P);
                 inputField.SetValue("Hello");
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        private sealed class _Generator_1561 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1561(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 InputField inputField = new InputField("name");
-                inputField.SetFont(this._enclosing.GetFont());
+                inputField.SetFont(GetFont());
                 inputField.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
                 inputField.SetValue("Hello");
                 return inputField;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testInputFieldDifferentRole");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestTextAreaDifferentRole() {
-            framework.AddSuppliers(new _Generator_1576(this));
-            framework.AddSuppliers(new _Generator_1586(this));
-            framework.AddSuppliers(new _Generator_1595(this));
-            framework.AssertBothValid("testTextAreaDifferentRole");
-        }
-
-        private sealed class _Generator_1576 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1576(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextAreaDifferentRole(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
-                textArea.SetFont(this._enclosing.GetFont());
+                textArea.SetFont(GetFont());
                 textArea.GetAccessibilityProperties().SetRole(StandardRoles.FIGURE);
                 textArea.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        private sealed class _Generator_1586 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1586(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
-                textArea.SetFont(this._enclosing.GetFont());
+                textArea.SetFont(GetFont());
                 textArea.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        private sealed class _Generator_1595 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1595(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 TextArea textArea = new TextArea("name");
-                textArea.SetFont(this._enclosing.GetFont());
+                textArea.SetFont(GetFont());
                 textArea.GetAccessibilityProperties().SetRole(StandardRoles.P);
                 return textArea;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testTextAreaDifferentRole");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestListBoxDifferentRole() {
-            framework.AddSuppliers(new _Generator_1610(this));
-            framework.AddSuppliers(new _Generator_1620(this));
-            framework.AssertBothValid("testListBoxDifferentRole");
-        }
-
-        private sealed class _Generator_1610 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1610(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestListBoxDifferentRole(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ListBoxField list = new ListBoxField("name", 1, false);
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 list.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 list.GetAccessibilityProperties().SetRole(StandardRoles.FIGURE);
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        private sealed class _Generator_1620 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1620(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 ListBoxField list = new ListBoxField("name", 1, false);
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 list.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testListBoxDifferentRole");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestComboBoxDifferentRole() {
-            framework.AddSuppliers(new _Generator_1636(this));
-            framework.AddSuppliers(new _Generator_1649(this));
-            framework.AssertBothValid("testComboBoxDifferentRole");
-        }
-
-        private sealed class _Generator_1636 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1636(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestComboBoxDifferentRole(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 ComboBoxField list = new ComboBoxField("name");
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 list.GetAccessibilityProperties().SetRole(StandardRoles.FIGURE);
                 list.AddOption(new SelectFieldItem("value1"));
                 list.AddOption(new SelectFieldItem("value2"));
                 list.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        private sealed class _Generator_1649 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1649(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 ComboBoxField list = new ComboBoxField("name");
-                list.SetFont(this._enclosing.GetFont());
+                list.SetFont(GetFont());
                 list.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
                 return list;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testComboBoxDifferentRole");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestSignatureAppearanceDifferentRole() {
-            framework.AddSuppliers(new _Generator_1663(this));
-            framework.AddSuppliers(new _Generator_1675(this));
-            framework.AssertBothValid("testSignatureAppearanceDifferentRole");
-        }
-
-        private sealed class _Generator_1663 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1663(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignatureAppearanceDifferentRole(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
                 SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
-                appearance.SetFont(this._enclosing.GetFont());
+                appearance.SetFont(GetFont());
                 appearance.GetAccessibilityProperties().SetRole(StandardRoles.FIGURE);
                 appearance.SetContent("Hello");
                 appearance.GetAccessibilityProperties().SetAlternateDescription("Hello");
                 return appearance;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
-        }
-
-        private sealed class _Generator_1675 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_1675(PdfUAFormFieldsTest _enclosing) {
-                this._enclosing = _enclosing;
-            }
-
-            public IBlockElement Generate() {
+            );
+            framework.AddSuppliers((document) => {
                 SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
-                appearance.SetFont(this._enclosing.GetFont());
+                appearance.SetFont(GetFont());
                 appearance.GetAccessibilityProperties().SetRole(StandardRoles.ARTIFACT);
                 appearance.SetContent("Hello");
                 return appearance;
             }
-
-            private readonly PdfUAFormFieldsTest _enclosing;
+            );
+            framework.AssertBothValid("testSignatureAppearanceDifferentRole");
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestTextBuilderWithTu() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextBuilderWithTu(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100, 100
-                    , 100, 100)).SetFont(GetFont()).SetConformance(PdfConformance.PDF_UA_1).CreateText();
+                    , 100, 100)).SetFont(GetFont()).CreateText();
                 field.SetValue("Some value");
                 field.SetAlternativeName("Some tu entry value");
                 form.AddField(field);
             }
             );
-            framework.AssertBothValid("testTextBuilderWithTu");
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("testTextBuilderWithTu");
+            }
+            else {
+                framework.AssertBothFail("testTextBuilderWithTu", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestTextBuilderNoTu() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestTextBuilderNoTu(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100, 100
-                    , 100, 100)).SetFont(GetFont()).SetConformance(PdfConformance.PDF_UA_1).CreateText();
+                    , 100, 100)).SetFont(GetFont()).CreateText();
                 field.SetValue("Some value");
                 form.AddField(field);
             }
             );
-            framework.AssertBothFail("testTextBuilderNoTu", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
-                );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("testTextBuilderNoTu", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
+            }
+            else {
+                framework.AssertBothFail("testTextBuilderNoTu", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestChoiceBuilderWithTu() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestChoiceBuilderWithTu(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 PdfChoiceFormField field = new ChoiceFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100
-                    , 100, 100, 100)).SetFont(GetFont()).SetConformance(PdfConformance.PDF_UA_1).CreateComboBox();
+                    , 100, 100, 100)).SetFont(GetFont()).CreateComboBox();
                 field.SetAlternativeName("Some tu entry value");
                 form.AddField(field);
             }
             );
-            framework.AssertBothValid("testChoiceBuilderWithTu");
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("testChoiceBuilderWithTu");
+            }
+            else {
+                framework.AssertBothFail("testChoiceBuilderWithTu", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestChoiceBuilderNoTu() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestChoiceBuilderNoTu(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 PdfChoiceFormField field = new ChoiceFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100
-                    , 100, 100, 100)).SetFont(GetFont()).SetConformance(PdfConformance.PDF_UA_1).CreateComboBox();
+                    , 100, 100, 100)).SetFont(GetFont()).CreateComboBox();
                 form.AddField(field);
             }
             );
-            framework.AssertBothFail("tesChoicetBuilderNoTu", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
-                );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("tesChoicetBuilderNoTu", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
+            }
+            else {
+                framework.AssertBothFail("tesChoicetBuilderNoTu", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButtonBuilderWithTu() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonBuilderWithTu(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 PdfButtonFormField field = new PushButtonFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle
-                    (100, 100, 100, 100)).SetFont(GetFont()).SetConformance(PdfConformance.PDF_UA_1).CreatePushButton();
+                    (100, 100, 100, 100)).SetFont(GetFont()).CreatePushButton();
                 field.SetAlternativeName("Some tu entry value");
                 form.AddField(field);
             }
             );
-            framework.AssertBothValid("testButtonBuilderWithTu");
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("testButtonBuilderWithTu");
+            }
+            else {
+                framework.AssertBothFail("testButtonBuilderWithTu", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButtonBuilderNoTu() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonBuilderNoTu(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 PdfButtonFormField field = new PushButtonFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle
-                    (100, 100, 100, 100)).SetFont(GetFont()).SetConformance(PdfConformance.PDF_UA_1).CreatePushButton();
+                    (100, 100, 100, 100)).SetFont(GetFont()).CreatePushButton();
                 form.AddField(field);
             }
             );
-            framework.AssertBothFail("testButtonBuilderNoTu", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
-                );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("testButtonBuilderNoTu", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
+            }
+            else {
+                framework.AssertBothFail("testButtonBuilderNoTu", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestButtonBuilderNoTuNotVisible() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestButtonBuilderNoTuNotVisible(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 PdfButtonFormField field = new PushButtonFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle
-                    (100, 100, 100, 100)).SetFont(GetFont()).SetConformance(PdfConformance.PDF_UA_1).CreatePushButton();
+                    (100, 100, 100, 100)).SetFont(GetFont()).CreatePushButton();
                 IList<PdfFormAnnotation> annList = field.GetChildFormAnnotations();
                 annList[0].SetVisibility(PdfFormAnnotation.HIDDEN);
                 form.AddField(field);
             }
             );
-            framework.AssertBothValid("testButtonBuilderNoTuNotVisible");
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("testButtonBuilderNoTuNotVisible");
+            }
+            else {
+                framework.AssertBothFail("testButtonBuilderNoTuNotVisible", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonBuilderNoTu() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonBuilderNoTu(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 RadioFormFieldBuilder builder = new RadioFormFieldBuilder(pdfDoc, "Radio");
@@ -2371,12 +1748,19 @@ namespace iText.Pdfua.Checkers {
                 form.AddField(radioGroup);
             }
             );
-            framework.AssertBothFail("testRadioButtonBuilderNoTu", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
-                );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("testRadioButtonBuilderNoTu", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
+            }
+            else {
+                framework.AssertBothFail("testRadioButtonBuilderNoTu", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestRadioButtonBuilderWithTu() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestRadioButtonBuilderWithTu(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 RadioFormFieldBuilder builder = new RadioFormFieldBuilder(pdfDoc, "Radio");
@@ -2389,55 +1773,320 @@ namespace iText.Pdfua.Checkers {
                 form.AddField(radioGroup);
             }
             );
-            framework.AssertBothValid("testRadioButtonBuilderWithTu");
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("testRadioButtonBuilderWithTu");
+            }
+            else {
+                framework.AssertBothFail("testRadioButtonBuilderWithTu", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestSignatureBuilderWithTu() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignatureBuilderWithTu(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 PdfSignatureFormField field = new SignatureFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle
-                    (100, 100, 100, 100)).SetFont(GetFont()).SetConformance(PdfConformance.PDF_UA_1).CreateSignature();
+                    (100, 100, 100, 100)).SetFont(GetFont()).CreateSignature();
                 field.SetValue("some value");
                 field.SetAlternativeName("Some tu entry value");
                 form.AddField(field);
             }
             );
-            framework.AssertBothValid("testSignatureBuilderWithTu");
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("testSignatureBuilderWithTu");
+            }
+            else {
+                framework.AssertBothFail("testSignatureBuilderWithTu", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestSignatureBuilderNoTu() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestSignatureBuilderNoTu(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 PdfSignatureFormField field = new SignatureFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle
-                    (100, 100, 100, 100)).SetFont(GetFont()).SetConformance(PdfConformance.PDF_UA_1).CreateSignature();
+                    (100, 100, 100, 100)).SetFont(GetFont()).CreateSignature();
                 field.SetValue("some value");
                 form.AddField(field);
             }
             );
-            framework.AssertBothFail("testSignatureBuilderNoTu", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
-                );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("testSignatureBuilderNoTu", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
+            }
+            else {
+                framework.AssertBothFail("testSignatureBuilderNoTu", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestFormFieldWithAltEntry() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestFormFieldWithAltEntry(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
                 PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
                 PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100, 100
-                    , 100, 100)).SetFont(GetFont()).SetConformance(PdfConformance.PDF_UA_1).CreateText();
+                    , 100, 100)).SetFont(GetFont()).CreateText();
                 field.SetValue("Some value");
                 pdfDoc.GetTagStructureContext().GetAutoTaggingPointer().AddTag(new DefaultAccessibilityProperties(StandardRoles
                     .FORM).SetAlternateDescription("alternate description"));
                 form.AddField(field);
             }
             );
-            framework.AssertBothValid("FormFieldAltDescription");
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("FormFieldAltDescription");
+            }
+            else {
+                framework.AssertBothFail("FormFieldAltDescription", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void TestFormFieldAsStream() {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestFormFieldWithContentsEntry(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
             framework.AddBeforeGenerationHook((pdfDoc) => {
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+                PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100, 100
+                    , 100, 100)).SetFont(GetFont()).CreateText();
+                field.SetValue("Some value");
+                field.GetFirstFormAnnotation().SetAlternativeDescription("Some alt");
+                form.AddField(field);
+            }
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("formFieldContentsDescription", PdfUAExceptionMessageConstants.MISSING_FORM_FIELD_DESCRIPTION
+                    );
+            }
+            else {
+                framework.AssertBothValid("formFieldContentsDescription");
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TestFormFieldAsStream(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
+                PdfObject page = pdfDoc.AddNewPage().GetPdfObject();
+                PdfStream streamObj = new PdfStream();
+                streamObj.Put(PdfName.Subtype, PdfName.Widget);
+                streamObj.Put(PdfName.T, new PdfString("hi"));
+                streamObj.Put(PdfName.TU, new PdfString("some text"));
+                streamObj.Put(PdfName.Contents, new PdfString("hello"));
+                streamObj.Put(PdfName.P, page);
+                PdfDictionary objRef = new PdfDictionary();
+                objRef.Put(PdfName.Obj, streamObj);
+                objRef.Put(PdfName.Type, PdfName.OBJR);
+                PdfDictionary parentDic = new PdfDictionary();
+                parentDic.Put(PdfName.P, pdfDoc.GetStructTreeRoot().GetPdfObject());
+                parentDic.Put(PdfName.S, PdfName.Form);
+                parentDic.Put(PdfName.Type, PdfName.StructElem);
+                parentDic.Put(PdfName.Pg, page);
+                PdfArray k = new PdfArray();
+                k.Add(objRef);
+                parentDic.Put(PdfName.K, k);
+                if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                    pdfDoc.GetStructTreeRoot().AddKid(new PdfStructElem(parentDic));
+                }
+                else {
+                    ((PdfStructElem)pdfDoc.GetStructTreeRoot().GetKids()[0]).AddKid(new PdfStructElem(parentDic));
+                }
+            }
+            );
+            framework.AssertBothValid("FormFieldAsStream");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SeveralWidgetKidsTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
+                PdfObject page = pdfDoc.AddNewPage().GetPdfObject();
+                PdfStream streamObj = new PdfStream();
+                streamObj.Put(PdfName.Subtype, PdfName.Widget);
+                streamObj.Put(PdfName.T, new PdfString("hi"));
+                streamObj.Put(PdfName.TU, new PdfString("some text"));
+                streamObj.Put(PdfName.Contents, new PdfString("hello"));
+                streamObj.Put(PdfName.P, page);
+                PdfDictionary objRef = new PdfDictionary();
+                objRef.Put(PdfName.Obj, streamObj);
+                objRef.Put(PdfName.Type, PdfName.OBJR);
+                PdfDictionary parentDic = new PdfDictionary();
+                parentDic.Put(PdfName.P, pdfDoc.GetStructTreeRoot().GetPdfObject());
+                parentDic.Put(PdfName.S, PdfName.Form);
+                parentDic.Put(PdfName.Type, PdfName.StructElem);
+                parentDic.Put(PdfName.Pg, page);
+                PdfStructElem elem = new PdfStructElem(parentDic);
+                elem.AddKid(new PdfStructElem(objRef));
+                elem.AddKid(new PdfStructElem(objRef));
+                elem.AddKid(new PdfStructElem(objRef));
+                if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                    pdfDoc.GetStructTreeRoot().AddKid(elem);
+                }
+                else {
+                    ((PdfStructElem)pdfDoc.GetStructTreeRoot().GetKids()[0]).AddKid(elem);
+                }
+            }
+            );
+            if (conformance.GetUAConformance() == PdfUAConformance.PDF_UA_1) {
+                framework.AssertBothFail("severalWidgetKids", PdfUAExceptionMessageConstants.FORM_STRUCT_ELEM_WITHOUT_ROLE_SHALL_CONTAIN_ONE_WIDGET
+                    );
+            }
+            else {
+                framework.AssertBothFail("severalWidgetKids", PdfUAExceptionMessageConstants.FORM_STRUCT_ELEM_SHALL_CONTAIN_AT_MOST_ONE_WIDGET
+                    );
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SeveralWidgetKidsWithRoleTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
+                PdfObject page = pdfDoc.AddNewPage().GetPdfObject();
+                PdfStream streamObj = new PdfStream();
+                streamObj.Put(PdfName.Subtype, PdfName.Widget);
+                streamObj.Put(PdfName.T, new PdfString("hi"));
+                streamObj.Put(PdfName.TU, new PdfString("some text"));
+                streamObj.Put(PdfName.Contents, new PdfString("hello"));
+                streamObj.Put(PdfName.P, page);
+                PdfDictionary objRef = new PdfDictionary();
+                objRef.Put(PdfName.Obj, streamObj);
+                objRef.Put(PdfName.Type, PdfName.OBJR);
+                PdfDictionary parentDic = new PdfDictionary();
+                parentDic.Put(PdfName.P, pdfDoc.GetStructTreeRoot().GetPdfObject());
+                parentDic.Put(PdfName.S, PdfName.Form);
+                parentDic.Put(PdfName.Type, PdfName.StructElem);
+                parentDic.Put(PdfName.Pg, page);
+                PdfStructElem elem = new PdfStructElem(parentDic);
+                elem.AddKid(new PdfStructElem(objRef));
+                elem.AddKid(new PdfStructElem(objRef));
+                elem.AddKid(new PdfStructElem(objRef));
+                PdfDictionary attributes = new PdfDictionary();
+                attributes.Put(PdfName.O, PdfStructTreeRoot.ConvertRoleToPdfName("PrintField"));
+                attributes.Put(PdfStructTreeRoot.ConvertRoleToPdfName("Role"), new PdfName("pb"));
+                elem.SetAttributes(attributes);
+                if (conformance.GetUAConformance() == PdfUAConformance.PDF_UA_1) {
+                    pdfDoc.GetStructTreeRoot().AddKid(elem);
+                }
+                else {
+                    ((PdfStructElem)pdfDoc.GetStructTreeRoot().GetKids()[0]).AddKid(elem);
+                }
+            }
+            );
+            if (conformance.GetUAConformance() == PdfUAConformance.PDF_UA_1) {
+                framework.AssertBothValid("severalWidgetKidsWithRole");
+            }
+            else {
+                framework.AssertBothFail("severalWidgetKidsWithRole", PdfUAExceptionMessageConstants.FORM_STRUCT_ELEM_SHALL_CONTAIN_AT_MOST_ONE_WIDGET
+                    );
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void WidgetNeitherFormNorArtifactTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
+                PdfDictionary page = pdfDoc.AddNewPage().GetPdfObject();
+                PdfDictionary widget = new PdfDictionary();
+                widget.Put(PdfName.Subtype, PdfName.Widget);
+                widget.Put(PdfName.TU, new PdfString("some text"));
+                widget.Put(PdfName.Contents, new PdfString("hello"));
+                widget.Put(PdfName.Rect, new PdfArray(new Rectangle(100, 100, 100, 100)));
+                widget.Put(PdfName.P, page);
+                widget.Put(PdfName.StructParent, new PdfNumber(0));
+                page.Put(PdfName.Annots, new PdfArray(widget));
+                PdfDictionary objRef = new PdfDictionary();
+                objRef.Put(PdfName.Obj, widget);
+                objRef.Put(PdfName.Type, PdfName.OBJR);
+                PdfDictionary parentDic = new PdfDictionary();
+                parentDic.Put(PdfName.P, pdfDoc.GetStructTreeRoot().GetPdfObject());
+                parentDic.Put(PdfName.S, PdfName.P);
+                parentDic.Put(PdfName.Type, PdfName.StructElem);
+                parentDic.Put(PdfName.Pg, page);
+                parentDic.Put(PdfName.K, objRef);
+                ((PdfStructElem)pdfDoc.GetStructTreeRoot().GetKids()[0]).AddKid(new PdfStructElem(parentDic));
+            }
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("widgetNeitherFormNorArtifact", PdfUAExceptionMessageConstants.WIDGET_SHALL_BE_FORM_OR_ARTIFACT
+                    );
+            }
+            else {
+                // TODO DEVSIX-9580. VeraPDF claims the document to be valid, although it's not.
+                //  We will need to update this test when veraPDF behavior is fixed and veraPDF version is updated.
+                framework.AssertOnlyITextFail("widgetNeitherFormNorArtifact", PdfUAExceptionMessageConstants.WIDGET_SHALL_BE_FORM_OR_ARTIFACT
+                    );
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void WidgetNeitherFormNorArtifactInAcroformTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
+                PdfDictionary page = pdfDoc.AddNewPage().GetPdfObject();
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+                PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetFont(GetFont()).CreateText();
+                field.SetValue("Some value");
+                PdfDictionary widget = new PdfDictionary();
+                widget.Put(PdfName.Subtype, PdfName.Widget);
+                widget.Put(PdfName.TU, new PdfString("some text"));
+                widget.Put(PdfName.Contents, new PdfString("hello"));
+                widget.Put(PdfName.Rect, new PdfArray(new Rectangle(100, 100, 100, 100)));
+                widget.Put(PdfName.P, page);
+                widget.Put(PdfName.StructParent, new PdfNumber(0));
+                widget.MakeIndirect(pdfDoc);
+                field.AddKid(PdfFormCreator.CreateFormAnnotation(widget));
+                form.AddField(field);
+                PdfObjRef objRef = pdfDoc.GetStructTreeRoot().FindObjRefByStructParentIndex(page, 0);
+                TagTreePointer p = pdfDoc.GetTagStructureContext().CreatePointerForStructElem((PdfStructElem)objRef.GetParent
+                    ());
+                p.SetRole(StandardRoles.P);
+            }
+            );
+            framework.AssertBothFail("widgetNeitherFormNorArtifactInAcroform", PdfUAExceptionMessageConstants.WIDGET_SHALL_BE_FORM_OR_ARTIFACT
+                );
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void WidgetIsArtifactInAcroformTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
+                PdfDictionary page = pdfDoc.AddNewPage().GetPdfObject();
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+                PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetFont(GetFont()).CreateText();
+                field.SetValue("Some value");
+                PdfDictionary widget = new PdfDictionary();
+                widget.Put(PdfName.Subtype, PdfName.Widget);
+                widget.Put(PdfName.TU, new PdfString("some text"));
+                widget.Put(PdfName.Contents, new PdfString("hello"));
+                widget.Put(PdfName.Rect, new PdfArray(new Rectangle(100, 100, 100, 100)));
+                widget.Put(PdfName.P, page);
+                widget.Put(PdfName.StructParent, new PdfNumber(0));
+                widget.MakeIndirect(pdfDoc);
+                field.AddKid(PdfFormCreator.CreateFormAnnotation(widget));
+                form.AddField(field);
+                PdfObjRef objRef = pdfDoc.GetStructTreeRoot().FindObjRefByStructParentIndex(page, 0);
+                TagTreePointer p = pdfDoc.GetTagStructureContext().CreatePointerForStructElem((PdfStructElem)objRef.GetParent
+                    ());
+                p.SetRole(StandardRoles.ARTIFACT);
+            }
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothFail("widgetIsArtifactInAcroform", PdfUAExceptionMessageConstants.WIDGET_SHALL_BE_FORM_OR_ARTIFACT
+                    );
+            }
+            else {
+                framework.AssertBothValid("widgetIsArtifactInAcroform");
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void WidgetLabelNoContentsTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
                 PdfObject page = pdfDoc.AddNewPage().GetPdfObject();
                 PdfStream streamObj = new PdfStream();
                 streamObj.Put(PdfName.Subtype, PdfName.Widget);
@@ -2453,18 +2102,360 @@ namespace iText.Pdfua.Checkers {
                 parentDic.Put(PdfName.Type, PdfName.StructElem);
                 parentDic.Put(PdfName.Pg, page);
                 parentDic.Put(PdfName.K, objRef);
-                pdfDoc.GetStructTreeRoot().AddKid(new PdfStructElem(parentDic));
+                PdfStructElem elem = new PdfStructElem(parentDic);
+                elem.AddKid(new PdfStructElem(pdfDoc, PdfName.Lbl));
+                PdfDictionary attributes = new PdfDictionary();
+                attributes.Put(PdfName.O, PdfStructTreeRoot.ConvertRoleToPdfName("PrintField"));
+                attributes.Put(PdfStructTreeRoot.ConvertRoleToPdfName("Role"), new PdfName("pb"));
+                elem.SetAttributes(attributes);
+                if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                    pdfDoc.GetStructTreeRoot().AddKid(elem);
+                }
+                else {
+                    ((PdfStructElem)pdfDoc.GetStructTreeRoot().GetKids()[0]).AddKid(elem);
+                }
             }
             );
-            framework.AssertBothValid("FormFieldAsStream");
+            framework.AssertBothValid("widgetLabelNoContentsTest");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void AdditionalActionAndContentsTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
+                PdfObject page = pdfDoc.AddNewPage().GetPdfObject();
+                PdfDictionary widget = new PdfDictionary();
+                widget.Put(PdfName.Subtype, PdfName.Widget);
+                widget.Put(PdfName.T, new PdfString("hi"));
+                widget.Put(PdfName.TU, new PdfString("some text"));
+                widget.Put(PdfName.Contents, new PdfString("hello"));
+                widget.Put(PdfName.AA, new PdfDictionary());
+                widget.Put(PdfName.P, page);
+                PdfDictionary objRef = new PdfDictionary();
+                objRef.Put(PdfName.Obj, widget);
+                objRef.Put(PdfName.Type, PdfName.OBJR);
+                PdfDictionary parentDic = new PdfDictionary();
+                parentDic.Put(PdfName.P, pdfDoc.GetStructTreeRoot().GetPdfObject());
+                parentDic.Put(PdfName.S, PdfName.Form);
+                parentDic.Put(PdfName.Type, PdfName.StructElem);
+                parentDic.Put(PdfName.Pg, page);
+                parentDic.Put(PdfName.K, objRef);
+                PdfStructElem elem = new PdfStructElem(parentDic);
+                if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                    pdfDoc.GetStructTreeRoot().AddKid(elem);
+                }
+                else {
+                    ((PdfStructElem)pdfDoc.GetStructTreeRoot().GetKids()[0]).AddKid(elem);
+                }
+            }
+            );
+            framework.AssertBothValid("additionalActionAndContents");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void AdditionalActionNoContentsTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
+                PdfPage page = pdfDoc.AddNewPage();
+                TagTreePointer p = pdfDoc.GetTagStructureContext().GetAutoTaggingPointer();
+                p.AddTag(StandardRoles.FORM);
+                PdfDictionary widget = new PdfDictionary();
+                widget.Put(PdfName.Subtype, PdfName.Widget);
+                widget.Put(PdfName.T, new PdfString("hi"));
+                widget.Put(PdfName.TU, new PdfString("some text"));
+                widget.Put(PdfName.AA, new PdfDictionary());
+                widget.Put(PdfName.P, page.GetPdfObject());
+                page.AddAnnotation(PdfAnnotation.MakeAnnotation(widget));
+                PdfObjRef objRef = pdfDoc.GetStructTreeRoot().FindObjRefByStructParentIndex(page.GetPdfObject(), 0);
+                p = pdfDoc.GetTagStructureContext().CreatePointerForStructElem((PdfStructElem)objRef.GetParent());
+                PdfDictionary attributes = new PdfDictionary();
+                attributes.Put(PdfName.O, PdfStructTreeRoot.ConvertRoleToPdfName("PrintField"));
+                attributes.Put(PdfStructTreeRoot.ConvertRoleToPdfName("Role"), new PdfName("pb"));
+                p.GetProperties().AddAttributes(new PdfStructureAttributes(attributes));
+                p.AddTag(StandardRoles.LBL);
+            }
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("additionalActionNoContents");
+            }
+            else {
+                framework.AssertBothFail("additionalActionNoContents", PdfUAExceptionMessageConstants.WIDGET_WITH_AA_SHALL_PROVIDE_CONTENTS
+                    );
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void AdditionalActionNoContentsAcroformTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
+                PdfDictionary page = pdfDoc.AddNewPage().GetPdfObject();
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+                PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetFont(GetFont()).CreateText();
+                field.SetValue("Some value");
+                PdfDictionary widget = new PdfDictionary();
+                widget.Put(PdfName.Subtype, PdfName.Widget);
+                widget.Put(PdfName.TU, new PdfString("some text"));
+                widget.Put(PdfName.AA, new PdfDictionary());
+                widget.Put(PdfName.Rect, new PdfArray(new Rectangle(100, 100, 100, 100)));
+                widget.Put(PdfName.P, page);
+                widget.Put(PdfName.StructParent, new PdfNumber(0));
+                widget.MakeIndirect(pdfDoc);
+                field.AddKid(PdfFormCreator.CreateFormAnnotation(widget));
+                field.SetAlternativeName("Alt");
+                form.AddField(field);
+                PdfObjRef objRef = pdfDoc.GetStructTreeRoot().FindObjRefByStructParentIndex(page, 0);
+                TagTreePointer p = pdfDoc.GetTagStructureContext().CreatePointerForStructElem((PdfStructElem)objRef.GetParent
+                    ());
+                PdfDictionary attributes = new PdfDictionary();
+                attributes.Put(PdfName.O, PdfStructTreeRoot.ConvertRoleToPdfName("PrintField"));
+                attributes.Put(PdfStructTreeRoot.ConvertRoleToPdfName("Role"), new PdfName("pb"));
+                p.GetProperties().AddAttributes(new PdfStructureAttributes(attributes));
+                p.AddTag(StandardRoles.LBL);
+            }
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("additionalActionNoContentsAcroform");
+            }
+            else {
+                framework.AssertBothFail("additionalActionNoContentsAcroform", PdfUAExceptionMessageConstants.WIDGET_WITH_AA_SHALL_PROVIDE_CONTENTS
+                    );
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void NoContentsTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddAfterGenerationHook((pdfDoc) => {
+                PdfPage page = pdfDoc.AddNewPage();
+                TagTreePointer p = pdfDoc.GetTagStructureContext().GetAutoTaggingPointer();
+                p.AddTag(StandardRoles.FORM);
+                PdfDictionary widget = new PdfDictionary();
+                widget.Put(PdfName.Subtype, PdfName.Widget);
+                widget.Put(PdfName.Rect, new PdfArray(new Rectangle(100, 100, 100, 100)));
+                widget.Put(PdfName.T, new PdfString("hi"));
+                widget.Put(PdfName.TU, new PdfString("some text"));
+                widget.Put(PdfName.P, page.GetPdfObject());
+                page.AddAnnotation(PdfAnnotation.MakeAnnotation(widget));
+            }
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("noContents");
+            }
+            else {
+                framework.AssertBothFail("noContents", PdfUAExceptionMessageConstants.WIDGET_SHALL_PROVIDE_LABEL_OR_CONTENTS
+                    );
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TextFieldRVAndVPositiveTest1(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDoc) => {
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+                PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100, 100
+                    , 100, 100)).SetFont(GetFont()).CreateText();
+                String value = "Red\rBlue\r";
+                field.SetValue(value);
+                String richText = "<body xmlns=\"http://www.w3.org/1999/xhtml\"><p style=\"color:#FF0000;\">Red&#13;</p>" 
+                    + "<p style=\"color:#1E487C;\">Blue&#13;</p></body>";
+                field.SetRichText(new PdfString(richText, PdfEncodings.PDF_DOC_ENCODING));
+                field.GetFirstFormAnnotation().SetAlternativeDescription("alternate description");
+                pdfDoc.GetTagStructureContext().GetAutoTaggingPointer().AddTag(new DefaultAccessibilityProperties(StandardRoles
+                    .FORM).SetAlternateDescription("alternate description"));
+                form.AddField(field);
+            }
+            );
+            framework.AssertBothValid("textFieldRVAndVPositiveTest1");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TextFieldRVAndVPositiveTest2(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDoc) => {
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+                PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100, 100
+                    , 100, 100)).SetFont(GetFont()).CreateText();
+                field.SetValue("Some value");
+                field.SetRichText(new PdfStream("<p>Some value</p>".GetBytes(), CompressionConstants.NO_COMPRESSION));
+                field.GetFirstFormAnnotation().SetAlternativeDescription("alternate description");
+                pdfDoc.GetTagStructureContext().GetAutoTaggingPointer().AddTag(new DefaultAccessibilityProperties(StandardRoles
+                    .FORM).SetAlternateDescription("alternate description"));
+                form.AddField(field);
+            }
+            );
+            framework.AssertBothValid("textFieldRVAndVPositiveTest2");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TextFieldRVAndVPositiveTest3(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDoc) => {
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+                PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100, 100
+                    , 100, 100)).SetFont(GetFont()).CreateText();
+                String value = "\n\nThe following word\nis in bold.\n\n";
+                field.SetValue(value);
+                String richText = "<field1>\n" + "<body xmlns=\"http://www.w3.org/1999/xhtml\">\n" + "<p>The following <span style=\"font-weight:bold\">word</span>\n"
+                     + "is in bold.</p>\n" + "</body>\n" + "</field1>";
+                field.SetRichText(new PdfString(richText.GetBytes(System.Text.Encoding.UTF8)).SetHexWriting(true));
+                field.GetFirstFormAnnotation().SetAlternativeDescription("alternate description");
+                pdfDoc.GetTagStructureContext().GetAutoTaggingPointer().AddTag(new DefaultAccessibilityProperties(StandardRoles
+                    .FORM).SetAlternateDescription("alternate description"));
+                form.AddField(field);
+            }
+            );
+            framework.AssertBothValid("textFieldRVAndVPositiveTest3");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TextFieldRVAndVNegativeTest1(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDoc) => {
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+                PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100, 100
+                    , 100, 100)).SetFont(GetFont()).CreateText();
+                field.SetRichText(new PdfString("<p>Some value</p>", PdfEncodings.UTF8));
+                field.GetFirstFormAnnotation().SetAlternativeDescription("alternate description");
+                pdfDoc.GetTagStructureContext().GetAutoTaggingPointer().AddTag(new DefaultAccessibilityProperties(StandardRoles
+                    .FORM).SetAlternateDescription("alternate description"));
+                form.AddField(field);
+            }
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("textFieldRVAndVNegativeTest1");
+            }
+            else {
+                framework.AssertBothFail("textFieldRVAndVNegativeTest1", PdfUAExceptionMessageConstants.TEXT_FIELD_V_AND_RV_SHALL_BE_TEXTUALLY_EQUIVALENT
+                    );
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TextFieldRVAndVNegativeTest2(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDoc) => {
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+                PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100, 100
+                    , 100, 100)).SetFont(GetFont()).CreateText();
+                field.SetValue("Some value");
+                field.SetRichText(new PdfStream("<p>Some different value</p>".GetBytes(System.Text.Encoding.UTF8), CompressionConstants
+                    .NO_COMPRESSION));
+                field.GetFirstFormAnnotation().SetAlternativeDescription("alternate description");
+                pdfDoc.GetTagStructureContext().GetAutoTaggingPointer().AddTag(new DefaultAccessibilityProperties(StandardRoles
+                    .FORM).SetAlternateDescription("alternate description"));
+                form.AddField(field);
+            }
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("textFieldRVAndVNegativeTest2");
+            }
+            else {
+                framework.AssertBothFail("textFieldRVAndVNegativeTest2", PdfUAExceptionMessageConstants.TEXT_FIELD_V_AND_RV_SHALL_BE_TEXTUALLY_EQUIVALENT
+                    );
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void TextFieldRVAndVNegativeTest3(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDoc) => {
+                PdfAcroForm form = PdfAcroForm.GetAcroForm(pdfDoc, true);
+                PdfTextFormField field = new TextFormFieldBuilder(pdfDoc, "hello").SetWidgetRectangle(new Rectangle(100, 100
+                    , 100, 100)).SetFont(GetFont()).CreateText();
+                field.SetValue("Some value");
+                field.SetRichText(new PdfString("<p>Some different value</p>"));
+                field.GetFirstFormAnnotation().SetAlternativeDescription("alternate description");
+                pdfDoc.GetTagStructureContext().GetAutoTaggingPointer().AddTag(new DefaultAccessibilityProperties(StandardRoles
+                    .FORM).SetAlternateDescription("alternate description"));
+                form.AddField(field);
+            }
+            );
+            if (conformance.ConformsTo(PdfUAConformance.PDF_UA_1)) {
+                framework.AssertBothValid("textFieldRVAndVNegativeTest3");
+            }
+            else {
+                framework.AssertBothFail("textFieldRVAndVNegativeTest3", PdfUAExceptionMessageConstants.TEXT_FIELD_V_AND_RV_SHALL_BE_TEXTUALLY_EQUIVALENT
+                    );
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SignatureAppearanceWithImage(PdfConformance conformance) {
+            // TODO DEVSIX-9023 Support "Signature fields" UA-2 rules
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
+                Div div = new Div();
+                Image img;
+                try {
+                    img = new Image(ImageDataFactory.Create(DOG));
+                }
+                catch (UriFormatException e) {
+                    throw new PdfException(e.Message);
+                }
+                div.Add(img);
+                appearance.SetContent(div);
+                appearance.SetInteractive(true);
+                appearance.SetAlternativeDescription("Alternative Description");
+                return appearance;
+            }
+            );
+            framework.AssertBothValid("signatureAppearanceWithImage");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SignatureAppearanceWithLineSeparator(PdfConformance conformance) {
+            // TODO DEVSIX-9023 Support "Signature fields" UA-2 rules
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
+                Div div = new Div();
+                LineSeparator line = new LineSeparator(new SolidLine(3));
+                div.Add(line);
+                appearance.SetContent(div);
+                appearance.SetInteractive(true);
+                appearance.SetAlternativeDescription("Alternative Description");
+                return appearance;
+            }
+            );
+            framework.AssertBothValid("signatureAppearanceLineSep");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SignatureAppearanceBackgroundImage(PdfConformance conformance) {
+            // TODO DEVSIX-9023 Support "Signature fields" UA-2 rules
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                SignatureFieldAppearance appearance = new SignatureFieldAppearance("name");
+                try {
+                    appearance.SetFont(GetFont());
+                    PdfImageXObject xObject = new PdfImageXObject(ImageDataFactory.Create(DOG));
+                    BackgroundImage backgroundImage = new BackgroundImage.Builder().SetImage(xObject).Build();
+                    backgroundImage.GetBackgroundSize().SetBackgroundSizeToValues(UnitValue.CreatePointValue(100), UnitValue.CreatePointValue
+                        (100));
+                    Div div = new Div();
+                    div.Add(new Paragraph("Some text"));
+                    appearance.SetContent(div).SetFontSize(50).SetBorder(new SolidBorder(ColorConstants.YELLOW, 10)).SetHeight
+                        (200).SetWidth(300);
+                    appearance.SetBackgroundImage(backgroundImage);
+                    appearance.SetAlternativeDescription("Alternative Description");
+                    appearance.SetInteractive(true);
+                }
+                catch (UriFormatException e) {
+                    throw new PdfException(e.Message);
+                }
+                return appearance;
+            }
+            );
+            framework.AssertBothValid("signatureAppearanceBackgroundImage");
         }
 
         private PdfFont GetFont() {
             try {
                 return PdfFontFactory.CreateFont(FONT);
             }
-            catch (System.IO.IOException) {
-                throw new Exception();
+            catch (System.IO.IOException e) {
+                throw new PdfException(e);
             }
         }
     }

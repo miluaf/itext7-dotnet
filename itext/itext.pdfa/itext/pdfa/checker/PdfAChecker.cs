@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -26,12 +26,15 @@ using Microsoft.Extensions.Logging;
 using iText.Commons;
 using iText.IO.Colors;
 using iText.Kernel.Colors;
+using iText.Kernel.Exceptions;
 using iText.Kernel.Font;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas;
 using iText.Kernel.Pdf.Colorspace;
+using iText.Kernel.Utils.Checkers;
 using iText.Kernel.Validation;
 using iText.Kernel.Validation.Context;
+using iText.Pdfa.Exceptions;
 using iText.Pdfa.Logs;
 
 namespace iText.Pdfa.Checker {
@@ -90,6 +93,7 @@ namespace iText.Pdfa.Checker {
         /// maximum number of graphics state operators with code <c>q</c> that
         /// may be opened (i.e. not yet closed by a corresponding <c>Q</c>) at
         /// any point in a content stream sequence.
+        /// <para />
         /// Defined as 28 by PDF/A-1 section 6.1.12, by referring to the PDF spec
         /// Appendix C table 1 "architectural limits".
         /// </remarks>
@@ -114,6 +118,7 @@ namespace iText.Pdfa.Checker {
         /// Contains some objects that are already checked.
         /// NOTE: Not all objects that were checked are stored in that set. This set is used for avoiding double checks for
         /// actions, signatures, xObjects and page objects; and for letting those objects to be manually flushed.
+        /// <para />
         /// Use this mechanism carefully: objects that are able to be changed (or at least if object's properties
         /// that shall be checked are able to be changed) shouldn't be marked as checked if they are not to be
         /// flushed immediately.
@@ -122,6 +127,11 @@ namespace iText.Pdfa.Checker {
 
         protected internal IDictionary<PdfObject, PdfColorSpace> checkedObjectsColorspace = new Dictionary<PdfObject
             , PdfColorSpace>();
+
+//\cond DO_NOT_DOCUMENT
+        internal static readonly Func<String, PdfException> EXCEPTION_SUPPLIER = (msg) => new PdfAConformanceException
+            (msg);
+//\endcond
 
         private bool fullCheckMode = false;
 
@@ -553,11 +563,30 @@ namespace iText.Pdfa.Checker {
         /// <summary>Attest content stream conformance with appropriate specification.</summary>
         /// <remarks>
         /// Attest content stream conformance with appropriate specification.
-        /// Throws PdfAConformanceException if any discrepancy was found
+        /// <para />
+        /// Throws
+        /// <see cref="iText.Pdfa.Exceptions.PdfAConformanceException"/>
+        /// if any discrepancy was found.
         /// </remarks>
         /// <param name="contentStream">is a content stream to validate</param>
         protected internal abstract void CheckContentStream(PdfStream contentStream);
 
+        /// <summary>Attest content stream conformance with appropriate specification.</summary>
+        /// <remarks>
+        /// Attest content stream conformance with appropriate specification.
+        /// <para />
+        /// Throws
+        /// <see cref="iText.Pdfa.Exceptions.PdfAConformanceException"/>
+        /// if any discrepancy was found.
+        /// </remarks>
+        /// <param name="contentStream">is a content stream to validate</param>
+        /// <param name="resources">the resources of the contentStream</param>
+        protected internal virtual void CheckContentStream(PdfStream contentStream, PdfResources resources) {
+        }
+
+        // Do nothing
+        // TODO DEVSIX-8808 iText Core related api breaks for the next major release
+        //  After major release the method must become abstract
         /// <summary>
         /// Verify the conformity of the operand of content stream with appropriate
         /// specification.
@@ -889,8 +918,9 @@ namespace iText.Pdfa.Checker {
         /// <param name="flags">a set of flags specifying various characteristics of the PDF object</param>
         /// <param name="flag">to be checked</param>
         /// <returns>true if the specified flag is set</returns>
+        [System.ObsoleteAttribute(@"in favour of iText.Kernel.Utils.Checkers.PdfCheckersUtil.CheckFlag(int, int)")]
         protected internal static bool CheckFlag(int flags, int flag) {
-            return (flags & flag) != 0;
+            return PdfCheckersUtil.CheckFlag(flags, flag);
         }
 
         /// <summary>Checks conformance of PDF/A standard.</summary>
@@ -1036,7 +1066,7 @@ namespace iText.Pdfa.Checker {
             int contentStreamCount = page.GetContentStreamCount();
             for (int j = 0; j < contentStreamCount; ++j) {
                 PdfStream contentStream = page.GetContentStream(j);
-                CheckContentStream(contentStream);
+                CheckContentStream(contentStream, page.GetResources());
                 checkedObjects.Add(contentStream);
             }
         }

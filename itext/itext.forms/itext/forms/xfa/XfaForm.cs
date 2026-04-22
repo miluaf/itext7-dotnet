@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -318,7 +318,7 @@ namespace iText.Forms.Xfa
 
             if (acroFieldsSom != null && xfaPresent)
 			{
-                List<string> parts = new List<string>(new Stack<string>(Xml2Som.SplitParts(name)));
+                List<string> parts = new List<string>(Xml2Som.SplitParts(name));
 
                 bool containsKey = acroFieldsSom.GetAcroShort2LongName().ContainsKey(name);
 
@@ -339,7 +339,7 @@ namespace iText.Forms.Xfa
 		public virtual String FindDatasetsName(String name)
 		{
 			return datasetsSom.GetName2Node().ContainsKey(name) ? name : datasetsSom.InverseSearchGlobal
-				(new List<string>(new Stack<string>(Xml2Som.SplitParts(name))));
+				(new List<string>(Xml2Som.SplitParts(name)));
 		}
 
 		/// <summary>
@@ -391,7 +391,7 @@ namespace iText.Forms.Xfa
 			AcroFieldsSearch nodeFieldsSom = new AcroFieldsSearch(nodeSom.GetName2Node().Keys);
 
 			String foundPath = nodeFieldsSom.InverseSearchGlobal(
-				new List<string>(new Stack<string>(Xml2Som.SplitParts(path))));
+				new List<string>(Xml2Som.SplitParts(path)));
 			
 			if (foundPath != null) {
 				XNode resultNode = nodeSom.GetName2Node().Get(foundPath);

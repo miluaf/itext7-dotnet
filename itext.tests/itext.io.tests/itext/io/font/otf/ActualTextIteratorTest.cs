@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -29,7 +29,7 @@ namespace iText.IO.Font.Otf {
         [NUnit.Framework.Test]
         public virtual void TestActualTestParts() {
             Glyph glyph = new Glyph(200, 200, '\u002d');
-            GlyphLine glyphLine = new GlyphLine(JavaUtil.ArraysAsList(glyph));
+            GlyphLine glyphLine = new GlyphLine(JavaCollectionsUtil.SingletonList(glyph));
             glyphLine.SetActualText(0, 1, "\u002d");
             ActualTextIterator actualTextIterator = new ActualTextIterator(glyphLine);
             GlyphLine.GlyphLinePart part = actualTextIterator.Next();

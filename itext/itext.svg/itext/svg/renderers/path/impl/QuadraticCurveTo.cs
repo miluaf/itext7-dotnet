@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -28,20 +28,54 @@ using iText.StyledXmlParser.Css.Util;
 using iText.Svg.Exceptions;
 
 namespace iText.Svg.Renderers.Path.Impl {
-    /// <summary>Implements quadratic Bezier curveTo(Q) attribute of SVG's path element</summary>
+    /// <summary>Implements quadratic Bezier curveTo(Q) attribute of SVG's path element.</summary>
     public class QuadraticCurveTo : AbstractPathShape, IControlPointCurve {
 //\cond DO_NOT_DOCUMENT
         internal const int ARGUMENT_SIZE = 4;
 //\endcond
 
+        /// <summary>
+        /// Creates new
+        /// <see cref="QuadraticCurveTo"/>
+        /// instance.
+        /// </summary>
         public QuadraticCurveTo()
             : this(false) {
         }
 
+        /// <summary>
+        /// Creates new
+        /// <see cref="QuadraticCurveTo"/>
+        /// instance.
+        /// </summary>
+        /// <param name="relative">
+        /// 
+        /// <see langword="true"/>
+        /// in case it is a relative operator,
+        /// <see langword="false"/>
+        /// if it is an absolute operator
+        /// </param>
         public QuadraticCurveTo(bool relative)
             : this(relative, new DefaultOperatorConverter()) {
         }
 
+        /// <summary>
+        /// Creates new
+        /// <see cref="QuadraticCurveTo"/>
+        /// instance.
+        /// </summary>
+        /// <param name="relative">
+        /// 
+        /// <see langword="true"/>
+        /// in case it is a relative operator,
+        /// <see langword="false"/>
+        /// if it is an absolute operator
+        /// </param>
+        /// <param name="copier">
+        /// 
+        /// <see cref="IOperatorConverter"/>
+        /// copier for converting relative coordinates to absolute coordinates
+        /// </param>
         public QuadraticCurveTo(bool relative, IOperatorConverter copier)
             : base(relative, copier) {
         }

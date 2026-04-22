@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -160,14 +160,20 @@ namespace iText.StyledXmlParser.Resolver.Resource
             if (baseUriString.Length == 0)
             {
                 isLocalBaseUri = true;
-                return new Uri(Directory.GetCurrentDirectory() + "/");
+                try {
+                    return new Uri(Directory.GetCurrentDirectory() + "/");
+                }
+                catch (Exception)
+                {
+                    return new Uri("file://");
+                }
             }
             Uri baseAsFileUrl = null;
             try
             {
                 if (Path.IsPathRooted(baseUriString))
                 {
-                    baseAsFileUrl = new Uri("file:///" + NormalizeFilePath(Path.GetFullPath(baseUriString)));
+                    baseAsFileUrl = new Uri("file://" + NormalizeFilePath(Path.GetFullPath(baseUriString)));
                 }
                 else
                 {

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -618,8 +618,8 @@ namespace iText.Layout.Renderer {
 
         //region Common methods
         private void CalculateTableWidth(float availableWidth, bool calculateTableMaxWidth) {
-            fixedTableLayout = "fixed".Equals(tableRenderer.GetProperty<String>(Property.TABLE_LAYOUT, "auto").ToLowerInvariant
-                ());
+            fixedTableLayout = "fixed".Equals(StringNormalizer.ToLowerCase(tableRenderer.GetProperty<String>(Property.
+                TABLE_LAYOUT, "auto")));
             UnitValue width = tableRenderer.GetProperty<UnitValue>(Property.WIDTH);
             if (fixedTableLayout && width != null && width.GetValue() >= 0) {
                 if (0 != GetTable().GetLastRowBottomBorder().Count) {

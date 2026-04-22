@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,6 +21,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
+using System.Collections.Generic;
 using iText.Commons.Utils;
 using iText.Kernel.Pdf;
 using iText.Kernel.Utils;
@@ -34,8 +35,7 @@ namespace iText.Layout {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/DestinationTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/DestinationTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/layout/DestinationTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -49,7 +49,9 @@ namespace iText.Layout {
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
             Document doc = new Document(pdfDoc);
             Text text = new Text(MessageFormatUtil.Format("Page {0}", 10));
-            text.SetProperty(Property.DESTINATION, "p10");
+            ICollection<Object> destinations = new HashSet<Object>();
+            destinations.Add("p10");
+            text.SetProperty(Property.DESTINATION, destinations);
             doc.Add(new Paragraph(text).SetFixedPosition(1, 549, 742, 40).SetMargin(0));
             doc.Close();
             NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder

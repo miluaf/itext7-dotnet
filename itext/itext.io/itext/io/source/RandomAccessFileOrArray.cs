@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -39,6 +39,8 @@ namespace iText.IO.Source {
 
         /// <summary>Whether there is a pushed back byte</summary>
         private bool isBack = false;
+
+        private readonly Object lockObj = new Object();
 
         /// <summary>Creates a RandomAccessFileOrArray that wraps the specified byte source.</summary>
         /// <remarks>
@@ -591,8 +593,10 @@ namespace iText.IO.Source {
         }
 
         private void EnsureByteSourceIsThreadSafe() {
-            if (!(byteSource is ThreadSafeRandomAccessSource)) {
-                byteSource = new ThreadSafeRandomAccessSource(byteSource);
+            lock (lockObj) {
+                if (!(byteSource is ThreadSafeRandomAccessSource)) {
+                    byteSource = new ThreadSafeRandomAccessSource(byteSource);
+                }
             }
         }
     }

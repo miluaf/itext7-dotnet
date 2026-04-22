@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -195,7 +195,7 @@ namespace iText.Pdfa.Checker {
         /// <summary><inheritDoc/></summary>
         protected internal override void CheckPageColorsUsages(PdfDictionary pageDict, PdfDictionary pageResources
             ) {
-            if ((!rgbUsedObjects.IsEmpty() || !cmykUsedObjects.IsEmpty() || grayUsedObjects.IsEmpty()) && pdfAOutputIntentColorSpace
+            if ((!rgbUsedObjects.IsEmpty() || !cmykUsedObjects.IsEmpty() || !grayUsedObjects.IsEmpty()) && pdfAOutputIntentColorSpace
                  == null) {
                 throw new PdfAConformanceException(PdfaExceptionMessageConstant.IF_DEVICE_RGB_CMYK_GRAY_USED_IN_FILE_THAT_FILE_SHALL_CONTAIN_PDFA_OUTPUTINTENT
                     );
@@ -323,11 +323,15 @@ namespace iText.Pdfa.Checker {
 
         // This check is irrelevant for the PdfA1 checker, so the body of the method is empty
         protected internal override void CheckContentStream(PdfStream contentStream) {
+            CheckContentStream(contentStream, null);
+        }
+
+        protected internal override void CheckContentStream(PdfStream contentStream, PdfResources resources) {
             if (IsFullCheckMode() || contentStream.IsModified()) {
                 byte[] contentBytes = contentStream.GetBytes();
                 PdfTokenizer tokenizer = new PdfTokenizer(new RandomAccessFileOrArray(new RandomAccessSourceFactory().CreateSource
                     (contentBytes)));
-                PdfCanvasParser parser = new PdfCanvasParser(tokenizer);
+                PdfCanvasParser parser = new PdfCanvasParser(tokenizer, resources);
                 IList<PdfObject> operands = new List<PdfObject>();
                 try {
                     while (parser.Parse(operands).Count > 0) {
@@ -344,7 +348,7 @@ namespace iText.Pdfa.Checker {
 
         protected internal override void CheckNonSymbolicTrueTypeFont(PdfTrueTypeFont trueTypeFont) {
             String encoding = trueTypeFont.GetFontEncoding().GetBaseEncoding();
-            // non-symbolic true type font will always has an encoding entry in font dictionary in itext
+            // non-symbolic true type font will always have an encoding entry in font dictionary in itext
             if (!PdfEncodings.WINANSI.Equals(encoding) && !PdfEncodings.MACROMAN.Equals(encoding) || trueTypeFont.GetFontEncoding
                 ().HasDifferences()) {
                 throw new PdfAConformanceException(PdfaExceptionMessageConstant.ALL_NON_SYMBOLIC_TRUE_TYPE_FONT_SHALL_SPECIFY_MAC_ROMAN_OR_WIN_ANSI_ENCODING_AS_THE_ENCODING_ENTRY
@@ -414,8 +418,9 @@ namespace iText.Pdfa.Checker {
                 throw new PdfAConformanceException(PdfaExceptionMessageConstant.A_GROUP_OBJECT_WITH_AN_S_KEY_WITH_A_VALUE_OF_TRANSPARENCY_SHALL_NOT_BE_INCLUDED_IN_A_FORM_XOBJECT
                     );
             }
-            CheckResources(form.GetAsDictionary(PdfName.Resources), form);
-            CheckContentStream(form);
+            PdfDictionary resourcesDict = form.GetAsDictionary(PdfName.Resources);
+            CheckResources(resourcesDict, form);
+            CheckContentStream(form, resourcesDict == null ? new PdfResources() : new PdfResources(resourcesDict));
         }
 
         protected internal override void CheckLogicalStructure(PdfDictionary catalog) {
@@ -580,13 +585,12 @@ namespace iText.Pdfa.Checker {
                     );
             }
             int flags = (int)annotDic.GetAsInt(PdfName.F);
-            if (!CheckFlag(flags, PdfAnnotation.PRINT) || CheckFlag(flags, PdfAnnotation.HIDDEN) || CheckFlag(flags, PdfAnnotation
-                .INVISIBLE) || CheckFlag(flags, PdfAnnotation.NO_VIEW)) {
+            if (IsAnnotationInvisible(flags)) {
                 throw new PdfAConformanceException(PdfaExceptionMessageConstant.THE_F_KEYS_PRINT_FLAG_BIT_SHALL_BE_SET_TO_1_AND_ITS_HIDDEN_INVISIBLE_AND_NOVIEW_FLAG_BITS_SHALL_BE_SET_TO_0
                     );
             }
-            if (subtype.Equals(PdfName.Text) && (!CheckFlag(flags, PdfAnnotation.NO_ZOOM) || !CheckFlag(flags, PdfAnnotation
-                .NO_ROTATE))) {
+            if (subtype.Equals(PdfName.Text) && (!PdfCheckersUtil.CheckFlag(flags, PdfAnnotation.NO_ZOOM) || !PdfCheckersUtil
+                .CheckFlag(flags, PdfAnnotation.NO_ROTATE))) {
                 throw new PdfAConformanceException(PdfAConformanceLogMessageConstant.TEXT_ANNOTATIONS_SHOULD_SET_THE_NOZOOM_AND_NOROTATE_FLAG_BITS_OF_THE_F_KEY_TO_1
                     );
             }
@@ -651,7 +655,7 @@ namespace iText.Pdfa.Checker {
             CheckResources(form.GetAsDictionary(PdfName.DR), form);
             PdfArray fields = form.GetAsArray(PdfName.Fields);
             if (fields != null) {
-                fields = GetFormFields(fields);
+                fields = PdfCheckersUtil.GetFormFields(fields);
                 foreach (PdfObject field in fields) {
                     PdfDictionary fieldDic = (PdfDictionary)field;
                     if (fieldDic.ContainsKey(PdfName.A) || fieldDic.ContainsKey(PdfName.AA)) {
@@ -749,16 +753,16 @@ namespace iText.Pdfa.Checker {
         /// <see cref="iText.Kernel.Pdf.PdfArray"/>
         /// of form fields
         /// </returns>
+        [System.ObsoleteAttribute(@"in favour of iText.Kernel.Utils.Checkers.PdfCheckersUtil.GetFormFields(iText.Kernel.Pdf.PdfArray)"
+            )]
         protected internal virtual PdfArray GetFormFields(PdfArray array) {
-            PdfArray fields = new PdfArray();
-            foreach (PdfObject field in array) {
-                PdfArray kids = ((PdfDictionary)field).GetAsArray(PdfName.Kids);
-                fields.Add(field);
-                if (kids != null) {
-                    fields.AddAll(GetFormFields(kids));
-                }
-            }
-            return fields;
+            return PdfCheckersUtil.GetFormFields(array);
+        }
+
+        private static bool IsAnnotationInvisible(int flags) {
+            return !PdfCheckersUtil.CheckFlag(flags, PdfAnnotation.PRINT) || PdfCheckersUtil.CheckFlag(flags, PdfAnnotation
+                .HIDDEN) || PdfCheckersUtil.CheckFlag(flags, PdfAnnotation.INVISIBLE) || PdfCheckersUtil.CheckFlag(flags
+                , PdfAnnotation.NO_VIEW);
         }
 
         private int GetMaxArrayCapacity() {

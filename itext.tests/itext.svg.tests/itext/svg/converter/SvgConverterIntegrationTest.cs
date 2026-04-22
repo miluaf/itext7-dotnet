@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -47,8 +47,7 @@ namespace iText.Svg.Converter {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/svg/converter/SvgConverterTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/svg/converter/SvgConverterTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/svg/converter/SvgConverterTest/";
 
         private const String ECLIPSESVGSTRING = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
              "<svg\n" + "   xmlns=\"http://www.w3.org/2000/svg\"\n" + "   width=\"200pt\"\n" + "   height=\"200pt\"\n"
@@ -184,12 +183,13 @@ namespace iText.Svg.Converter {
 
         [NUnit.Framework.Test]
         public virtual void TwoArgTest() {
-            String name = "hello_world";
-            Stream fis = FileUtil.GetInputStreamForFile(sourceFolder + name + ".svg");
-            Stream fos = FileUtil.GetFileOutputStream(destinationFolder + name + ".pdf");
+            String svgName = "hello_world";
+            String pdfName = "twoArg";
+            Stream fis = FileUtil.GetInputStreamForFile(sourceFolder + svgName + ".svg");
+            Stream fos = FileUtil.GetFileOutputStream(destinationFolder + pdfName + ".pdf");
             SvgConverter.CreatePdf(fis, fos);
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(destinationFolder + name + ".pdf", sourceFolder
-                 + "cmp_" + name + ".pdf", destinationFolder, "diff_"));
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(destinationFolder + pdfName + ".pdf", sourceFolder
+                 + "cmp_" + pdfName + ".pdf", destinationFolder, "diff_"));
         }
 
         [NUnit.Framework.Test]
@@ -533,7 +533,6 @@ namespace iText.Svg.Converter {
         }
 
         [NUnit.Framework.Test]
-        //TODO DEVSIX-8769: adapt after supporting
         [LogMessage(SvgLogMessageConstant.UNMAPPED_TAG)]
         public virtual void DescriptionTagsTest() {
             IDictionary<String, ISvgNodeRenderer> map = new Dictionary<String, ISvgNodeRenderer>();

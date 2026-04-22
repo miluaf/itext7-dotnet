@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -79,6 +79,29 @@ namespace iText.Kernel.Pdf.Tagging {
             : this(new PdfDictionary()) {
             Put(PdfName.Type, PdfName.Namespace);
             Put(PdfName.NS, namespaceName);
+        }
+
+        /// <summary>Retrieves default namespace from provided document or adds a new one in case it's absent.</summary>
+        /// <param name="pdfDocument">
+        /// 
+        /// <see cref="iText.Kernel.Pdf.PdfDocument">document</see>
+        /// to retrieve the namespace instance
+        /// </param>
+        /// <returns>default namespace instance</returns>
+        public static iText.Kernel.Pdf.Tagging.PdfNamespace GetDefault(PdfDocument pdfDocument) {
+            if (pdfDocument == null || pdfDocument.GetStructTreeRoot() == null) {
+                return new iText.Kernel.Pdf.Tagging.PdfNamespace(StandardNamespaces.GetDefault());
+            }
+            foreach (iText.Kernel.Pdf.Tagging.PdfNamespace @namespace in pdfDocument.GetStructTreeRoot().GetNamespaces
+                ()) {
+                if (StandardNamespaces.GetDefault().Equals(@namespace.GetNamespaceName())) {
+                    return @namespace;
+                }
+            }
+            iText.Kernel.Pdf.Tagging.PdfNamespace defaultNamespace = new iText.Kernel.Pdf.Tagging.PdfNamespace(StandardNamespaces
+                .GetDefault());
+            pdfDocument.GetStructTreeRoot().AddNamespace(defaultNamespace);
+            return defaultNamespace;
         }
 
         /// <summary>Sets the string defining the namespace name.</summary>

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -28,6 +28,10 @@ using iText.StyledXmlParser.Css;
 using iText.StyledXmlParser.Css.Resolve.Shorthand;
 
 namespace iText.StyledXmlParser.Css.Resolve.Shorthand.Impl {
+    /// <summary>
+    /// <see cref="iText.StyledXmlParser.Css.Resolve.Shorthand.IShorthandResolver"/>
+    /// implementation for text-decoration.
+    /// </summary>
     public class TextDecorationShorthandResolver : IShorthandResolver {
         private static readonly ICollection<String> TEXT_DECORATION_LINE_VALUES = JavaCollectionsUtil.UnmodifiableSet
             (new HashSet<String>(JavaUtil.ArraysAsList(CommonCssConstants.UNDERLINE, CommonCssConstants.OVERLINE, 

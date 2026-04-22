@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -45,8 +45,7 @@ namespace iText.Kernel.Utils {
         public static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/kernel/utils/flatteningTest/";
 
-        public static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/kernel/utils/flatteningTest/";
+        public static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/kernel/utils/flatteningTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -540,6 +539,20 @@ namespace iText.Kernel.Utils {
         }
 
         [NUnit.Framework.Test]
+        public virtual void FlattenAnnotationWithRotationTest() {
+            String sourceFile = SOURCE_FOLDER + "rotatedStampAnnotation.pdf";
+            String resultFile = DESTINATION_FOLDER + "rotatedStampAnnotationTest.pdf";
+            using (PdfDocument document = new PdfDocument(new PdfReader(sourceFile), CompareTool.CreateTestPdfWriter(resultFile
+                ))) {
+                PdfAnnotationFlattener flattener = new PdfAnnotationFlattener();
+                flattener.Flatten(document);
+                NUnit.Framework.Assert.AreEqual(0, document.GetFirstPage().GetAnnotations().Count);
+            }
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(resultFile, SOURCE_FOLDER + "cmp_rotatedStampAnnotation.pdf"
+                , DESTINATION_FOLDER, "diff_"));
+        }
+
+        [NUnit.Framework.Test]
         public virtual void FlattenTrapNetAnnotationTest() {
             String sourceFile = SOURCE_FOLDER + "flattenTrapNetAnnotationTest.pdf";
             String resultFile = DESTINATION_FOLDER + "flattenTrapNetAnnotationTest.pdf";
@@ -759,13 +772,13 @@ namespace iText.Kernel.Utils {
         internal class CustomPdfAnnotationFlattenFactory : PdfAnnotationFlattenFactory {
             public override IAnnotationFlattener GetAnnotationFlattenWorker(PdfName name) {
                 if (PdfName.Link.Equals(name)) {
-                    return new _IAnnotationFlattener_871();
+                    return new _IAnnotationFlattener_889();
                 }
                 return base.GetAnnotationFlattenWorker(name);
             }
 
-            private sealed class _IAnnotationFlattener_871 : IAnnotationFlattener {
-                public _IAnnotationFlattener_871() {
+            private sealed class _IAnnotationFlattener_889 : IAnnotationFlattener {
+                public _IAnnotationFlattener_889() {
                 }
 
                 public bool Flatten(PdfAnnotation annotation, PdfPage page) {

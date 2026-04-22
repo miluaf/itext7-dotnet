@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -30,6 +30,7 @@ using iText.Layout.Element;
 using iText.Layout.Layout;
 using iText.Layout.Properties;
 using iText.Layout.Renderer;
+using iText.Layout.Tagging;
 using iText.Test;
 
 namespace iText.Layout {
@@ -38,8 +39,7 @@ namespace iText.Layout {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/AreaBreakTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/AreaBreakTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/layout/AreaBreakTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -53,6 +53,20 @@ namespace iText.Layout {
             PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFileName));
             Document document = new Document(pdfDocument);
             document.Add(new AreaBreak());
+            document.Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+                , "diff"));
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void AreaBreakInsideFlexContainerTest() {
+            String outFileName = destinationFolder + "areaBreakInsideFlexContainer.pdf";
+            String cmpFileName = sourceFolder + "cmp_areaBreakInsideFlexContainer.pdf";
+            Document document = new Document(new PdfDocument(new PdfWriter(outFileName)));
+            Div div = new Div().Add(new Div().Add(new Paragraph("test1"))).Add(new AreaBreak()).Add(new Div().Add(new 
+                Paragraph("test2")));
+            div.SetNextRenderer(new FlexContainerRenderer(div));
+            document.Add(div);
             document.Close();
             NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
                 , "diff"));
@@ -194,6 +208,22 @@ namespace iText.Layout {
             Div div = new Div().Add(new Paragraph("Hello")).Add(new AreaBreak(AreaBreakType.NEXT_PAGE)).Add(new Paragraph
                 ("World"));
             div.SetNextRenderer(new AreaBreakTest.DivRendererWithAreas(div));
+            document.Add(div);
+            document.Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+                , "diff"));
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void AreaBreakInsideDivInTaggedDocumentTest() {
+            String outFileName = destinationFolder + "areaBreakInsideDivInTaggedDocument.pdf";
+            String cmpFileName = sourceFolder + "cmp_areaBreakInsideDivInTaggedDocument.pdf";
+            PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFileName));
+            pdfDocument.SetTagged();
+            pdfDocument.GetDiContainer().Register(typeof(ProhibitedTagRelationsResolver), new ProhibitedTagRelationsResolver
+                (pdfDocument));
+            Document document = new Document(pdfDocument);
+            Div div = new Div().Add(new AreaBreak()).Add(new Div().Add(new Paragraph("test")));
             document.Add(div);
             document.Close();
             NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -939,7 +939,12 @@ namespace iText.Layout {
         /// <param name="destination">the destination name to be created</param>
         /// <returns>this Element.</returns>
         public virtual T SetDestination(String destination) {
-            SetProperty(Property.DESTINATION, destination);
+            ICollection<Object> existingDestinations = this.GetProperty<ICollection<Object>>(Property.DESTINATION);
+            if (existingDestinations == null) {
+                existingDestinations = new HashSet<Object>();
+            }
+            existingDestinations.Add(destination);
+            SetProperty(Property.DESTINATION, existingDestinations);
             return (T)(Object)this;
         }
 

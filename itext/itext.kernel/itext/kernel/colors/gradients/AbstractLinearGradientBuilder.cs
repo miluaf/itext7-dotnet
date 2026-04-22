@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -323,7 +323,7 @@ namespace iText.Kernel.Colors.Gradients {
         private static IList<GradientColorStop> NormalizeStops(IList<GradientColorStop> toNormalize, double baseVectorLength
             ) {
             if (baseVectorLength < ZERO_EPSILON) {
-                return JavaUtil.ArraysAsList(new GradientColorStop(toNormalize[toNormalize.Count - 1], 0d, GradientColorStop.OffsetType
+                return JavaCollectionsUtil.SingletonList(new GradientColorStop(toNormalize[toNormalize.Count - 1], 0d, GradientColorStop.OffsetType
                     .RELATIVE));
             }
             // get rid of all absolute on vector offsets and hint offsets

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,6 +21,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
+using System.Collections.Generic;
 using System.IO;
 using iText.Commons.Datastructures;
 using iText.Commons.Utils;
@@ -43,14 +44,12 @@ using iText.Test;
 using iText.Test.Pdfa;
 
 namespace iText.Layout {
-    // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
     [NUnit.Framework.Category("IntegrationTest")]
     public class PdfUA2Test : ExtendedITextTest {
         public static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/PdfUA2Test/";
 
-        public static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/PdfUA2Test/";
+        public static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/layout/PdfUA2Test/";
 
         public static readonly String FONT_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/fonts/";
@@ -223,7 +222,7 @@ namespace iText.Layout {
         [NUnit.Framework.Test]
         public virtual void CheckTableOfContentsTest() {
             String outFile = DESTINATION_FOLDER + "tableOfContentsTest.pdf";
-            String cmpFile = SOURCE_FOLDER + "cmp_tableOfContentsTestTest.pdf";
+            String cmpFile = SOURCE_FOLDER + "cmp_tableOfContentsTest.pdf";
             using (PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFile, new WriterProperties().SetPdfVersion
                 (PdfVersion.PDF_2_0)))) {
                 Document document = new Document(pdfDocument);
@@ -293,7 +292,6 @@ namespace iText.Layout {
             new VeraPdfValidator().ValidateFailure(outFile);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void CreateValidAsideTest() {
             String outFile = DESTINATION_FOLDER + "validAsideTest.pdf";
@@ -349,7 +347,6 @@ namespace iText.Layout {
             new VeraPdfValidator().ValidateFailure(outFile);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void CheckParagraphTest() {
             String outFile = DESTINATION_FOLDER + "paragraphTest.pdf";
@@ -445,7 +442,6 @@ namespace iText.Layout {
             new VeraPdfValidator().ValidateFailure(outFile);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void CheckLabelWithLinkContentTest() {
             String outFile = DESTINATION_FOLDER + "labelWithLinkContentTest.pdf";
@@ -708,7 +704,6 @@ namespace iText.Layout {
             new VeraPdfValidator().ValidateFailure(outFile);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void CheckMetadataNoTitleTest() {
             String outFile = DESTINATION_FOLDER + "pdfuaMetadataNoTitleTest.pdf";
@@ -724,7 +719,6 @@ namespace iText.Layout {
             new VeraPdfValidator().ValidateFailure(outFile);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void CheckMetadataDisplayDocTitleFalseTest() {
             String outFile = DESTINATION_FOLDER + "pdfuaMetadataDisplayDocTitleFalseTest.pdf";
@@ -742,7 +736,6 @@ namespace iText.Layout {
             new VeraPdfValidator().ValidateFailure(outFile);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void CheckMetadataNoViewerPrefTest() {
             String outFile = DESTINATION_FOLDER + "pdfuaMetadataNoViewerPrefTest.pdf";
@@ -759,7 +752,6 @@ namespace iText.Layout {
             new VeraPdfValidator().ValidateFailure(outFile);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void CheckEmbeddedFileTest() {
             String outFile = DESTINATION_FOLDER + "pdfuaEmbeddedFileTest.pdf";
@@ -792,7 +784,6 @@ namespace iText.Layout {
             new VeraPdfValidator().ValidateFailure(outFile);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void CheckPageLabelTest() {
             String outFile = DESTINATION_FOLDER + "pdfuaPageLabelTest.pdf";
@@ -879,21 +870,31 @@ namespace iText.Layout {
                 PdfAction action11 = PdfAction.CreateGoTo("header1.1");
                 header11Outline.AddAction(action11);
                 Paragraph header1 = new Paragraph("header1 text");
-                header1.SetProperty(Property.DESTINATION, new Tuple2<String, PdfDictionary>("header1", action1.GetPdfObject
-                    ()));
+                ICollection<Object> destinations1 = new HashSet<Object>();
+                destinations1.Add(new Tuple2<String, PdfDictionary>("header1", action1.GetPdfObject()));
+                header1.SetProperty(Property.DESTINATION, destinations1);
                 Paragraph header11 = new Paragraph("header1.1 text");
-                header11.SetProperty(Property.DESTINATION, new Tuple2<String, PdfDictionary>("header1.1", action11.GetPdfObject
-                    ()));
+                ICollection<Object> destinations2 = new HashSet<Object>();
+                destinations2.Add(new Tuple2<String, PdfDictionary>("header1.1", action11.GetPdfObject()));
+                header11.SetProperty(Property.DESTINATION, destinations2);
                 document.Add(header1);
                 document.Add(header11);
             }
             CompareAndValidate(outFile, cmpFile);
             using (PdfDocument pdfDocument_1 = new PdfDocument(new PdfReader(outFile))) {
                 PdfOutline outline = pdfDocument_1.GetOutlines(false);
-                NUnit.Framework.Assert.AreEqual("header1", outline.GetAllChildren()[0].GetDestination().GetPdfObject().ToString
-                    ());
-                NUnit.Framework.Assert.AreEqual("header1.1", outline.GetAllChildren()[0].GetAllChildren()[0].GetDestination
-                    ().GetPdfObject().ToString());
+                PdfDictionary firstAction = outline.GetAllChildren()[0].GetContent().GetAsDictionary(PdfName.A);
+                NUnit.Framework.Assert.AreEqual("header1", firstAction.GetAsString(PdfName.D).ToString());
+                NUnit.Framework.Assert.IsTrue(PdfDestination.MakeDestination(firstAction.Get(PdfName.SD)) is PdfStructureDestination
+                    );
+                NUnit.Framework.Assert.IsTrue(outline.GetAllChildren()[0].GetDestination() is PdfStructureDestination);
+                PdfDictionary secondAction = outline.GetAllChildren()[0].GetAllChildren()[0].GetContent().GetAsDictionary(
+                    PdfName.A);
+                NUnit.Framework.Assert.AreEqual("header1.1", secondAction.GetAsString(PdfName.D).ToString());
+                NUnit.Framework.Assert.IsTrue(PdfDestination.MakeDestination(secondAction.Get(PdfName.SD)) is PdfStructureDestination
+                    );
+                NUnit.Framework.Assert.IsTrue(outline.GetAllChildren()[0].GetAllChildren()[0].GetDestination() is PdfStructureDestination
+                    );
             }
         }
 
@@ -910,7 +911,6 @@ namespace iText.Layout {
 
         private void CompareAndValidate(String outPdf, String cmpPdf) {
             NUnit.Framework.Assert.IsNull(new VeraPdfValidator().Validate(outPdf));
-            // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
             String result = new CompareTool().CompareByContent(outPdf, cmpPdf, DESTINATION_FOLDER, "diff_");
             if (result != null) {
                 NUnit.Framework.Assert.Fail(result);

@@ -1,24 +1,6 @@
 /*
-This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
-Authors: Apryse Software.
-
-This program is offered under a commercial and under the AGPL license.
-For commercial licensing, contact us at https://itextpdf.com/sales.  For AGPL licensing, see below.
-
-AGPL licensing:
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+This file is part of jsoup, see NOTICE.txt in the root of the repository.
+It may contain modifications beyond the original version.
 */
 using System;
 using System.Collections.Generic;
@@ -1348,9 +1330,9 @@ namespace iText.StyledXmlParser.Jsoup.Parser {
             iText.StyledXmlParser.Jsoup.Parser.Parser parser = iText.StyledXmlParser.Jsoup.Parser.Parser.HtmlParser().
                 SetTrackErrors(5);
             parser.ParseInput(html, "");
-            NUnit.Framework.Assert.AreEqual(1, parser.GetErrors().Count);
-            NUnit.Framework.Assert.AreEqual("18: Tag cannot be self closing; not a void tag", parser.GetErrors()[0].ToString
-                ());
+            ParseErrorList errorList = parser.GetErrors();
+            NUnit.Framework.Assert.AreEqual(1, errorList.Count);
+            NUnit.Framework.Assert.AreEqual("18: Tag cannot be self closing; not a void tag", errorList[0].ToString());
             NUnit.Framework.Assert.IsFalse(iText.StyledXmlParser.Jsoup.Jsoup.IsValid(html, Safelist.Relaxed()));
             String clean = iText.StyledXmlParser.Jsoup.Jsoup.Clean(html, Safelist.Relaxed());
             NUnit.Framework.Assert.AreEqual("<p>test</p> <div></div> <div> Two </div>", iText.StyledXmlParser.Jsoup.Internal.StringUtil

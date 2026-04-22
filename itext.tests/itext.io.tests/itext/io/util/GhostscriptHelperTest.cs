@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -33,8 +33,7 @@ namespace iText.IO.Util {
         private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/io/util/GhostscriptHelperTest/";
 
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/io/GhostscriptHelperTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/io/GhostscriptHelperTest/";
 
         // In some of the test we will check whether Ghostscript has printed its help message to the console.
         // The value of this threshold should be definitely less than the length of the help message.

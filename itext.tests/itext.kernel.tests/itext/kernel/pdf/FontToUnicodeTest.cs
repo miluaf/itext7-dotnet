@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -34,29 +34,26 @@ using iText.Test;
 namespace iText.Kernel.Pdf {
     [NUnit.Framework.Category("IntegrationTest")]
     public class FontToUnicodeTest : ExtendedITextTest {
-        public static readonly String fontsFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
-            .CurrentContext.TestDirectory) + "/resources/itext/kernel/pdf/fonts/";
+        private static readonly String FONTS_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+            .CurrentContext.TestDirectory) + "/resources/itext/kernel/fonts/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/kernel/pdf/FontToUnicodeTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/kernel/pdf/FontToUnicodeTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
-            CreateDestinationFolder(destinationFolder);
+            CreateDestinationFolder(DESTINATION_FOLDER);
         }
 
         [NUnit.Framework.OneTimeTearDown]
         public static void AfterClass() {
-            CompareTool.Cleanup(destinationFolder);
+            CompareTool.Cleanup(DESTINATION_FOLDER);
         }
 
         [NUnit.Framework.Test]
         public virtual void SeveralUnicodesWithinOneGlyphTest() {
-            // TODO DEVSIX-3634. In the output now we don't expect the \u2F46 unicode range.
-            // TODO DEVSIX-3634. SUBSTITUTE "Assertions.assertEquals("\u2F46"..." to "Assertions.assertEquals("\u65E0"..." after the fix
-            String outFileName = destinationFolder + "severalUnicodesWithinOneGlyphTest.pdf";
+            String outFileName = DESTINATION_FOLDER + "severalUnicodesWithinOneGlyphTest.pdf";
             PdfDocument pdfDocument = new PdfDocument(CompareTool.CreateTestPdfWriter(outFileName));
-            PdfFont font = PdfFontFactory.CreateFont(fontsFolder + "NotoSansCJKjp-Bold.otf", PdfEncodings.IDENTITY_H);
+            PdfFont font = PdfFontFactory.CreateFont(FONTS_FOLDER + "NotoSansCJKjp-Bold.otf", PdfEncodings.IDENTITY_H);
             IList<Glyph> glyphs = JavaCollectionsUtil.SingletonList(font.GetGlyph((int)'\u65E0'));
             GlyphLine glyphLine = new GlyphLine(glyphs);
             PdfCanvas canvas2 = new PdfCanvas(pdfDocument.AddNewPage());
@@ -65,7 +62,7 @@ namespace iText.Kernel.Pdf {
             pdfDocument.Close();
             PdfDocument resultantPdfAsFile = new PdfDocument(CompareTool.CreateOutputReader(outFileName));
             String actualUnicode = PdfTextExtractor.GetTextFromPage(resultantPdfAsFile.GetFirstPage());
-            NUnit.Framework.Assert.AreEqual("\u2F46", actualUnicode);
+            NUnit.Framework.Assert.AreEqual("\u65E0", actualUnicode);
         }
     }
 }

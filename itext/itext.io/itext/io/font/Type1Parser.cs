@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -23,6 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 using System;
 using System.IO;
 using System.Text;
+using iText.Commons.Utils;
 using iText.IO.Exceptions;
 using iText.IO.Font.Constants;
 using iText.IO.Source;
@@ -89,11 +90,11 @@ namespace iText.IO.Font {
             }
             else {
                 if (afmPath != null) {
-                    if (afmPath.ToLowerInvariant().EndsWith(".afm")) {
+                    if (StringNormalizer.ToLowerCase(afmPath).EndsWith(".afm")) {
                         return new RandomAccessFileOrArray(sourceFactory.CreateBestSource(afmPath));
                     }
                     else {
-                        if (afmPath.ToLowerInvariant().EndsWith(".pfm")) {
+                        if (StringNormalizer.ToLowerCase(afmPath).EndsWith(".pfm")) {
                             MemoryStream ba = new MemoryStream();
                             RandomAccessFileOrArray rf = new RandomAccessFileOrArray(sourceFactory.CreateBestSource(afmPath));
                             Pfm2afm.Convert(rf, ba);
@@ -138,7 +139,7 @@ namespace iText.IO.Font {
                 return new RandomAccessFileOrArray(sourceFactory.CreateSource(pfbData));
             }
             else {
-                if (pfbPath != null && pfbPath.ToLowerInvariant().EndsWith(".pfb")) {
+                if (pfbPath != null && StringNormalizer.ToLowerCase(pfbPath).EndsWith(".pfb")) {
                     return new RandomAccessFileOrArray(sourceFactory.CreateBestSource(pfbPath));
                 }
                 else {

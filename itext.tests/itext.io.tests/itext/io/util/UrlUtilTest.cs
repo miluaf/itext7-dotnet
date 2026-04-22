@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -21,6 +21,7 @@ Copyright (c) 1998-2025 Apryse Group NV
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -32,8 +33,7 @@ using NUnit.Framework;
 
 namespace iText.IO.Util {
     public class UrlUtilTest : ExtendedITextTest {
-        private static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/io/UrlUtilTest/";
+        private static readonly String destinationFolder = TestUtil.GetOutputPath() + "/io/UrlUtilTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -58,6 +58,19 @@ namespace iText.IO.Util {
             Uri initialUrl = new Uri("http://itextpdf.com");
             Stream streamOfFinalConnectionOfInvalidUrl = UrlUtil.GetInputStreamOfFinalConnection(initialUrl);
             
+            NUnit.Framework.Assert.NotNull(streamOfFinalConnectionOfInvalidUrl);
+        }
+
+
+        // This test checks that when we pass valid url and trying get stream related to final redirected url, it would
+        // not be null.
+        [NUnit.Framework.Test]
+        public void getInputStreamOfFinalConnection2Test() 
+        {
+            Uri initialUrl = new Uri("http://itextpdf.com");
+            IDictionary<string, string> headers = new Dictionary<String, String>();
+            headers.Add("User-Agent", "TEST User Agent");
+            Stream streamOfFinalConnectionOfInvalidUrl = UrlUtil.GetInputStreamOfFinalConnection(initialUrl, 2000, 2000, headers);
             NUnit.Framework.Assert.NotNull(streamOfFinalConnectionOfInvalidUrl);
         }
 
@@ -102,7 +115,7 @@ namespace iText.IO.Util {
                 // Do not check exception message because it is localized
             } catch(OperationCanceledException e) {
                 exceptionThrown = true;
-                NUnit.Framework.Assert.AreEqual("the operation was canceled.", e.Message.ToLower());
+                NUnit.Framework.Assert.AreEqual("the operation was canceled.", StringNormalizer.ToLowerCase(e.Message));
             }
 
             NUnit.Framework.Assert.True(exceptionThrown);

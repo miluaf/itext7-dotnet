@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -33,6 +33,11 @@ using iText.Kernel.Pdf.Event;
 using iText.Kernel.Utils;
 
 namespace iText.Kernel.Pdf {
+    /// <summary>Writes the PDF to the specified output.</summary>
+    /// <remarks>
+    /// Writes the PDF to the specified output. Writing can be customized using
+    /// <see cref="WriterProperties"/>.
+    /// </remarks>
     public class PdfWriter : PdfOutputStream {
         private static readonly byte[] OBJ = ByteUtils.GetIsoBytes(" obj\n");
 
@@ -72,8 +77,16 @@ namespace iText.Kernel.Pdf {
             : this(file.FullName) {
         }
 
-        /// <summary>Create a PdfWriter writing to the passed outputstream and with default writer properties.</summary>
-        /// <param name="os">Outputstream to write to.</param>
+        /// <summary>
+        /// Create a PdfWriter writing to the passed
+        /// <see cref="System.IO.Stream"/>
+        /// and with default writer properties.
+        /// </summary>
+        /// <param name="os">
+        /// 
+        /// <see cref="System.IO.Stream"/>
+        /// to write to.
+        /// </param>
         public PdfWriter(Stream os)
             : this(os, new WriterProperties()) {
         }

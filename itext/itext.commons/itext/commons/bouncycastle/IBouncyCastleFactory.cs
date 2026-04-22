@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -31,10 +31,12 @@ using iText.Commons.Bouncycastle.Asn1.Esf;
 using iText.Commons.Bouncycastle.Asn1.Ess;
 using iText.Commons.Bouncycastle.Asn1.Ocsp;
 using iText.Commons.Bouncycastle.Asn1.Pkcs;
+using iText.Commons.Bouncycastle.Asn1.Pkix;
 using iText.Commons.Bouncycastle.Asn1.Tsp;
 using iText.Commons.Bouncycastle.Asn1.Util;
 using iText.Commons.Bouncycastle.Asn1.X500;
 using iText.Commons.Bouncycastle.Asn1.X509;
+using iText.Commons.Bouncycastle.Asn1.X509.Qualified;
 using iText.Commons.Bouncycastle.Cert;
 using iText.Commons.Bouncycastle.Cert.Ocsp;
 using iText.Commons.Bouncycastle.Cms;
@@ -311,7 +313,7 @@ namespace iText.Commons.Bouncycastle {
         /// to create ASN1 Output stream wrapper from
         /// </param>
         /// <returns>created ASN1 Output stream wrapper</returns>
-        IDerOutputStream CreateASN1OutputStream(Stream stream);
+        IAsn1OutputStream CreateASN1OutputStream(Stream stream);
 
         /// <summary>
         /// Create ASN1 Output stream wrapper from
@@ -325,7 +327,7 @@ namespace iText.Commons.Bouncycastle {
         /// </param>
         /// <param name="asn1Encoding">ASN1 Encoding to be used</param>
         /// <returns>created ASN1 Output stream wrapper</returns>
-        IDerOutputStream CreateASN1OutputStream(Stream outputStream, String asn1Encoding);
+        IAsn1OutputStream CreateASN1OutputStream(Stream outputStream, String asn1Encoding);
 
         /// <summary>
         /// Create DER Octet string wrapper from
@@ -794,6 +796,13 @@ namespace iText.Commons.Bouncycastle {
         /// <summary>Create general name wrapper without parameters.</summary>
         /// <returns>created general name wrapper</returns>
         IGeneralName CreateGeneralName();
+        
+        /// <summary>
+        /// Creates General Name wrapper from the provided ASN1 Encodable wrapper.
+        /// </summary>
+        /// <param name="encodable">ASN1 Encodable wrapper</param>
+        /// <returns>General Name wrapper</returns>
+        IGeneralName CreateGeneralName(IAsn1Encodable encodable);
 
         /// <summary>Create other hash alg and value wrapper from algorithm identifier wrapper and ASN1 Octet string wrapper.
         ///     </summary>
@@ -989,6 +998,34 @@ namespace iText.Commons.Bouncycastle {
         /// </summary>
         /// <param name="pk">private key wrapper to create timestamp response generator wrapper from</param>
         /// <param name="cert">X509 Certificate wrapper to create timestamp response generator wrapper from</param>
+        /// <param name="signatureAlgorithm">
+        ///
+        /// <see cref="System.string"/>
+        /// signature algorithm used for the private key to create timestamp response generator wrapper from
+        /// </param>
+        /// <param name="allowedDigest">
+        ///
+        /// <see cref="System.string"/>
+        /// allowed digest to create timestamp response generator wrapper from
+        /// </param>
+        /// <param name="policyOid">
+        ///
+        /// <see cref="System.string"/>
+        /// policy oid to create timestamp response generator wrapper from
+        /// </param>
+        /// <returns>created timestamp response generator wrapper</returns>
+        ITimeStampTokenGenerator CreateTimeStampTokenGenerator(IPrivateKey pk, IX509Certificate cert,
+            string signatureAlgorithm, string allowedDigest, string policyOid);
+
+        /// <summary>
+        /// Create timestamp response generator wrapper from private key wrapper, X509 Certificate wrapper, 
+        /// <see cref="System.string"/> 
+        /// allowed digest and
+        /// <see cref="System.string"/>
+        /// policy oid.
+        /// </summary>
+        /// <param name="pk">private key wrapper to create timestamp response generator wrapper from</param>
+        /// <param name="cert">X509 Certificate wrapper to create timestamp response generator wrapper from</param>
         /// <param name="allowedDigest">
         ///
         /// <see cref="System.string"/>
@@ -1072,6 +1109,11 @@ namespace iText.Commons.Bouncycastle {
         /// <param name="x500Name">X500 Name wrapper to create resp ID wrapper from</param>
         /// <returns>created resp ID wrapper</returns>
         IRespID CreateRespID(IX500Name x500Name);
+        
+        /// <summary>Creates resp ID wrapper from X509Certificate wrapper.</summary>
+        /// <param name="certificate">X509Certificate wrapper from which resp ID wrapper will be created</param>
+        /// <returns>created resp ID wrapper</returns>
+        IRespID CreateRespID(IX509Certificate certificate);
 
         /// <summary>Create basic OCSP Resp builder wrapper from resp ID wrapper.</summary>
         /// <param name="respID">resp ID wrapper to create basic OCSP Resp builder wrapper from</param>
@@ -1703,5 +1745,39 @@ namespace iText.Commons.Bouncycastle {
         byte[] GenerateDecryptedKeyWithAES256NoPad(byte[] key, byte[] kek);
 
         IGCMBlockCipher CreateGCMBlockCipher();
+
+        /// <summary>
+        /// Get asymmetric algorithm object instance from bouncy-castle X509 certificate wrapper.
+        /// </summary>
+        /// <param name="certificate">Bouncy-castle X509 certificate wrapper</param>
+        /// <returns>Asymmetric algorithm instance</returns>
+        RSAParameters? GetRsaParametersFromCertificate(IX509Certificate certificate);
+        
+        /// <summary>
+        /// Gets list of policies IDs from the provided certificate policy extension.
+        /// </summary>
+        /// <param name="policyExtension">certificate policy extension as byte array</param>
+        /// <returns>list of policies IDs</returns>
+        List<String> GetPoliciesIds(byte[] policyExtension);
+        
+        /// <summary>
+        /// Parses list of IQCStatement from the provided certificate QC Statements Extension value.
+        /// </summary>
+        /// <param name="qcStatementsExtensionValue">certificate QC Statements Extension value as byte array</param>
+        /// <returns>list of IQCStatement</returns>
+        List<IQCStatement> ParseQcStatement(byte[] qcStatementsExtensionValue);
+
+        /// <summary>
+        /// Creates name constraint validator wrapper.
+        /// </summary>
+        /// <returns>name constraint validator wrapper</returns>
+        IPKIXConstraintValidator CreateNameConstraintValidator();
+
+        /// <summary>
+        /// Creates name constraints wrapper out of ASN1 Object wrapper.
+        /// </summary>
+        /// <param name="primitive">ASN1 Object wrapper from which name constraints wrapper is created</param>
+        /// <returns>name constraints wrapper</returns>
+        INameConstraints CreateNameConstraints(IAsn1Object primitive);
     }
 }

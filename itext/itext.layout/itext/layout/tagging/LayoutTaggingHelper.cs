@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -117,6 +117,11 @@ namespace iText.Layout.Tagging {
                 return;
             }
             TaggingHintKey parentKey = GetOrCreateHintKey(parent);
+            if (parent is IRenderer && this.GetPdfDocument().GetDiContainer().IsRegistered(typeof(ProhibitedTagRelationsResolver
+                ))) {
+                this.GetPdfDocument().GetDiContainer().GetInstance<ProhibitedTagRelationsResolver>().RepairTagStructure(this
+                    , (IRenderer)parent);
+            }
             IList<TaggingHintKey> newKidsKeys = new List<TaggingHintKey>();
             foreach (IPropertyContainer kid in newKids) {
                 if (kid is AreaBreakRenderer) {

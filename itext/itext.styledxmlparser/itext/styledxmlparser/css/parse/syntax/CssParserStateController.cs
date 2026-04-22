@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -48,7 +48,7 @@ namespace iText.StyledXmlParser.Css.Parse.Syntax {
 
         /// <summary>Set of conditional group rules.</summary>
         private static readonly ICollection<String> CONDITIONAL_GROUP_RULES = JavaCollectionsUtil.UnmodifiableSet(
-            new HashSet<String>(JavaUtil.ArraysAsList(CssRuleName.MEDIA)));
+            new HashSet<String>(JavaCollectionsUtil.SingletonList(CssRuleName.MEDIA)));
 
         /// <summary>The current state.</summary>
         private IParserState currentState;

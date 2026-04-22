@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -64,6 +64,12 @@ namespace iText.StyledXmlParser.Logs {
         /// <summary>The Constant INVALID_CSS_PROPERTY_DECLARATION.</summary>
         public const String INVALID_CSS_PROPERTY_DECLARATION = "Invalid css property declaration: {0}";
 
+        /// <summary>The Constant INVALID_CSS_VARIABLE_NESTING.</summary>
+        public const String INVALID_CSS_VARIABLE_COUNT = "Css var expression count too high, possible cyclic backreference at declaration: {0}";
+
+        /// <summary>The Constant ERROR_DURING_CSS_VARIABLE_RESOLVING.</summary>
+        public const String ERROR_DURING_CSS_VARIABLE_RESOLVING = "Css var expression can't be resolved at declaration: {0}";
+
         /// <summary>The Constant INCORRECT_CHARACTER_SEQUENCE.</summary>
         public const String INCORRECT_CHARACTER_SEQUENCE = "Incorrect character sequence.";
 
@@ -73,6 +79,7 @@ namespace iText.StyledXmlParser.Logs {
         public const String RULE_IS_NOT_SUPPORTED = "The rule @{0} is unsupported. All selectors in this rule will be ignored.";
 
         /// <summary>The Constant RESOURCE_WITH_GIVEN_URL_WAS_FILTERED_OUT.</summary>
+        [Obsolete]
         public const String RESOURCE_WITH_GIVEN_URL_WAS_FILTERED_OUT = "Resource with given URL ({0}) was filtered out.";
 
         /// <summary>The Constant UNABLE_TO_RETRIEVE_IMAGE_WITH_GIVEN_DATA_URI.</summary>

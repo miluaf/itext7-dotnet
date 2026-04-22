@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -35,10 +35,7 @@ using iText.Test.Attributes;
 namespace iText.Kernel.Pdf {
     [NUnit.Framework.Category("IntegrationTest")]
     public class TrailerTest : ExtendedITextTest {
-        private ProductData productData;
-
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/kernel/pdf/TrailerTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/kernel/pdf/TrailerTest/";
 
         private static readonly byte[] USERPASS = "user".GetBytes();
 
@@ -49,15 +46,11 @@ namespace iText.Kernel.Pdf {
             CreateDestinationFolder(destinationFolder);
         }
 
-        [NUnit.Framework.SetUp]
-        public virtual void BeforeTest() {
-            this.productData = new ProductData("pdfProduct", "pdfProduct", "1.0.0", 1900, 2000);
-        }
-
         [NUnit.Framework.Test]
         public virtual void TrailerFingerprintTest() {
+            ProductData productData = new ProductData("pdfProduct", "pdfProduct", "1.0.0", 1900, 2000);
             PdfDocument pdf = new PdfDocument(new PdfWriter(destinationFolder + "output.pdf"));
-            pdf.RegisterProduct(this.productData);
+            pdf.RegisterProduct(productData);
             PdfPage page = pdf.AddNewPage();
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.BeginText().SetFontAndSize(PdfFontFactory.CreateFont(), 12f).ShowText("Hello World").EndText();
@@ -141,8 +134,9 @@ namespace iText.Kernel.Pdf {
 
         [NUnit.Framework.Test]
         public virtual void EnableFingerprintInAGPLModeTest() {
+            ProductData productData = new ProductData("pdfProduct", "pdfProduct", "1.0.0", 1900, 2000);
             PdfDocument pdf = new PdfDocument(new PdfWriter(destinationFolder + "enableFingerprintInAGPLMode.pdf"));
-            pdf.RegisterProduct(this.productData);
+            pdf.RegisterProduct(productData);
             PdfPage page = pdf.AddNewPage();
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.BeginText().SetFontAndSize(PdfFontFactory.CreateFont(), 12f).ShowText("Hello World").EndText();
@@ -155,9 +149,10 @@ namespace iText.Kernel.Pdf {
         [NUnit.Framework.Test]
         [LogMessage(KernelLogMessageConstant.FINGERPRINT_DISABLED_BUT_NO_REQUIRED_LICENCE)]
         public virtual void TryDisablingFingerprintInAGPLModeTest() {
+            ProductData productData = new ProductData("pdfProduct", "pdfProduct", "1.0.0", 1900, 2000);
             PdfDocument pdf = new PdfDocument(new PdfWriter(destinationFolder + "tryDisablingFingerprintInAGPLMode.pdf"
                 ));
-            pdf.RegisterProduct(this.productData);
+            pdf.RegisterProduct(productData);
             PdfPage page = pdf.AddNewPage();
             PdfCanvas canvas = new PdfCanvas(page);
             canvas.BeginText().SetFontAndSize(PdfFontFactory.CreateFont(), 12f).ShowText("Hello World").EndText();

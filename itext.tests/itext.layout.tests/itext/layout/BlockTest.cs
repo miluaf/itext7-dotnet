@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -40,8 +40,7 @@ namespace iText.Layout {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/BlockTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/BlockTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/layout/BlockTest/";
 
         private const String textByronNarrow = "When a man hath no freedom to fight for at home, " + "Let him combat for that of his neighbours; "
              + "Let him think of the glories of Greece and of Rome, " + "And get knocked on the head for his labours. "

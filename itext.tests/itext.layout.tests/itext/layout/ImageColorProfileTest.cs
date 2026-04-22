@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -33,8 +33,7 @@ using iText.Test.Attributes;
 namespace iText.Layout {
     [NUnit.Framework.Category("IntegrationTest")]
     public class ImageColorProfileTest : ExtendedITextTest {
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/ImageColorProfileTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/layout/ImageColorProfileTest/";
 
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/ImageColorProfileTest/";

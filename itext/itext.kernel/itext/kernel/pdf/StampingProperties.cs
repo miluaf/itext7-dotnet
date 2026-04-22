@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,6 +21,22 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 namespace iText.Kernel.Pdf {
+    /// <summary>
+    /// Class with additional properties for
+    /// <see cref="PdfDocument"/>
+    /// processing
+    /// in stamping mode.
+    /// </summary>
+    /// <remarks>
+    /// Class with additional properties for
+    /// <see cref="PdfDocument"/>
+    /// processing
+    /// in stamping mode. Needs to be passed at document initialization.
+    /// <para />
+    /// See
+    /// <see cref="PageFlushingHelper"/>
+    /// documentation to find more information about modes of document processing.
+    /// </remarks>
     public class StampingProperties : DocumentProperties {
         protected internal bool appendMode = false;
 
@@ -28,9 +44,13 @@ namespace iText.Kernel.Pdf {
 
         protected internal bool disableMac = false;
 
+        /// <summary>Default constructor, use provided setters for configuration options.</summary>
         public StampingProperties() {
         }
 
+        // Do nothing
+        /// <summary>Creates a copy of class instance.</summary>
+        /// <param name="other">the base for new class instance</param>
         public StampingProperties(iText.Kernel.Pdf.StampingProperties other)
             : base(other) {
             this.appendMode = other.appendMode;
@@ -39,9 +59,14 @@ namespace iText.Kernel.Pdf {
         }
 
 //\cond DO_NOT_DOCUMENT
+        /// <summary>
+        /// Creates a copy of
+        /// <see cref="DocumentProperties"/>
+        /// instance.
+        /// </summary>
+        /// <param name="documentProperties">the base for new class instance</param>
         internal StampingProperties(DocumentProperties documentProperties)
             : base(documentProperties) {
-            this.dependencies = documentProperties.dependencies;
         }
 //\endcond
 

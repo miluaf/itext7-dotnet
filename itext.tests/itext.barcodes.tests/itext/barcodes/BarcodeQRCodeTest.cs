@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -35,8 +35,7 @@ namespace iText.Barcodes {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/barcodes/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/barcodes/BarcodeQRCode/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/barcodes/BarcodeQRCode/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -55,8 +54,6 @@ namespace iText.Barcodes {
             PdfDocument document = new PdfDocument(writer);
             PdfPage page = document.AddNewPage();
             PdfCanvas canvas = new PdfCanvas(page);
-            IDictionary<EncodeHintType, Object> hints = new Dictionary<EncodeHintType, Object>();
-            hints.Put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
             BarcodeQRCode barcode = new BarcodeQRCode("some specific text 239214 hello world");
             barcode.PlaceBarcode(canvas, ColorConstants.GRAY, 12);
             document.Close();

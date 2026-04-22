@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -27,7 +27,7 @@ using iText.IO.Exceptions;
 using iText.IO.Source;
 
 namespace iText.IO.Colors {
-    /// <summary>Class used to represented the International Color Consortium profile</summary>
+    /// <summary>Class used to represent the International Color Consortium profile</summary>
     public class IccProfile {
         protected internal byte[] data;
 
@@ -35,6 +35,7 @@ namespace iText.IO.Colors {
 
         private static IDictionary<String, int?> cstags = new Dictionary<String, int?>();
 
+        /// <summary>Creates a new, empty icc profile.</summary>
         protected internal IccProfile() {
         }
 

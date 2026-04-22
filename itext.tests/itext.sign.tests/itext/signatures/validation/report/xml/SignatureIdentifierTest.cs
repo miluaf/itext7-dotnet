@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -24,6 +24,7 @@ using iText.Signatures.Cms;
 using iText.Signatures.Testutils;
 
 namespace iText.Signatures.Validation.Report.Xml {
+    [NUnit.Framework.Category("IntegrationTest")]
     public class SignatureIdentifierTest : AbstractIdentifiableObjectTest {
         protected internal override void PerformTestHashForEqualInstances() {
             AbstractIdentifiableObject sut1 = GetIdentifiableObjectUnderTest();

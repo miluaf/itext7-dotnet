@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using iText.Bouncycastleconnector;
+using iText.Commons.Actions;
 using iText.Commons.Bouncycastle;
 using iText.Commons.Bouncycastle.Asn1;
 using iText.Commons.Bouncycastle.Asn1.Esf;
@@ -45,7 +46,6 @@ using iText.Kernel.Geom;
 using iText.Kernel.Mac;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Annot;
-using iText.Kernel.Pdf.Tagutils;
 using iText.Kernel.Utils;
 using iText.Kernel.Validation;
 using iText.Kernel.Validation.Context;
@@ -184,7 +184,7 @@ namespace iText.Signatures {
         /// </param>
         public PdfSigner(PdfReader reader, Stream outputStream, String path, StampingProperties properties) {
             StampingProperties localProps = new StampingProperties(properties).PreserveEncryption();
-            localProps.RegisterDependency(typeof(IMacContainerLocator), new SignatureMacContainerLocator());
+            localProps.RegisterDependency(typeof(IMacContainerLocator), () => new SignatureMacContainerLocator());
             if (path == null) {
                 this.temporaryOS = new MemoryStream();
                 this.document = InitDocument(reader, new PdfWriter(temporaryOS), localProps);
@@ -543,7 +543,7 @@ namespace iText.Signatures {
                 .ETSI_CAdES_DETACHED : PdfName.Adbe_pkcs7_detached);
             dic.SetReason(this.signerProperties.GetReason());
             dic.SetLocation(this.signerProperties.GetLocation());
-            dic.SetSignatureCreator(this.signerProperties.GetSignatureCreator());
+            dic.SetSignatureCreator(GetSignatureCreator());
             dic.SetContact(this.signerProperties.GetContact());
             DateTime claimedSignDate = this.signerProperties.GetClaimedSignDate();
             if (claimedSignDate != TimestampConstants.UNDEFINED_TIMESTAMP_DATE) {
@@ -659,6 +659,7 @@ namespace iText.Signatures {
             this.signerProperties.SetFieldName(signatureName);
             PdfSignature dic = new PdfSignature(PdfName.Adobe_PPKLite, PdfName.ETSI_RFC3161);
             dic.Put(PdfName.Type, PdfName.DocTimeStamp);
+            dic.SetSignatureCreator(GetSignatureCreator());
             cryptoDictionary = dic;
             IDictionary<PdfName, int?> exc = new Dictionary<PdfName, int?>();
             exc.Put(PdfName.Contents, contentEstimated * 2 + 2);
@@ -1253,12 +1254,37 @@ namespace iText.Signatures {
             return pageNumber;
         }
 
+        /// <summary>
+        /// Applies
+        /// <see cref="iText.Kernel.Pdf.Tagutils.AccessibilityProperties"/>
+        /// for provided signature field.
+        /// </summary>
+        /// <param name="formField">
+        /// 
+        /// <see cref="iText.Forms.Fields.PdfFormField"/>
+        /// the form field to which the accessibility properties should be applied
+        /// </param>
+        /// <param name="modelElement">
+        /// 
+        /// <see cref="iText.Layout.Tagging.IAccessibleElement"/>
+        /// the form field layout element with accessibility properties
+        /// </param>
+        /// <param name="pdfDocument">
+        /// 
+        /// <see cref="iText.Kernel.Pdf.PdfDocument"/>
+        /// the document to which the form field belongs
+        /// </param>
+        protected internal virtual void ApplyAccessibilityProperties(PdfFormField formField, IAccessibleElement modelElement
+            , PdfDocument pdfDocument) {
+            PdfFormField.ApplyAccessibilityProperties(formField, modelElement, pdfDocument);
+        }
+
 //\cond DO_NOT_DOCUMENT
         internal virtual PdfSignature CreateSignatureDictionary(bool includeDate) {
             PdfSignature dic = new PdfSignature();
             dic.SetReason(this.signerProperties.GetReason());
             dic.SetLocation(this.signerProperties.GetLocation());
-            dic.SetSignatureCreator(this.signerProperties.GetSignatureCreator());
+            dic.SetSignatureCreator(GetSignatureCreator());
             dic.SetContact(this.signerProperties.GetContact());
             DateTime claimedSignDate = this.signerProperties.GetClaimedSignDate();
             if (includeDate && claimedSignDate != TimestampConstants.UNDEFINED_TIMESTAMP_DATE) {
@@ -1317,6 +1343,16 @@ namespace iText.Signatures {
         }
 //\endcond
 
+        private String GetSignatureCreator() {
+            String signatureCreator = this.signerProperties.GetSignatureCreator();
+            if (signatureCreator == null || !String.IsNullOrEmpty(signatureCreator)) {
+                return signatureCreator;
+            }
+            GetSignatureCreatorEvent @event = new GetSignatureCreatorEvent(document);
+            EventManager.GetInstance().OnEvent(@event);
+            return @event.GetSignatureCreator();
+        }
+
         private static String GetSignerName(IX509Certificate certificate) {
             String name = null;
             CertificateInfo.X500Name x500name = CertificateInfo.GetSubjectFields(certificate);
@@ -1361,18 +1397,6 @@ namespace iText.Signatures {
 
         private bool IsDocumentPdf2() {
             return document.GetPdfVersion().CompareTo(PdfVersion.PDF_2_0) >= 0;
-        }
-
-        protected internal virtual void ApplyAccessibilityProperties(PdfFormField formField, IAccessibleElement modelElement
-            , PdfDocument pdfDocument) {
-            if (!pdfDocument.IsTagged()) {
-                return;
-            }
-            AccessibilityProperties properties = modelElement.GetAccessibilityProperties();
-            String alternativeDescription = properties.GetAlternateDescription();
-            if (alternativeDescription != null && !String.IsNullOrEmpty(alternativeDescription)) {
-                formField.SetAlternativeName(alternativeDescription);
-            }
         }
 
         private void ApplyDefaultPropertiesForTheNewField(PdfSignatureFormField sigField) {
@@ -1487,7 +1511,7 @@ namespace iText.Signatures {
 
             public virtual void Apply(PdfSigner.ISignatureDataProvider signatureDataProvider) {
                 StampingProperties properties = new StampingProperties().PreserveEncryption();
-                properties.RegisterDependency(typeof(IMacContainerLocator), new SignatureMacContainerLocator());
+                properties.RegisterDependency(typeof(IMacContainerLocator), () => new SignatureMacContainerLocator());
                 // This IdleOutputStream writer does nothing and only required to be able to apply MAC if needed.
                 using (PdfWriter dummyWriter = new PdfWriter(new IdleOutputStream())) {
                     if (document == null) {
@@ -1567,12 +1591,15 @@ namespace iText.Signatures {
             public PdfSignerDocument(PdfReader reader, PdfWriter writer, StampingProperties properties)
                 : base(reader, writer, properties) {
                 if (GetConformance().IsPdfA()) {
-                    PdfAChecker checker = PdfADocument.GetCorrectCheckerFromConformance(GetConformance().GetAConformance());
+                    PdfAChecker pdfAChecker = PdfADocument.GetCorrectCheckerFromConformance(GetConformance().GetAConformance()
+                        );
                     ValidationContainer validationContainer = new ValidationContainer();
-                    validationContainer.AddChecker(checker);
+                    validationContainer.AddChecker(pdfAChecker);
+                    if ("4".Equals(GetConformance().GetAConformance().GetPart())) {
+                        validationContainer.AddChecker(new Pdf20Checker(this));
+                    }
                     GetDiContainer().Register(typeof(ValidationContainer), validationContainer);
-                    this.pdfPageFactory = new PdfAPageFactory(checker);
-                    this.documentInfoHelper = new PdfADocumentInfoHelper(this);
+                    this.pdfPageFactory = new PdfAPageFactory(pdfAChecker);
                     this.defaultFontStrategy = new PdfADefaultFontStrategy(this);
                     SetFlushUnusedObjects(true);
                 }

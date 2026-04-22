@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -36,8 +36,7 @@ namespace iText.Layout.Renderer {
     public class ImageWidthTest : ExtendedITextTest {
         private const double EPSILON = 0.01;
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/ImageWidthTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/layout/ImageWidthTest/";
 
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/ImageWidthTest/";

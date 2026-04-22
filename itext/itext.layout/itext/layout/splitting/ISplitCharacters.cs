@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -33,7 +33,7 @@ namespace iText.Layout.Splitting {
         /// <see cref="iText.IO.Font.Otf.GlyphLine"/>
         /// </param>
         /// <param name="text">an array of unicode char codes which represent current text</param>
-        /// <returns>true if the character can split a line.</returns>
+        /// <returns>true if the line can be split after the character</returns>
         bool IsSplitCharacter(GlyphLine text, int glyphPos);
     }
 }

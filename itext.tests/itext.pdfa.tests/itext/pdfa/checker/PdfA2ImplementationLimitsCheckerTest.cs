@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -120,8 +120,9 @@ namespace iText.Pdfa.Checker {
         }
 
         private void CheckColorspace(PdfColorSpace colorSpace) {
+            PdfA2Checker pdfA2LocalChecker = new PdfA2Checker(PdfAConformance.PDF_A_2B);
             PdfDictionary currentColorSpaces = new PdfDictionary();
-            pdfA2Checker.CheckColorSpace(colorSpace, null, currentColorSpaces, true, false);
+            pdfA2LocalChecker.CheckColorSpace(colorSpace, null, currentColorSpaces, true, false);
         }
 
         private PdfColorSpace BuildDeviceNColorspace(int numberOfComponents) {

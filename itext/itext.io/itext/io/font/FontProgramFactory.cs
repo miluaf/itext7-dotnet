@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -143,7 +143,7 @@ namespace iText.IO.Font {
         /// <para />
         /// </remarks>
         /// <param name="fontProgram">the byte contents of the font program</param>
-        /// <param name="cached">whether to to cache this font program</param>
+        /// <param name="cached">whether to cache this font program</param>
         /// <returns>
         /// returns a new
         /// <see cref="FontProgram"/>
@@ -151,6 +151,26 @@ namespace iText.IO.Font {
         /// </returns>
         public static FontProgram CreateFont(byte[] fontProgram, bool cached) {
             return CreateFont(null, null, fontProgram, cached);
+        }
+
+        /// <summary>Creates a new TrueType font from the byte content.</summary>
+        /// <param name="fontProgram">the byte contents of the font program</param>
+        /// <param name="isLenientMode">whether parse font in lenient mode (when allowed that some tables can be missed) or not
+        ///     </param>
+        /// <returns>
+        /// a new
+        /// <see cref="FontProgram"/>
+        /// </returns>
+        public static TrueTypeFont CreateTrueTypeFont(byte[] fontProgram, bool isLenientMode) {
+            if (WoffConverter.IsWoffFont(fontProgram)) {
+                return new TrueTypeFont(WoffConverter.Convert(fontProgram), isLenientMode);
+            }
+            else {
+                if (Woff2Converter.IsWoff2Font(fontProgram)) {
+                    return new TrueTypeFont(Woff2Converter.Convert(fontProgram), isLenientMode);
+                }
+            }
+            return new TrueTypeFont(fontProgram, isLenientMode);
         }
 
         private static FontProgram CreateFont(String name, String cmap, byte[] fontProgram, bool cached) {
@@ -176,15 +196,7 @@ namespace iText.IO.Font {
             if (name == null) {
                 if (fontProgram != null) {
                     try {
-                        if (WoffConverter.IsWoffFont(fontProgram)) {
-                            fontProgram = WoffConverter.Convert(fontProgram);
-                        }
-                        else {
-                            if (Woff2Converter.IsWoff2Font(fontProgram)) {
-                                fontProgram = Woff2Converter.Convert(fontProgram);
-                            }
-                        }
-                        fontBuilt = new TrueTypeFont(fontProgram);
+                        fontBuilt = CreateTrueTypeFont(fontProgram, false);
                     }
                     catch (Exception) {
                     }
@@ -201,7 +213,7 @@ namespace iText.IO.Font {
                 String fontFileExtension = null;
                 int extensionBeginIndex = baseName.LastIndexOf('.');
                 if (extensionBeginIndex > 0) {
-                    fontFileExtension = baseName.Substring(extensionBeginIndex).ToLowerInvariant();
+                    fontFileExtension = StringNormalizer.ToLowerCase(baseName.Substring(extensionBeginIndex));
                 }
                 if (isBuiltinFonts14 || ".afm".Equals(fontFileExtension) || ".pfm".Equals(fontFileExtension)) {
                     fontBuilt = new Type1Font(name, null, null, null);
@@ -245,7 +257,7 @@ namespace iText.IO.Font {
                                 fontBuilt = new TrueTypeFont(fontProgram);
                             }
                             else {
-                                int ttcSplit = baseName.ToLowerInvariant().IndexOf(".ttc,", StringComparison.Ordinal);
+                                int ttcSplit = StringNormalizer.ToLowerCase(baseName).IndexOf(".ttc,", StringComparison.Ordinal);
                                 if (ttcSplit > 0) {
                                     try {
                                         // count(.ttc) = 4

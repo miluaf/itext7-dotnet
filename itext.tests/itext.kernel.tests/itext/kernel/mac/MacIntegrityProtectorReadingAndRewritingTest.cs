@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -42,8 +42,7 @@ namespace iText.Kernel.Mac {
         private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/kernel/mac/MacIntegrityProtectorReadingAndRewritingTest/";
 
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/kernel/mac/MacIntegrityProtectorReadingAndRewritingTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/kernel/mac/MacIntegrityProtectorReadingAndRewritingTest/";
 
         private static readonly String CERTS_SRC = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/kernel/mac/MacIntegrityProtectorReadingAndRewritingTest/certs/";
@@ -321,7 +320,7 @@ namespace iText.Kernel.Mac {
             String outputFileName = DESTINATION_FOLDER + fileName;
             String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName;
             StampingProperties stampingProperties = new StampingProperties();
-            stampingProperties.RegisterDependency(typeof(IMacContainerLocator), new _StandaloneMacContainerLocator_360
+            stampingProperties.RegisterDependency(typeof(IMacContainerLocator), () => new _StandaloneMacContainerLocator_360
                 ());
             // do nothing
             using (PdfDocument pdfDoc = new PdfDocument(new PdfReader(SOURCE_FOLDER + "macProtectionStrippedTest.pdf", 
@@ -346,7 +345,7 @@ namespace iText.Kernel.Mac {
             String outputFileName = DESTINATION_FOLDER + fileName;
             String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName;
             StampingProperties stampingProperties = new StampingProperties();
-            stampingProperties.RegisterDependency(typeof(IMacContainerLocator), new _StandaloneMacContainerLocator_384
+            stampingProperties.RegisterDependency(typeof(IMacContainerLocator), () => new _StandaloneMacContainerLocator_384
                 ());
             // do nothing
             using (PdfDocument pdfDoc = new PdfDocument(new PdfReader(SOURCE_FOLDER + "thirdPartyMacProtectedDocumentTampered.pdf"

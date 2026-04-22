@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -30,8 +30,10 @@ using iText.Test;
 namespace iText.IO.Font.Otf {
     [NUnit.Framework.Category("UnitTest")]
     public class GlyphLineTest : ExtendedITextTest {
-        public static readonly String FREESANS_FONT_PATH = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
-            .CurrentContext.TestDirectory) + "/resources/itext/io/font/otf/FreeSans.ttf";
+        private static readonly String FONTS_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+            .CurrentContext.TestDirectory) + "/resources/itext/io/font/";
+
+        private static readonly String NOTO_SANS_FONT_PATH = FONTS_FOLDER + "NotoSans-Regular.ttf";
 
         private static IList<Glyph> ConstructGlyphListFromString(String text, TrueTypeFont font) {
             IList<Glyph> glyphList = new List<Glyph>();
@@ -46,10 +48,10 @@ namespace iText.IO.Font.Otf {
         public virtual void TestEquals() {
             Glyph glyph = new Glyph(200, 200, 200);
             GlyphLine.ActualText actualText = new GlyphLine.ActualText("-");
-            GlyphLine one = new GlyphLine(new List<Glyph>(JavaUtil.ArraysAsList(glyph)), new List<GlyphLine.ActualText
-                >(JavaUtil.ArraysAsList(actualText)), 0, 1);
-            GlyphLine two = new GlyphLine(new List<Glyph>(JavaUtil.ArraysAsList(glyph)), new List<GlyphLine.ActualText
-                >(JavaUtil.ArraysAsList(actualText)), 0, 1);
+            GlyphLine one = new GlyphLine(new List<Glyph>(JavaCollectionsUtil.SingletonList(glyph)), new List<GlyphLine.ActualText
+                >(JavaCollectionsUtil.SingletonList(actualText)), 0, 1);
+            GlyphLine two = new GlyphLine(new List<Glyph>(JavaCollectionsUtil.SingletonList(glyph)), new List<GlyphLine.ActualText
+                >(JavaCollectionsUtil.SingletonList(actualText)), 0, 1);
             one.Add(glyph);
             two.Add(glyph);
             one.SetEnd(one.GetEnd() + 1);
@@ -183,6 +185,19 @@ namespace iText.IO.Font.Otf {
             GlyphLine line = new GlyphLine(ConstructGlyphListFromString("A", font));
             line.SubstituteOneToMany(font.GetGsubTable(), new int[] { 39, 40 });
             NUnit.Framework.Assert.IsNull(line.actualText);
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void TestCharsForSubstitutedGlyphProcessingInSubstituteOneToMany() {
+            TrueTypeFont font = InitializeFont();
+            GlyphLine line = new GlyphLine(ConstructGlyphListFromString("1", font));
+            line.Get(0).SetChars(new char[] { (char)37, (char)38 });
+            // Modify glyphs from font program not to have chars so that old chars are preserved
+            font.GetGlyphByCode(39).SetChars(null);
+            font.GetGlyphByCode(40).SetChars(null);
+            line.SubstituteOneToMany(font.GetGsubTable(), new int[] { 39, 40 });
+            NUnit.Framework.Assert.IsNull(line.Get(0).GetChars());
+            NUnit.Framework.Assert.IsNull(line.Get(1).GetChars());
         }
 
         [NUnit.Framework.Test]
@@ -360,7 +375,7 @@ namespace iText.IO.Font.Otf {
         }
 
         private TrueTypeFont InitializeFont() {
-            byte[] ttf = StreamUtil.InputStreamToArray(FileUtil.GetInputStreamForFile(FREESANS_FONT_PATH));
+            byte[] ttf = StreamUtil.InputStreamToArray(FileUtil.GetInputStreamForFile(NOTO_SANS_FONT_PATH));
             return new TrueTypeFont(ttf);
         }
     }

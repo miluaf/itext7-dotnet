@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -42,6 +42,9 @@ namespace iText.Kernel.Validation {
         CANVAS_BEGIN_MARKED_CONTENT,
         CANVAS_WRITING_CONTENT,
         LAYOUT,
-        DUPLICATE_ID_ENTRY
+        DUPLICATE_ID_ENTRY,
+        DESTINATION_ADDITION,
+        ANNOTATION,
+        CANVAS_TEXT_ADDITION
     }
 }

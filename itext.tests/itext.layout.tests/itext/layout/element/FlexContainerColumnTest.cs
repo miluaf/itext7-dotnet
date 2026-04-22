@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -40,8 +40,7 @@ namespace iText.Layout.Element {
         public static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/FlexContainerColumnTest/";
 
-        public static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/FlexContainerColumnTest/";
+        public static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/layout/FlexContainerColumnTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -58,7 +57,11 @@ namespace iText.Layout.Element {
                 { AlignmentPropertyValue.CENTER, JustifyContent.CENTER, FlexWrapPropertyValue.WRAP, FlexDirectionPropertyValue
                 .COLUMN, 5 }, new Object[] { AlignmentPropertyValue.FLEX_END, JustifyContent.FLEX_END, FlexWrapPropertyValue
                 .WRAP_REVERSE, FlexDirectionPropertyValue.COLUMN, 6 }, new Object[] { AlignmentPropertyValue.CENTER, JustifyContent
-                .CENTER, FlexWrapPropertyValue.WRAP_REVERSE, FlexDirectionPropertyValue.COLUMN_REVERSE, 7 } });
+                .CENTER, FlexWrapPropertyValue.WRAP_REVERSE, FlexDirectionPropertyValue.COLUMN_REVERSE, 7 }, new Object
+                [] { AlignmentPropertyValue.FLEX_START, JustifyContent.SPACE_AROUND, FlexWrapPropertyValue.NOWRAP, FlexDirectionPropertyValue
+                .COLUMN, 8 }, new Object[] { AlignmentPropertyValue.CENTER, JustifyContent.SPACE_BETWEEN, FlexWrapPropertyValue
+                .WRAP, FlexDirectionPropertyValue.COLUMN, 9 }, new Object[] { AlignmentPropertyValue.FLEX_END, JustifyContent
+                .SPACE_EVENLY, FlexWrapPropertyValue.WRAP_REVERSE, FlexDirectionPropertyValue.COLUMN_REVERSE, 10 } });
         }
 
         [NUnit.Framework.TestCaseSource("AlignItemsAndJustifyContentProperties")]

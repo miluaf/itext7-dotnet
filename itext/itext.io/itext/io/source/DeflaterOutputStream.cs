@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -24,7 +24,7 @@ using System.IO;
 using System.util.zlib;
 
 namespace iText.IO.Source {
-	public class DeflaterOutputStream : ZDeflaterOutputStream
+	public class DeflaterOutputStream : ZDeflaterOutputStream , IFinishable
 	{
 		public DeflaterOutputStream(Stream outp, int level, int size)
 			: base(outp, level)

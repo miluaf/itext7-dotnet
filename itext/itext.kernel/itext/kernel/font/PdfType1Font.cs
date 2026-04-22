@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,6 +21,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
+using iText.Commons.Utils;
 using iText.IO.Font;
 using iText.IO.Font.Otf;
 using iText.Kernel.Pdf;
@@ -35,11 +36,12 @@ namespace iText.Kernel.Font {
             if ((encoding == null || encoding.Length == 0) && type1Font.IsFontSpecific()) {
                 encoding = FontEncoding.FONT_SPECIFIC;
             }
-            if (encoding != null && FontEncoding.FONT_SPECIFIC.ToLowerInvariant().Equals(encoding.ToLowerInvariant())) {
-                fontEncoding = FontEncoding.CreateFontSpecificEncoding();
+            if (encoding != null && StringNormalizer.ToLowerCase(FontEncoding.FONT_SPECIFIC).Equals(StringNormalizer.ToLowerCase
+                (encoding))) {
+                SetFontEncoding(FontEncoding.CreateFontSpecificEncoding());
             }
             else {
-                fontEncoding = FontEncoding.CreateFontEncoding(encoding);
+                SetFontEncoding(FontEncoding.CreateFontEncoding(encoding));
             }
         }
 //\endcond
@@ -54,8 +56,8 @@ namespace iText.Kernel.Font {
         internal PdfType1Font(PdfDictionary fontDictionary)
             : base(fontDictionary) {
             newFont = false;
-            fontEncoding = DocFontEncoding.CreateDocFontEncoding(fontDictionary.Get(PdfName.Encoding), toUnicode);
-            fontProgram = DocType1Font.CreateFontProgram(fontDictionary, fontEncoding, toUnicode);
+            SetFontEncoding(DocFontEncoding.CreateDocFontEncoding(fontDictionary.Get(PdfName.Encoding), toUnicode));
+            fontProgram = DocType1Font.CreateFontProgram(fontDictionary, GetFontEncoding(), toUnicode);
             if (fontProgram is IDocFontProgram) {
                 embedded = ((IDocFontProgram)fontProgram).GetFontFile() != null;
             }
@@ -83,13 +85,13 @@ namespace iText.Kernel.Font {
         }
 
         public override Glyph GetGlyph(int unicode) {
-            if (fontEncoding.CanEncode(unicode)) {
+            if (GetFontEncoding().CanEncode(unicode)) {
                 Glyph glyph;
-                if (fontEncoding.IsFontSpecific()) {
+                if (GetFontEncoding().IsFontSpecific()) {
                     glyph = GetFontProgram().GetGlyphByCode(unicode);
                 }
                 else {
-                    glyph = GetFontProgram().GetGlyph(fontEncoding.GetUnicodeDifference(unicode));
+                    glyph = GetFontProgram().GetGlyph(GetFontEncoding().GetUnicodeDifference(unicode));
                     if (glyph == null && (glyph = notdefGlyphs.Get(unicode)) == null) {
                         // Handle special layout characters like sfthyphen (00AD).
                         // This glyphs will be skipped while converting to bytes
@@ -103,12 +105,12 @@ namespace iText.Kernel.Font {
         }
 
         public override bool ContainsGlyph(int unicode) {
-            if (fontEncoding.CanEncode(unicode)) {
-                if (fontEncoding.IsFontSpecific()) {
+            if (GetFontEncoding().CanEncode(unicode)) {
+                if (GetFontEncoding().IsFontSpecific()) {
                     return GetFontProgram().GetGlyphByCode(unicode) != null;
                 }
                 else {
-                    return GetFontProgram().GetGlyph(fontEncoding.GetUnicodeDifference(unicode)) != null;
+                    return GetFontProgram().GetGlyph(GetFontEncoding().GetUnicodeDifference(unicode)) != null;
                 }
             }
             else {

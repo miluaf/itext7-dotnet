@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+    Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -44,6 +44,16 @@ namespace iText.Commons.Utils {
         }
 
         /// <summary>
+        /// Gets the LocalDateTime from UTC seconds from the epoch.
+        /// </summary>
+        /// <param name="epochSecond">the UTC milliseconds from the epoch</param>
+        /// <returns>local time from UTC seconds</returns>
+        public static DateTime OfEpochSecondUTC(long epochSecond)
+        {
+            return GetInitial().AddSeconds(epochSecond);
+        }
+
+        /// <summary>
         /// Gets the calendar date and time of a day.
         /// </summary>
         /// <param name="dateTime">the date to be returned as calendar</param>
@@ -67,7 +77,7 @@ namespace iText.Commons.Utils {
         public static DateTime GetCurrentUtcTime() {
             return DateTime.UtcNow;
         }
-        
+
         /// <summary>
         /// Defines if date is in past.
         /// </summary>
@@ -118,6 +128,26 @@ namespace iText.Commons.Utils {
         }
 
         /// <summary>
+        /// Parses passing date with specified format.
+        /// </summary>
+        /// <param name="date">the date to be parsed</param>
+        /// <param name="format">the format of parsing the date</param>
+        /// <returns>parsed date</returns>
+        public static DateTime ParseToLocalDateTime(String date, String format) {
+            return Parse(date, format);
+        }
+
+        /// <summary>
+        /// Parses date time according to specified format.
+        /// </summary>
+        /// <param name="dateTime">date time to parse</param>
+        /// <param name="format">parsing format</param>
+        /// <returns>parse date time as string</returns>
+        public static String ParseLocalDateTime(DateTime dateTime, String format) {
+            return dateTime.ToString(format, CultureInfo.InvariantCulture);
+        }
+
+        /// <summary>
         /// Format passing date with default yyyy-MM-dd pattern.
         /// </summary>
         /// <param name="date">the date to be formatted</param>
@@ -154,6 +184,67 @@ namespace iText.Commons.Utils {
         /// <returns>string date value.</returns>
         public static String DateToString(DateTime signDate) {
             return signDate.ToLocalTime().ToString("yyyy.MM.dd HH:mm:ss zzz");
+        }
+       
+        /// <summary>
+        /// Creates a DateTime object with the specified year, month, day, hour, minute, and second. 
+        /// </summary>
+        /// <param name="year">The year</param>
+        /// <param name="month">The month</param>
+        /// <param name="day">The day</param>
+        /// <param name="hour">The hour</param>
+        /// <param name="minute">The minute</param>
+        /// <param name="second">The second</param>
+        /// <returns></returns>
+        public static DateTime CreateDateTime(int year, int month, int day, int hour, int minute, int second) {
+            return new DateTime(year, month, day, hour, minute, second);
+        }
+        
+        /// <summary>
+        /// Creates a DateTime object with the specified year, month, day, hour, minute, and second. 
+        /// </summary>
+        /// <param name="year">The year</param>
+        /// <param name="month">The month</param>
+        /// <param name="day">The day</param>
+        /// <param name="hour">The hour</param>
+        /// <param name="minute">The minute</param>
+        /// <param name="second">The second</param>
+        /// <returns></returns>
+        public static DateTime CreateDateTime(int year, int month, int day, int hour, int minute) {
+            return new DateTime(year, month, day, hour, minute,0);
+        }
+        ///<summary>
+        /// Gets the DateTime from milliseconds.
+        /// </summary>
+        /// <param name="milliseconds"> the UTC milliseconds from the epoch</param>
+        /// <returns> DateTime converted from milliseconds</returns>
+        public static DateTime GetTimeFromMillis(long milliseconds)
+        {
+            return GetInitial().AddMilliseconds(milliseconds);
+        }
+        
+        /// <summary>
+        /// Creates UTC Date based on provided parameters.
+        /// </summary>
+        /// <param name="year">as int to be created</param>
+        /// <param name="month">as int to be created</param>
+        /// <param name="day">as int to be created</param>
+        /// <param name="hour">as int to be created</param>
+        /// <param name="minute">as int to be created</param>
+        /// <param name="second">as int to be created</param>
+        /// <returns>UTC date</returns>
+        public static DateTime CreateUtcDateTime(int year, int month, int day, int hour, int minute, int second) {
+            return new DateTime(year, month + 1, day, hour, minute, second, DateTimeKind.Utc);
+        }
+
+        /// <summary>
+        /// Serialize time using format YYYY-MM-DDTHH-MM-SS
+        /// </summary>
+        /// <param name="dateTime">local time to be converted</param>
+        /// <returns>serialized time</returns>
+        public static String SerializeDateToISO8601(DateTime dateTime)
+        {
+            return dateTime.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture);
         }
 
         private static DateTime GetInitial() {

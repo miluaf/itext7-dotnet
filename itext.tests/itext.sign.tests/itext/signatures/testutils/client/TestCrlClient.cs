@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -49,6 +49,13 @@ namespace iText.Signatures.Testutils.Client {
             , IPrivateKey issuerPrivateKey) {
             DateTime yesterday = TimeTestUtil.TEST_DATE_TIME.AddDays(-1);
             crlBuilders.Add(new TestCrlBuilder(issuerCert, issuerPrivateKey, yesterday));
+            return this;
+        }
+
+        public virtual iText.Signatures.Testutils.Client.TestCrlClient AddBuilderForCertIssuer(IX509Certificate issuerCert
+            , IPrivateKey issuerPrivateKey, String signatureAlgorithm) {
+            DateTime yesterday = TimeTestUtil.TEST_DATE_TIME.AddDays(-1);
+            crlBuilders.Add(new TestCrlBuilder(issuerCert, issuerPrivateKey, yesterday, signatureAlgorithm));
             return this;
         }
 

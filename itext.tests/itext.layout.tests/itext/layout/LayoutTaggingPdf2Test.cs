@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -36,8 +36,7 @@ using iText.Test.Attributes;
 namespace iText.Layout {
     [NUnit.Framework.Category("IntegrationTest")]
     public class LayoutTaggingPdf2Test : ExtendedITextTest {
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/LayoutTaggingPdf2Test/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/layout/LayoutTaggingPdf2Test/";
 
         public const String imageName = "Desert.jpg";
 
@@ -150,12 +149,14 @@ namespace iText.Layout {
             html4Ns.AddNamespaceRoleMapping(LayoutTaggingPdf2Test.HtmlRoles.center, LayoutTaggingPdf2Test.HtmlRoles.center
                 , xhtmlNs);
             // test some tricky mapping cases
-            pdfDocument.GetStructTreeRoot().AddRoleMapping(h9, h1);
-            pdfDocument.GetStructTreeRoot().AddRoleMapping(h1, h1);
-            pdfDocument.GetStructTreeRoot().AddRoleMapping("Center", StandardRoles.P);
-            pdfDocument.GetStructTreeRoot().AddRoleMapping("I", StandardRoles.SPAN);
-            pdfDocument.GetTagStructureContext().SetDocumentDefaultNamespace(null);
-            pdfDocument.GetTagStructureContext().GetAutoTaggingPointer().SetNamespaceForNewTags(xhtmlNs);
+            PdfStructTreeRoot structTreeRoot = pdfDocument.GetStructTreeRoot();
+            structTreeRoot.AddRoleMapping(h9, h1);
+            structTreeRoot.AddRoleMapping(h1, h1);
+            structTreeRoot.AddRoleMapping("Center", StandardRoles.P);
+            structTreeRoot.AddRoleMapping("I", StandardRoles.SPAN);
+            TagStructureContext tagStructureContext = pdfDocument.GetTagStructureContext();
+            tagStructureContext.SetDocumentDefaultNamespace(null);
+            tagStructureContext.GetAutoTaggingPointer().SetNamespaceForNewTags(xhtmlNs);
             Document document = new Document(pdfDocument);
             AddContentToDocInCustomNs(pdfDocument, null, xhtmlNs, html4Ns, h1, document);
             document.Close();

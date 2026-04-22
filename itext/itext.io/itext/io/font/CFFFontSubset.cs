@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -158,11 +158,22 @@ namespace iText.IO.Font {
         }
 //\endcond
 
+        /// <summary>C'tor for CFFFontSubset</summary>
+        /// <param name="cff">font binary data</param>
+        /// <param name="GlyphsUsed">glyphs used in the text after being converted to glyph number by the CMap</param>
         public CFFFontSubset(byte[] cff, ICollection<int> GlyphsUsed)
             : this(cff, GlyphsUsed, false) {
         }
 
 //\cond DO_NOT_DOCUMENT
+        /// <summary>C'tor for CFFFontSubset</summary>
+        /// <param name="cff">font binary data</param>
+        /// <param name="GlyphsUsed">glyphs used in the text after being converted to glyph number by the CMap</param>
+        /// <param name="isCidParsingRequired">
+        /// if
+        /// <see langword="true"/>
+        /// , gid to cid array will be created
+        /// </param>
         internal CFFFontSubset(byte[] cff, ICollection<int> GlyphsUsed, bool isCidParsingRequired)
             : base(
                         // Use CFFFont c'tor in order to parse the font file.

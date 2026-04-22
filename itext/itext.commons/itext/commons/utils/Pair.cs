@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -20,10 +20,13 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+using System;
+
 namespace iText.Commons.Utils {
     /// <summary>Class which represents a pair of key and value.</summary>
     /// <typeparam name="K">key parameter type.</typeparam>
     /// <typeparam name="V">value parameter type.</typeparam>
+    [System.ObsoleteAttribute(@"in favour of iText.Commons.Datastructures.Tuple2{T1, T2}")]
     public class Pair<K, V> {
         private readonly K key;
 

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -35,8 +35,7 @@ namespace iText.Kernel.Pdf {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/kernel/pdf/EncryptedEmbeddedStreamsHandlerTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/kernel/pdf/EncryptedEmbeddedStreamsHandlerTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/kernel/pdf/EncryptedEmbeddedStreamsHandlerTest/";
 
         [NUnit.Framework.OneTimeSetUp]
         public static void BeforeClass() {
@@ -51,6 +50,7 @@ namespace iText.Kernel.Pdf {
         [NUnit.Framework.Test]
         [LogMessage(KernelLogMessageConstant.MD5_IS_NOT_FIPS_COMPLIANT, Ignore = true)]
         public virtual void NoReaderStandardEncryptionAddFileAttachment() {
+            // Test result here is wrong. Note that createEncryptedDocument adds EncryptionConstants.EMBEDDED_FILES_ONLY.
             String outFileName = destinationFolder + "noReaderStandardEncryptionAddFileAttachment.pdf";
             String cmpFileName = sourceFolder + "cmp_noReaderStandardEncryptionAddFileAttachment.pdf";
             PdfDocument pdfDocument = CreateEncryptedDocument(EncryptionConstants.STANDARD_ENCRYPTION_128, outFileName
@@ -67,6 +67,7 @@ namespace iText.Kernel.Pdf {
         [NUnit.Framework.Test]
         [LogMessage(KernelLogMessageConstant.MD5_IS_NOT_FIPS_COMPLIANT, Ignore = true)]
         public virtual void NoReaderAesEncryptionAddFileAttachment() {
+            // Test result here is wrong. Note that createEncryptedDocument adds EncryptionConstants.EMBEDDED_FILES_ONLY.
             String outFileName = destinationFolder + "noReaderAesEncryptionAddFileAttachment.pdf";
             String cmpFileName = sourceFolder + "cmp_noReaderAesEncryptionAddFileAttachment.pdf";
             PdfDocument pdfDocument = CreateEncryptedDocument(EncryptionConstants.ENCRYPTION_AES_128, outFileName);
@@ -102,6 +103,7 @@ namespace iText.Kernel.Pdf {
         [NUnit.Framework.Test]
         [LogMessage(KernelLogMessageConstant.MD5_IS_NOT_FIPS_COMPLIANT, Ignore = true)]
         public virtual void NoReaderStandardEncryptionAddAnnotation() {
+            // Test result here is wrong. Note that createEncryptedDocument adds EncryptionConstants.EMBEDDED_FILES_ONLY.
             String outFileName = destinationFolder + "noReaderStandardEncryptionAddAnnotation.pdf";
             String cmpFileName = sourceFolder + "cmp_noReaderStandardEncryptionAddAnnotation.pdf";
             PdfDocument pdfDocument = CreateEncryptedDocument(EncryptionConstants.STANDARD_ENCRYPTION_128, outFileName
@@ -138,6 +140,7 @@ namespace iText.Kernel.Pdf {
         [NUnit.Framework.Test]
         [LogMessage(KernelLogMessageConstant.MD5_IS_NOT_FIPS_COMPLIANT, Ignore = true)]
         public virtual void ReaderWithoutEncryptionWriterStandardEncryption() {
+            // Test result here is wrong. Note that createEncryptedDocument adds EncryptionConstants.EMBEDDED_FILES_ONLY.
             String outFileName = destinationFolder + "readerWithoutEncryptionWriterStandardEncryption.pdf";
             String cmpFileName = sourceFolder + "cmp_readerWithoutEncryptionWriterStandardEncryption.pdf";
             PdfReader reader = new PdfReader(sourceFolder + "pdfWithUnencryptedAttachmentAnnotations.pdf");

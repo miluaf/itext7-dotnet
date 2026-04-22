@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -79,6 +79,12 @@ namespace iText.Bouncycastlefips.Cert {
         /// <summary><inheritDoc/></summary>
         public IPublicKey GetPublicKey() {
             return new PublicKeyBCFips(certificate.GetPublicKey());
+        }
+
+        /// <summary><inheritDoc/></summary>
+        public string GetSigAlgName()
+        {
+            return certificate.SigAlgName;
         }
 
         /// <summary><inheritDoc/></summary>
@@ -182,6 +188,16 @@ namespace iText.Bouncycastlefips.Cert {
         /// <summary><inheritDoc/></summary>
         public int GetBasicConstraints() {
             return certificate.GetBasicConstraints();
+        }
+        
+        /// <summary><inheritDoc/></summary>
+        public IDerObjectIdentifier[] GetSubjectAttributeTypes() {
+            DerObjectIdentifier[] subjectAttributeTypes = certificate.SubjectDN.GetAttributeTypes();
+            IDerObjectIdentifier[] subjectAttributeTypesWrapper = new IDerObjectIdentifier[subjectAttributeTypes.Length];
+            for (int i = 0; i < subjectAttributeTypes.Length; ++i) {
+                subjectAttributeTypesWrapper[i] = new DerObjectIdentifierBCFips(subjectAttributeTypes[i]);
+            }
+            return subjectAttributeTypesWrapper;
         }
 
         /// <summary>Indicates whether some other object is "equal to" this one. Compares wrapped objects.</summary>

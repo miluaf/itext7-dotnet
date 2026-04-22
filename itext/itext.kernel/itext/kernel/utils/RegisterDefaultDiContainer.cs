@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -23,11 +23,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 using iText.Commons.Utils;
 using iText.Kernel.DI.Pagetree;
 using iText.Kernel.Mac;
+using iText.Kernel.Pdf;
 
 namespace iText.Kernel.Utils {
     /// <summary>Registers a default instance for a dependency injection container for the kernel module.</summary>
     public class RegisterDefaultDiContainer {
         private const int DEFAULT_PAGE_TREE_LIST_FACTORY_MAX_SAFE_ENTRIES = 50_000;
+
+        static RegisterDefaultDiContainer() {
+            DIContainer.RegisterDefault(typeof(IPageTreeListFactory), () => new DefaultPageTreeListFactory(DEFAULT_PAGE_TREE_LIST_FACTORY_MAX_SAFE_ENTRIES
+                ));
+            DIContainer.RegisterDefault(typeof(IMacContainerLocator), () => new StandaloneMacContainerLocator());
+            DIContainer.RegisterDefault(typeof(IStreamCompressionStrategy), () => new FlateCompressionStrategy());
+        }
 
         /// <summary>
         /// Creates an instance of
@@ -35,13 +43,7 @@ namespace iText.Kernel.Utils {
         /// </summary>
         public RegisterDefaultDiContainer() {
         }
-
-        static RegisterDefaultDiContainer() {
-            // Empty constructor but should be public as we need it for automatic class loading
-            // sharp
-            DIContainer.RegisterDefault(typeof(IPageTreeListFactory), () => new DefaultPageTreeListFactory(DEFAULT_PAGE_TREE_LIST_FACTORY_MAX_SAFE_ENTRIES
-                ));
-            DIContainer.RegisterDefault(typeof(IMacContainerLocator), () => new StandaloneMacContainerLocator());
-        }
+        // Empty constructor but should be public as we need it for automatic class loading
+        // sharp
     }
 }

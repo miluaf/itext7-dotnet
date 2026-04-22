@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -49,7 +49,6 @@ namespace iText.Layout.Renderer {
                     bool isSpecialWhitespaceGlyph = xAdvance != null;
                     if (isSpecialWhitespaceGlyph) {
                         Glyph newGlyph = new Glyph(space);
-                        newGlyph.SetChars(glyph.GetChars());
                         System.Diagnostics.Debug.Assert(xAdvance <= short.MaxValue && xAdvance >= short.MinValue);
                         newGlyph.SetXAdvance((short)(int)xAdvance);
                         line.Set(i, newGlyph);

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -107,7 +107,7 @@ namespace iText.Layout.Tagging {
 
         private static String GetKidRole(TaggingHintKey kidKey, LayoutTaggingHelper helper) {
             return helper.GetPdfDocument().GetTagStructureContext().ResolveMappingToStandardOrDomainSpecificRole(kidKey
-                .GetAccessibilityProperties().GetRole(), null).GetRole();
+                .GetAccessibilityProperties().GetRole(), kidKey.GetAccessibilityProperties().GetNamespace()).GetRole();
         }
 
         /// <summary>

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -39,8 +39,7 @@ using iText.Test.Attributes;
 namespace iText.Layout {
     [NUnit.Framework.Category("IntegrationTest")]
     public class ImageTest : ExtendedITextTest {
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/ImageTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/layout/ImageTest/";
 
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/ImageTest/";
@@ -769,8 +768,9 @@ namespace iText.Layout {
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
             Document document = new Document(pdfDoc);
             ImageData id = ImageDataFactory.Create(imgPath);
-            ImageData idAsTiff = ImageDataFactory.CreateTiff(UrlUtil.ToURL(imgPath), true, 1, true);
-            ImageData idAsTiffFalse = ImageDataFactory.CreateTiff(UrlUtil.ToURL(imgPath), false, 1, false);
+            Uri imageURL = UrlUtil.ToURL(imgPath);
+            ImageData idAsTiff = ImageDataFactory.CreateTiff(imageURL, true, 1, true);
+            ImageData idAsTiffFalse = ImageDataFactory.CreateTiff(imageURL, false, 1, false);
             document.Add(new iText.Layout.Element.Image(id));
             document.Add(new iText.Layout.Element.Image(idAsTiff));
             document.Add(new iText.Layout.Element.Image(idAsTiffFalse));
@@ -789,6 +789,21 @@ namespace iText.Layout {
             ImageData id = ImageDataFactory.Create(imgPath);
             document.Add(new iText.Layout.Element.Image(id));
             document.Close();
+            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
+                , "diff02_"));
+        }
+
+        [NUnit.Framework.Test]
+        //TODO DEVSIX-5751: Update after fixing
+        [LogMessage(LayoutLogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA)]
+        public virtual void PngImageDistortedTest() {
+            String outFileName = destinationFolder + "distortedPngStream.pdf";
+            String cmpFileName = sourceFolder + "cmp_distortedPngStream.pdf";
+            String imgPath = sourceFolder + "bee.png";
+            ImageData imgData = ImageDataFactory.Create(imgPath);
+            PdfDocument pdfDocument = new PdfDocument(new PdfWriter(outFileName));
+            Document doc = new Document(pdfDocument).Add(new iText.Layout.Element.Image(imgData));
+            doc.Close();
             NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outFileName, cmpFileName, destinationFolder
                 , "diff02_"));
         }

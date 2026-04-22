@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,264 +21,227 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
-using iText.Commons.Utils;
+using System.Collections.Generic;
+using System.IO;
 using iText.IO.Font;
 using iText.Kernel.Colors;
+using iText.Kernel.Contrast;
+using iText.Kernel.Exceptions;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas;
 using iText.Kernel.Pdf.Tagging;
-using iText.Kernel.Utils;
+using iText.Kernel.Validation;
 using iText.Layout;
 using iText.Layout.Borders;
 using iText.Layout.Element;
 using iText.Pdfua;
-using iText.Pdfua.Exceptions;
 using iText.Test;
 using iText.Test.Attributes;
-using iText.Test.Pdfa;
 
 namespace iText.Pdfua.Checkers {
-    // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf/ua validation on Android)
     [NUnit.Framework.Category("IntegrationTest")]
     public class PdfUALayoutTest : ExtendedITextTest {
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/pdfua/PdfUALayoutTest/";
-
-        private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
-            .CurrentContext.TestDirectory) + "/resources/itext/pdfua/PdfUALayoutTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/pdfua/PdfUALayoutTest/";
 
         private static readonly String FONT = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/pdfua/font/FreeSans.ttf";
-
-        private UaValidationTestFramework framework;
-
-        [NUnit.Framework.SetUp]
-        public virtual void InitializeFramework() {
-            framework = new UaValidationTestFramework(DESTINATION_FOLDER);
-        }
 
         [NUnit.Framework.OneTimeSetUp]
         public static void Before() {
             CreateOrClearDestinationFolder(DESTINATION_FOLDER);
         }
 
-        [NUnit.Framework.Test]
-        public virtual void SimpleParagraphTest() {
-            String outPdf = DESTINATION_FOLDER + "simpleParagraphTest.pdf";
-            String cmpPdf = SOURCE_FOLDER + "cmp_simpleParagraphTest.pdf";
-            PdfUATestPdfDocument pdfDoc = new PdfUATestPdfDocument(new PdfWriter(outPdf));
-            PdfFont font = PdfFontFactory.CreateFont(FONT, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED
-                );
-            Document doc = new Document(pdfDoc);
-            doc.Add(new Paragraph("Simple layout PDF/UA-1 test").SetFont(font));
-            doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outPdf, cmpPdf, DESTINATION_FOLDER, "diff_"
-                ));
-            NUnit.Framework.Assert.IsNull(new VeraPdfValidator().Validate(outPdf));
+        public static IList<PdfConformance> Data() {
+            return UaValidationTestFramework.GetConformanceList();
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf/ua validation on Android)
-        [NUnit.Framework.Test]
-        public virtual void SimpleParagraphWithUnderlineTest() {
-            String outPdf = DESTINATION_FOLDER + "simpleParagraphUnderlinesTest.pdf";
-            String cmpPdf = SOURCE_FOLDER + "cmp_simpleParagraphWithUnderlineTest.pdf";
-            PdfUATestPdfDocument pdfDoc = new PdfUATestPdfDocument(new PdfWriter(outPdf));
-            PdfFont font = PdfFontFactory.CreateFont(FONT, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED
-                );
-            Document doc = new Document(pdfDoc);
-            doc.Add(new Paragraph("Simple layout PDF/UA-1 with underline test").SetFont(font).SetUnderline());
-            doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outPdf, cmpPdf, DESTINATION_FOLDER, "diff_"
-                ));
-            NUnit.Framework.Assert.IsNull(new VeraPdfValidator().Validate(outPdf));
+        public static IList<Object[]> RoleData() {
+            IList<Object[]> data = new List<Object[]>();
+            foreach (PdfConformance pdfConformance in UaValidationTestFramework.GetConformanceList()) {
+                foreach (Object o in new Object[] { new Object[] { StandardRoles.FORM, StandardRoles.FORM, 
+                                // Parent role, child role, expected exception
+                                false }, new Object[] { StandardRoles.H1, StandardRoles.H1, true }, new Object[] { StandardRoles.P, StandardRoles
+                    .P, false }, new Object[] { StandardRoles.DIV, StandardRoles.P, false } }) {
+                    Object[] roles = (Object[])o;
+                    data.Add(new Object[] { pdfConformance, roles[0], roles[1], roles[2] });
+                }
+            }
+            return data;
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf/ua validation on Android)
-        [NUnit.Framework.Test]
-        public virtual void SimpleBorderTest() {
-            String outPdf = DESTINATION_FOLDER + "simpleBorderTest.pdf";
-            String cmpPdf = SOURCE_FOLDER + "cmp_simpleBorderTest.pdf";
-            using (PdfDocument pdfDocument = new PdfUATestPdfDocument(new PdfWriter(outPdf))) {
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SimpleParagraphTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDoc) => {
+                PdfFont font = LoadFont();
+                Document doc = new Document(pdfDoc);
+                doc.Add(new Paragraph("Simple layout PDF UA test").SetFont(font));
+            }
+            );
+            framework.AssertBothValid("simpleParagraph");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SimpleParagraphWithUnderlineTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDoc) => {
+                PdfFont font = LoadFont();
+                Document doc = new Document(pdfDoc);
+                doc.Add(new Paragraph("Simple layout PDF UA with underline test").SetFont(font).SetUnderline());
+            }
+            );
+            framework.AssertBothValid("simpleParagraphWithUnderline");
+        }
+
+        [NUnit.Framework.TestCaseSource("RoleData")]
+        public virtual void TestOfIllegalRelations(PdfConformance conformance, String parentRole, String childRole
+            , bool expectException) {
+            if (conformance.GetUAConformance() == PdfUAConformance.PDF_UA_1) {
+                return;
+            }
+            //expectException should take into account repair mechanism
+            // in example P:P will be replaced as P:Span so no exceptions should be thrown
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddSuppliers((document) => {
+                Div div1 = new Div();
+                div1.GetAccessibilityProperties().SetRole(parentRole);
+                Div div2 = new Div();
+                div2.GetAccessibilityProperties().SetRole(childRole);
+                div1.Add(div2);
+                return div1;
+            }
+            );
+            if (expectException) {
+                framework.AssertBothFail("testOfIllegalRelation_" + parentRole + "_" + childRole, false);
+            }
+            else {
+                framework.AssertBothValid("testOfIllegalRelation_" + parentRole + "_" + childRole);
+            }
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SimpleBorderTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDocument) => {
                 PdfPage page = pdfDocument.AddNewPage();
                 PdfCanvas canvas = new PdfCanvas(page);
                 canvas.OpenTag(new CanvasTag(PdfName.Artifact));
                 new DottedBorder(DeviceRgb.GREEN, 5).Draw(canvas, new Rectangle(350, 700, 100, 100));
                 canvas.CloseTag();
             }
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outPdf, cmpPdf, DESTINATION_FOLDER, "diff"
-                ));
-            NUnit.Framework.Assert.IsNull(new VeraPdfValidator().Validate(outPdf));
+            );
+            framework.AssertBothValid("simpleBorder");
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf/ua validation on Android)
-        [NUnit.Framework.Test]
-        public virtual void SimpleTableTest() {
-            String outPdf = DESTINATION_FOLDER + "simpleTableTest.pdf";
-            String cmpPdf = SOURCE_FOLDER + "cmp_simpleTableTest.pdf";
-            PdfDocument pdfDoc = new PdfUATestPdfDocument(new PdfWriter(outPdf));
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SimpleTableTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDocument) => {
+                Document doc = new Document(pdfDocument);
+                PdfFont font = LoadFont();
+                Table table = new Table(new float[] { 50, 50 }).AddCell(new Cell().Add(new Paragraph("cell 1, 1").SetFont(
+                    font))).AddCell(new Cell().Add(new Paragraph("cell 1, 2").SetFont(font)));
+                doc.Add(table);
+            }
+            );
+            framework.AssertBothValid("simpleTable");
+        }
+
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SimpleParagraphBadContrastThrowsWcagAAAU(PdfConformance conformance) {
+            if (!conformance.IsPdfUA()) {
+                return;
+            }
+            PdfDocument pdfDoc = new _PdfUADocument_189(new PdfWriter(new MemoryStream()), new PdfUAConfig(conformance
+                .GetUAConformance(), "Hello", "en-US"));
+            PdfFont font = LoadFont();
             Document doc = new Document(pdfDoc);
-            PdfFont font = PdfFontFactory.CreateFont(FONT, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED
-                );
-            Table table = new Table(new float[] { 50, 50 }).AddCell(new Cell().Add(new Paragraph("cell 1, 1").SetFont(
-                font))).AddCell(new Cell().Add(new Paragraph("cell 1, 2").SetFont(font)));
-            doc.Add(table);
-            doc.Close();
-            NUnit.Framework.Assert.IsNull(new CompareTool().CompareByContent(outPdf, cmpPdf, DESTINATION_FOLDER, "diff_"
-                ));
-            NUnit.Framework.Assert.IsNull(new VeraPdfValidator().Validate(outPdf));
+            Paragraph p = new Paragraph("Simple layout PDF UA test").SetFont(font);
+            p.SetBackgroundColor(ColorConstants.RED);
+            doc.Add(p);
+            Exception e = NUnit.Framework.Assert.Catch(typeof(PdfException), () => {
+                pdfDoc.Close();
+            }
+            );
+            NUnit.Framework.Assert.IsTrue(e.Message.Contains("not WCAG AAA compliant"));
+            NUnit.Framework.Assert.IsTrue(e.Message.Contains("has contrast ratio: 5"));
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf/ua validation on Android)
-        [NUnit.Framework.Test]
-        public virtual void AddNoteWithoutIdTest() {
-            framework.AddSuppliers(new _Generator_162());
-            framework.AssertBothFail("noteWithoutID", PdfUAExceptionMessageConstants.NOTE_TAG_SHALL_HAVE_ID_ENTRY);
-        }
-
-        private sealed class _Generator_162 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_162() {
+        private sealed class _PdfUADocument_189 : PdfUADocument {
+            public _PdfUADocument_189(PdfWriter baseArg1, PdfUAConfig baseArg2)
+                : base(baseArg1, baseArg2) {
             }
 
-            public IBlockElement Generate() {
-                Paragraph note = new Paragraph("note");
-                PdfFont font = null;
-                try {
-                    font = PdfFontFactory.CreateFont(PdfUALayoutTest.FONT, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy
-                        .FORCE_EMBEDDED);
-                }
-                catch (System.IO.IOException e) {
-                    throw new Exception(e.Message);
-                }
-                note.SetFont(font);
-                note.GetAccessibilityProperties().SetRole(StandardRoles.NOTE);
-                return note;
+            protected internal override IList<IValidationChecker> CreateCheckers(PdfUAConformance conformance) {
+                ColorContrastChecker contrastChecker = new ColorContrastChecker(false, true);
+                contrastChecker.SetCheckWcagAA(false);
+                IList<IValidationChecker> validationCheckers = new List<IValidationChecker>();
+                validationCheckers.Add(contrastChecker);
+                return validationCheckers;
             }
         }
 
-        [NUnit.Framework.Test]
-        [LogMessage(iText.IO.Logs.IoLogMessageConstant.NAME_ALREADY_EXISTS_IN_THE_NAME_TREE, Count = 2)]
-        public virtual void AddTwoNotesWithSameIdTest() {
-            framework.AddSuppliers(new _Generator_184(), new _Generator_200());
-            framework.AssertBothFail("twoNotesWithSameId", MessageFormatUtil.Format(PdfUAExceptionMessageConstants.NON_UNIQUE_ID_ENTRY_IN_STRUCT_TREE_ROOT
-                , "123"), false);
+        [NUnit.Framework.TestCaseSource("Data")]
+        public virtual void SimpleParagraphBadContrastThrowsWcagAA(PdfConformance conformance) {
+            if (!conformance.IsPdfUA()) {
+                return;
+            }
+            PdfUADocument pdfDoc = new _PdfUADocument_218(new PdfWriter(new MemoryStream()), new PdfUAConfig(conformance
+                .GetUAConformance(), "Hello", "en-US"));
+            PdfFont font = LoadFont();
+            Document doc = new Document(pdfDoc);
+            Paragraph p = new Paragraph("Simple layout PDF UA test").SetFont(font);
+            p.SetFontColor(ColorConstants.PINK);
+            p.SetBackgroundColor(ColorConstants.RED);
+            doc.Add(p);
+            Exception e = NUnit.Framework.Assert.Catch(typeof(PdfException), () => {
+                pdfDoc.Close();
+            }
+            );
+            NUnit.Framework.Assert.IsTrue(e.Message.Contains("not WCAG AA compliant"));
+            NUnit.Framework.Assert.IsTrue(e.Message.Contains("has contrast ratio: 2"));
         }
 
-        private sealed class _Generator_184 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_184() {
+        private sealed class _PdfUADocument_218 : PdfUADocument {
+            public _PdfUADocument_218(PdfWriter baseArg1, PdfUAConfig baseArg2)
+                : base(baseArg1, baseArg2) {
             }
 
-            public IBlockElement Generate() {
-                Paragraph note = new Paragraph("note 1");
-                PdfFont font = null;
-                try {
-                    font = PdfFontFactory.CreateFont(PdfUALayoutTest.FONT, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy
-                        .FORCE_EMBEDDED);
-                }
-                catch (System.IO.IOException e) {
-                    throw new Exception(e.Message);
-                }
-                note.SetFont(font);
-                note.GetAccessibilityProperties().SetRole(StandardRoles.NOTE);
-                note.GetAccessibilityProperties().SetStructureElementIdString("123");
-                return note;
-            }
-        }
-
-        private sealed class _Generator_200 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_200() {
-            }
-
-            public IBlockElement Generate() {
-                Paragraph note = new Paragraph("note 2");
-                PdfFont font = null;
-                try {
-                    font = PdfFontFactory.CreateFont(PdfUALayoutTest.FONT, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy
-                        .FORCE_EMBEDDED);
-                }
-                catch (System.IO.IOException e) {
-                    throw new Exception(e.Message);
-                }
-                note.SetFont(font);
-                note.GetAccessibilityProperties().SetRole(StandardRoles.NOTE);
-                note.GetAccessibilityProperties().SetStructureElementIdString("123");
-                return note;
+            protected internal override IList<IValidationChecker> CreateCheckers(PdfUAConformance uaConformance) {
+                ColorContrastChecker contrastChecker = new ColorContrastChecker(false, true);
+                contrastChecker.SetCheckWcagAAA(false);
+                contrastChecker.SetCheckWcagAA(true);
+                IList<IValidationChecker> validationCheckers = new List<IValidationChecker>();
+                validationCheckers.Add(contrastChecker);
+                return validationCheckers;
             }
         }
 
-        [NUnit.Framework.Test]
-        public virtual void AddNoteWithValidIdTest() {
-            framework.AddSuppliers(new _Generator_223());
-            framework.AssertBothValid("noteWithValidID");
+        [NUnit.Framework.TestCaseSource("Data")]
+        [LogMessage("Page 1: Text: 'Simple layout PDF UA test', with font size: {0} pt " + "has contrast ratio: {1}. It is not WCAG AAA compliant. "
+            , Count = 2)]
+        public virtual void SimpleParagraphBadContrastLogsByDefaultTest(PdfConformance conformance) {
+            UaValidationTestFramework framework = new UaValidationTestFramework(DESTINATION_FOLDER, conformance);
+            framework.AddBeforeGenerationHook((pdfDoc) => {
+                PdfFont font = LoadFont();
+                Document doc = new Document(pdfDoc);
+                Paragraph p = new Paragraph("Simple layout PDF UA test").SetFont(font);
+                p.SetBackgroundColor(ColorConstants.RED);
+                doc.Add(p);
+            }
+            );
+            framework.AssertBothValid("simpleParagraphAbc");
         }
 
-        private sealed class _Generator_223 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_223() {
+        private static PdfFont LoadFont() {
+            try {
+                return PdfFontFactory.CreateFont(FONT, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy.FORCE_EMBEDDED
+                    );
             }
-
-            public IBlockElement Generate() {
-                Paragraph note = new Paragraph("note");
-                PdfFont font = null;
-                try {
-                    font = PdfFontFactory.CreateFont(PdfUALayoutTest.FONT, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy
-                        .FORCE_EMBEDDED);
-                }
-                catch (System.IO.IOException e) {
-                    throw new Exception(e.Message);
-                }
-                note.SetFont(font);
-                note.GetAccessibilityProperties().SetRole(StandardRoles.NOTE);
-                note.GetAccessibilityProperties().SetStructureElementIdString("123");
-                return note;
-            }
-        }
-
-        [NUnit.Framework.Test]
-        public virtual void AddTwoNotesWithDifferentIdTest() {
-            framework.AddSuppliers(new _Generator_244(), new _Generator_260());
-            framework.AssertBothValid("twoNotesWithDifferentId");
-        }
-
-        private sealed class _Generator_244 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_244() {
-            }
-
-            public IBlockElement Generate() {
-                Paragraph note = new Paragraph("note 1");
-                PdfFont font = null;
-                try {
-                    font = PdfFontFactory.CreateFont(PdfUALayoutTest.FONT, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy
-                        .FORCE_EMBEDDED);
-                }
-                catch (System.IO.IOException e) {
-                    throw new Exception(e.Message);
-                }
-                note.SetFont(font);
-                note.GetAccessibilityProperties().SetRole(StandardRoles.NOTE);
-                note.GetAccessibilityProperties().SetStructureElementIdString("123");
-                return note;
-            }
-        }
-
-        private sealed class _Generator_260 : UaValidationTestFramework.Generator<IBlockElement> {
-            public _Generator_260() {
-            }
-
-            public IBlockElement Generate() {
-                Paragraph note = new Paragraph("note 2");
-                PdfFont font = null;
-                try {
-                    font = PdfFontFactory.CreateFont(PdfUALayoutTest.FONT, PdfEncodings.WINANSI, PdfFontFactory.EmbeddingStrategy
-                        .FORCE_EMBEDDED);
-                }
-                catch (System.IO.IOException e) {
-                    throw new Exception(e.Message);
-                }
-                note.SetFont(font);
-                note.GetAccessibilityProperties().SetRole(StandardRoles.NOTE);
-                note.GetAccessibilityProperties().SetStructureElementIdString("234");
-                return note;
+            catch (System.IO.IOException e) {
+                throw new PdfException(e.Message);
             }
         }
     }

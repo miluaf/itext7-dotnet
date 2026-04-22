@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -37,10 +37,10 @@ namespace iText.Signatures.Testutils.Builder {
         private static readonly IBouncyCastleFactory FACTORY = BouncyCastleFactoryCreator.GetFactory();
         private const String SIGN_ALG = "SHA256withRSA";
 
+        private readonly String signatureAlgorithm;
         private IBasicOcspRespGenerator responseBuilder;
-
-        private IX509Certificate issuerCert;
-        private IPrivateKey issuerPrivateKey;
+        private readonly IX509Certificate issuerCert;
+        private readonly IPrivateKey issuerPrivateKey;
 
         private ICertStatus certificateStatus;
 
@@ -58,22 +58,34 @@ namespace iText.Signatures.Testutils.Builder {
 
 
         public TestOcspResponseBuilder(IX509Certificate issuerCert, IPrivateKey issuerPrivateKey,
-            ICertStatus certificateStatus)
-        {
+            ICertStatus certificateStatus, String signatureAlgorithm) {
             this.issuerCert = issuerCert;
             this.issuerPrivateKey = issuerPrivateKey;
             this.certificateStatus = certificateStatus;
             IX500Name subjectDN = issuerCert.GetSubjectDN();
-            responseBuilder = FACTORY.CreateBasicOCSPRespBuilder(FACTORY.CreateRespID(subjectDN));
+            this.responseBuilder = FACTORY.CreateBasicOCSPRespBuilder(FACTORY.CreateRespID(subjectDN));
+            this.signatureAlgorithm = signatureAlgorithm;
         }
-        
+
+        public TestOcspResponseBuilder(IX509Certificate issuerCert, IPrivateKey issuerPrivateKey, 
+            ICertStatus certificateStatus) : this(issuerCert, issuerPrivateKey, certificateStatus, SIGN_ALG) {
+        }
+
+        public TestOcspResponseBuilder(IX509Certificate issuerCert, IPrivateKey issuerPrivateKey, 
+            String signatureAlgorithm) : this(issuerCert, issuerPrivateKey, 
+            FACTORY.CreateCertificateStatus().GetGood(), signatureAlgorithm) {
+        }
+
         public TestOcspResponseBuilder(IX509Certificate issuerCert, IPrivateKey issuerPrivateKey)
-            : this(issuerCert, issuerPrivateKey, FACTORY.CreateCertificateStatus().GetGood())
-        {
+            : this(issuerCert, issuerPrivateKey, FACTORY.CreateCertificateStatus().GetGood()) {
         }
 
         public IX509Certificate GetIssuerCert() {
             return issuerCert;
+        }
+
+        public void SetResponseBuilder(IBasicOcspRespGenerator responseBuilder) {
+            this.responseBuilder = responseBuilder;
         }
 
         public virtual void SetCertificateStatus(ICertStatus certificateStatus) {
@@ -123,7 +135,8 @@ namespace iText.Signatures.Testutils.Builder {
             if (!chainSet) {
                 chain = new IX509Certificate[] { issuerCert };
             }
-            return responseBuilder.Build(FACTORY.CreateContentSigner(SIGN_ALG, issuerPrivateKey), chain, producedAt);
+            return responseBuilder.Build(
+                FACTORY.CreateContentSigner(signatureAlgorithm, issuerPrivateKey), chain, producedAt);
         }
 
         public void SetOcspCertsChain(IX509Certificate[] ocspCertsChain) {

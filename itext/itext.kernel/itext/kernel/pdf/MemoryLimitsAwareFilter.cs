@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -42,7 +42,8 @@ namespace iText.Kernel.Pdf {
             MemoryLimitsAwareOutputStream outputStream = new MemoryLimitsAwareOutputStream();
             MemoryLimitsAwareHandler memoryLimitsAwareHandler = null;
             if (null != streamDictionary.GetIndirectReference()) {
-                memoryLimitsAwareHandler = streamDictionary.GetIndirectReference().GetDocument().memoryLimitsAwareHandler;
+                memoryLimitsAwareHandler = streamDictionary.GetIndirectReference().GetDocument().GetMemoryLimitsAwareHandler
+                    ();
             }
             else {
                 // We do not reuse some static instance because one can process pdfs in different threads.

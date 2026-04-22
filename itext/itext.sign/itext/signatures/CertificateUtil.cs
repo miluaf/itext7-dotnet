@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -33,10 +33,13 @@ using iText.Commons.Bouncycastle.Asn1.Ocsp;
 using iText.Commons.Bouncycastle.Asn1.X509;
 using iText.Commons.Bouncycastle.Cert;
 using iText.Commons.Bouncycastle.Cert.Ocsp;
+using iText.Commons.Bouncycastle.Openssl;
 using iText.Commons.Bouncycastle.Security;
 using iText.Commons.Utils;
 using iText.IO.Util;
 using iText.Kernel.Crypto;
+using iText.Kernel.Exceptions;
+using iText.Signatures.Exceptions;
 using iText.Signatures.Logs;
 
 namespace iText.Signatures {
@@ -141,11 +144,13 @@ namespace iText.Signatures {
         /// <summary>Retrieves the URL for the issuer certificate for the given CRL.</summary>
         /// <param name="crl">the CRL response</param>
         /// <returns>the URL or null.</returns>
+        [System.ObsoleteAttribute(@"use GetIssuerCertURLs(IX509Crl) instead")]
         public static String GetIssuerCertURL(IX509Crl crl) {
             IAsn1Object obj;
             try {
                 obj = GetExtensionValue(crl, FACTORY.CreateExtensions().GetAuthorityInfoAccess().GetId());
-                return GetValueFromAIAExtension(obj, OID.CA_ISSUERS);
+                IList<String> urls = GetValueFromAIAExtension(obj, OID.CA_ISSUERS);
+                return urls.IsEmpty() ? null : urls[0];
             }
             catch (System.IO.IOException) {
                 return null;
@@ -160,7 +165,9 @@ namespace iText.Signatures {
             IAsn1Object obj;
             try {
                 obj = GetExtensionValue(certificate, FACTORY.CreateExtensions().GetAuthorityInfoAccess().GetId());
-                return GetValueFromAIAExtension(obj, OID.OCSP);
+                IList<String> urls = GetValueFromAIAExtension(obj, OID.OCSP);
+                // For OCSP only one entry is allowed.
+                return urls.IsEmpty() ? null : urls[0];
             }
             catch (System.IO.IOException) {
                 return null;
@@ -171,14 +178,46 @@ namespace iText.Signatures {
         /// <summary>Retrieves the URL for the issuer lists certificates for the given certificate.</summary>
         /// <param name="certificate">the certificate</param>
         /// <returns>the URL or null.</returns>
+        [System.ObsoleteAttribute(@"use GetIssuerCertURLs(IX509Certificate) instead")]
         public static String GetIssuerCertURL(IX509Certificate certificate) {
             IAsn1Object obj;
             try {
                 obj = GetExtensionValue(certificate, FACTORY.CreateExtensions().GetAuthorityInfoAccess().GetId());
-                return GetValueFromAIAExtension(obj, OID.CA_ISSUERS);
+                IList<String> urls = GetValueFromAIAExtension(obj, OID.CA_ISSUERS);
+                return urls.IsEmpty() ? null : urls[0];
             }
             catch (System.IO.IOException) {
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all URLs locations for issuer certificates for the given CRL.
+        /// </summary>
+        /// <param name="crl">the CRL response</param>
+        /// <returns>list of URL links</returns>
+        public static IList<String> GetIssuerCertURLs(IX509Crl crl) {
+            IAsn1Object obj;
+            try {
+                obj = GetExtensionValue(crl, FACTORY.CreateExtensions().GetAuthorityInfoAccess().GetId());
+                return GetValueFromAIAExtension(obj, OID.CA_ISSUERS);
+            } catch (Exception e) {
+                return JavaCollectionsUtil.EmptyList<String>();
+            }
+        }
+        
+        /// <summary>
+        /// Retrieves all URLs locations representing certificate issuers for the given certificate.
+        /// </summary>
+        /// <param name="crl">the certificate</param>
+        /// <returns>list of URL links</returns>
+        public static IList<String> GetIssuerCertURLs(IX509Certificate certificate) {
+            IAsn1Object obj;
+            try {
+                obj = GetExtensionValue(certificate, FACTORY.CreateExtensions().GetAuthorityInfoAccess().GetId());
+                return GetValueFromAIAExtension(obj, OID.CA_ISSUERS);
+            } catch (Exception e) {
+                return JavaCollectionsUtil.EmptyList<String>();
             }
         }
 
@@ -408,6 +447,41 @@ namespace iText.Signatures {
             return GetExtensionValueFromByteArray(SignUtils.GetExtensionValueByOid(crl, oid));
         }
 
+        public static IX509Certificate CreateCertificateFromEncodedData(String encodedCertificateBytes) {
+            try {
+                byte[] bytes = Convert.FromBase64String(encodedCertificateBytes);
+                return FACTORY.CreateX509Certificate(bytes);
+            }
+            catch (Exception e) {
+                throw new PdfException(SignExceptionMessageConstant.FAILED_TO_RETRIEVE_CERTIFICATE, e);
+            }
+        }
+        
+        public static IX509Certificate[] ReadCertificatesFromPem(Stream pemFileStream) {
+            return ReadCertificates(pemFileStream).ToArray(new IX509Certificate[0]);
+        }
+        
+        private static IList<IX509Certificate> ReadCertificates(Stream pemFileStream) {
+            try {
+                using (TextReader file = new StreamReader(pemFileStream)) {
+                    IPemReader parser = FACTORY.CreatePEMParser(file, null);
+                    Object readObject = parser.ReadObject();
+                    IList<IX509Certificate> certificates = new List<IX509Certificate>();
+                    while (readObject != null) {
+                        if (readObject is IX509Certificate) {
+                            certificates.Add((IX509Certificate)readObject);
+                        }
+
+                        readObject = parser.ReadObject();
+                    }
+                    return certificates;
+                }
+            }
+            catch (Exception e) {
+                throw new PdfException(SignExceptionMessageConstant.FAILED_TO_RETRIEVE_CERTIFICATE, e);
+            }
+        }
+
         /// <summary>
         /// Converts extension value represented as byte array to
         /// <see cref="iText.Commons.Bouncycastle.Asn1.IAsn1Object"/>
@@ -450,20 +524,21 @@ namespace iText.Signatures {
         /// <param name="extensionValue">Authority Information Access extension value</param>
         /// <param name="accessMethod">accessMethod OID; usually id-ad-caIssuers or id-ad-ocsp</param>
         /// <returns>the location (URI) of the information.</returns>
-        private static String GetValueFromAIAExtension(IAsn1Object extensionValue, String accessMethod) {
+        private static IList<String> GetValueFromAIAExtension(IAsn1Object extensionValue, String accessMethod) {
             if (extensionValue == null) {
-                return null;
+                return JavaCollectionsUtil.EmptyList<String>();
             }
             IAsn1Sequence accessDescriptions = FACTORY.CreateASN1Sequence(extensionValue);
+            IList<String> urls = new List<String>();
             for (int i = 0; i < accessDescriptions.Size(); i++) {
                 IAsn1Sequence accessDescription = FACTORY.CreateASN1Sequence(accessDescriptions.GetObjectAt(i));
                 IDerObjectIdentifier id = FACTORY.CreateASN1ObjectIdentifier(accessDescription.GetObjectAt(0));
                 if (accessDescription.Size() == 2 && id != null && accessMethod.Equals(id.GetId())) {
                     IAsn1Object description = FACTORY.CreateASN1Primitive(accessDescription.GetObjectAt(1));
-                    return GetStringFromGeneralName(description);
+                    urls.Add(GetStringFromGeneralName(description));
                 }
             }
-            return null;
+            return urls;
         }
 
         /// <summary>

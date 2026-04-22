@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
 using System.Collections.Generic;
+using iText.Commons.Utils;
 using iText.Svg;
 using iText.Svg.Renderers.Path;
 
@@ -45,7 +46,7 @@ namespace iText.Svg.Renderers.Path.Impl {
             result.Put(SvgConstants.Attributes.PATH_DATA_LINE_TO_H, new HorizontalLineTo());
             result.Put(SvgConstants.Attributes.PATH_DATA_REL_LINE_TO_H, new HorizontalLineTo(true));
             result.Put(SvgConstants.Attributes.PATH_DATA_CLOSE_PATH, new ClosePath());
-            result.Put(SvgConstants.Attributes.PATH_DATA_CLOSE_PATH.ToLowerInvariant(), new ClosePath());
+            result.Put(StringNormalizer.ToLowerCase(SvgConstants.Attributes.PATH_DATA_CLOSE_PATH), new ClosePath());
             result.Put(SvgConstants.Attributes.PATH_DATA_MOVE_TO, new MoveTo());
             result.Put(SvgConstants.Attributes.PATH_DATA_REL_MOVE_TO, new MoveTo(true));
             result.Put(SvgConstants.Attributes.PATH_DATA_CURVE_TO, new CurveTo());

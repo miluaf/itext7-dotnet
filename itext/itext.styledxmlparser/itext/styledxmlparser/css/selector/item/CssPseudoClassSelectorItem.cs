@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -21,7 +21,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
+using System.Collections.Generic;
 using iText.StyledXmlParser.Css;
+using iText.StyledXmlParser.Css.Parse;
 using iText.StyledXmlParser.Css.Selector;
 using iText.StyledXmlParser.Node;
 
@@ -47,11 +49,31 @@ namespace iText.StyledXmlParser.Css.Selector.Item {
             : this(pseudoClass, "") {
         }
 
+        /// <summary>
+        /// Creates a new
+        /// <see cref="CssPseudoClassSelectorItem"/>
+        /// instance.
+        /// </summary>
+        /// <param name="pseudoClass">the pseudo class name</param>
+        /// <param name="arguments">the arguments of the selector</param>
         protected internal CssPseudoClassSelectorItem(String pseudoClass, String arguments) {
             this.pseudoClass = pseudoClass;
             this.arguments = arguments;
         }
 
+        /// <summary>
+        /// Creates a new instance of
+        /// <see cref="CssPseudoClassSelectorItem"/>
+        /// from
+        /// passed string which contains selector name and its arguments.
+        /// </summary>
+        /// <param name="fullSelectorString">the full selector string</param>
+        /// <returns>
+        /// the
+        /// <see cref="CssPseudoClassSelectorItem"/>
+        /// or
+        /// <see langword="null"/>
+        /// </returns>
         public static iText.StyledXmlParser.Css.Selector.Item.CssPseudoClassSelectorItem Create(String fullSelectorString
             ) {
             int indexOfParentheses = fullSelectorString.IndexOf('(');
@@ -68,6 +90,20 @@ namespace iText.StyledXmlParser.Css.Selector.Item {
             return Create(pseudoClass, arguments);
         }
 
+        /// <summary>
+        /// Creates a new instance of
+        /// <see cref="CssPseudoClassSelectorItem"/>
+        /// from
+        /// passed selector class name and its arguments.
+        /// </summary>
+        /// <param name="pseudoClass">the pseudo class name</param>
+        /// <param name="arguments">the arguments of the selector</param>
+        /// <returns>
+        /// the
+        /// <see cref="CssPseudoClassSelectorItem"/>
+        /// or
+        /// <see langword="null"/>
+        /// </returns>
         public static iText.StyledXmlParser.Css.Selector.Item.CssPseudoClassSelectorItem Create(String pseudoClass
             , String arguments) {
             switch (pseudoClass) {
@@ -107,14 +143,12 @@ namespace iText.StyledXmlParser.Css.Selector.Item {
                     return new CssPseudoClassNthLastOfTypeSelectorItem(arguments);
                 }
 
+                case CommonCssConstants.HAS: {
+                    return CreateHasSelectorItem(arguments);
+                }
+
                 case CommonCssConstants.NOT: {
-                    CssSelector selector = new CssSelector(arguments);
-                    foreach (ICssSelectorItem item in selector.GetSelectorItems()) {
-                        if (item is CssPseudoClassNotSelectorItem || item is CssPseudoElementSelectorItem) {
-                            return null;
-                        }
-                    }
-                    return new CssPseudoClassNotSelectorItem(selector);
+                    return CreateNotSelectorItem(arguments);
                 }
 
                 case CommonCssConstants.ROOT: {
@@ -157,6 +191,31 @@ namespace iText.StyledXmlParser.Css.Selector.Item {
             }
         }
 
+        private static CssPseudoClassNotSelectorItem CreateNotSelectorItem(String arguments) {
+            CssSelector selector = new CssSelector(arguments);
+            foreach (ICssSelectorItem item in selector.GetSelectorItems()) {
+                if (item is CssPseudoClassNotSelectorItem || item is CssPseudoElementSelectorItem) {
+                    return null;
+                }
+            }
+            return new CssPseudoClassNotSelectorItem(selector);
+        }
+
+        private static CssPseudoClassHasSelectorItem CreateHasSelectorItem(String arguments) {
+            IList<ICssSelector> hasSelectors = CssSelectorParser.ParseCommaSeparatedSelectors(arguments);
+            foreach (ICssSelector hasSelector in hasSelectors) {
+                if (hasSelector is CssSelector) {
+                    foreach (ICssSelectorItem item in ((CssSelector)hasSelector).GetSelectorItems()) {
+                        // Pseudo-elements are restricted as they don't make sense in :has() context.
+                        if (item is CssPseudoElementSelectorItem || item is CssPseudoClassHasSelectorItem) {
+                            return null;
+                        }
+                    }
+                }
+            }
+            return new CssPseudoClassHasSelectorItem(hasSelectors, arguments);
+        }
+
         /* (non-Javadoc)
         * @see com.itextpdf.styledxmlparser.css.selector.item.ICssSelectorItem#getSpecificity()
         */
@@ -178,6 +237,8 @@ namespace iText.StyledXmlParser.Css.Selector.Item {
             return ":" + pseudoClass + (!String.IsNullOrEmpty(arguments) ? "(" + arguments + ")" : "");
         }
 
+        /// <summary>Gets the selector pseudo class name.</summary>
+        /// <returns>the pseudo class name</returns>
         public virtual String GetPseudoClass() {
             return pseudoClass;
         }

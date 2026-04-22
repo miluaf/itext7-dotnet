@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -70,6 +70,14 @@ namespace iText.StyledXmlParser.Css {
             SplitDeclarationsIntoNormalAndImportant(declarations, normalDeclarations, importantDeclarations);
         }
 
+        /// <summary>
+        /// Creates a new
+        /// <see cref="CssRuleSet"/>
+        /// from a selector and a list of normal and important declarations.
+        /// </summary>
+        /// <param name="selector">the CSS selector</param>
+        /// <param name="normalDeclarations">the list of normal declarations</param>
+        /// <param name="importantDeclarations">the list of important declarations</param>
         public CssRuleSet(ICssSelector selector, IList<CssDeclaration> normalDeclarations, IList<CssDeclaration> importantDeclarations
             ) {
             this.selector = selector;
@@ -138,6 +146,9 @@ namespace iText.StyledXmlParser.Css {
         private static void SplitDeclarationsIntoNormalAndImportant(IList<CssDeclaration> declarations, IList<CssDeclaration
             > normalDeclarations, IList<CssDeclaration> importantDeclarations) {
             foreach (CssDeclaration declaration in declarations) {
+                if (declaration == null || declaration.GetExpression() == null) {
+                    continue;
+                }
                 int exclIndex = declaration.GetExpression().IndexOf('!');
                 if (exclIndex > 0 && iText.Commons.Utils.Matcher.Match(IMPORTANT_MATCHER, declaration.GetExpression()).Matches
                     ()) {

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -37,8 +37,7 @@ namespace iText.Forms.Xfa {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/forms/xfa/XFAFormTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/forms/xfa/XFAFormTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/forms/xfa/XFAFormTest/";
 
         public static readonly String XML = sourceFolder + "xfa.xml";
 
@@ -122,6 +121,17 @@ namespace iText.Forms.Xfa {
             XElement node = (XElement) xfa.FindDatasetsNode("Number1");
             NUnit.Framework.Assert.IsNotNull(node);
             NUnit.Framework.Assert.AreEqual("Number1", node.Name.LocalName);
+        }
+        
+        [NUnit.Framework.Test]
+        public virtual void ExtractXfaDataFromDatasetTest()
+        {
+            String inFileName = sourceFolder + "xfaFormWithDataset2.pdf";
+            PdfDocument doc = new PdfDocument(new PdfReader(inFileName));
+            PdfAcroForm form = PdfAcroForm.GetAcroForm(doc, false);
+            XfaForm xfa = form.GetXfaForm();
+            String actualfieldValue = xfa.GetXfaFieldValue("Subform_Order.TextField_CompanyName");
+            NUnit.Framework.Assert.AreEqual("Giedi Prime", actualfieldValue);
         }
         
         [NUnit.Framework.Test]

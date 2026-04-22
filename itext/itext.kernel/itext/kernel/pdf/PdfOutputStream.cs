@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -51,6 +51,8 @@ namespace iText.Kernel.Pdf {
 
         /// <summary>Contains the business logic for cryptography.</summary>
         protected internal PdfEncryption crypto;
+
+        private IStreamCompressionStrategy compressionStrategy;
 
         /// <summary>Create a pdfOutputSteam writing to the passed OutputStream.</summary>
         /// <param name="outputStream">Outputstream to write to.</param>
@@ -117,6 +119,297 @@ namespace iText.Kernel.Pdf {
                 }
             }
             return this;
+        }
+
+        protected internal virtual IStreamCompressionStrategy GetCompressionStrategy() {
+            if (this.compressionStrategy != null) {
+                return this.compressionStrategy;
+            }
+            if (document != null) {
+                this.compressionStrategy = document.GetDiContainer().GetInstance<IStreamCompressionStrategy>();
+            }
+            if (this.compressionStrategy == null) {
+                this.compressionStrategy = new FlateCompressionStrategy();
+            }
+            return this.compressionStrategy;
+        }
+
+        protected internal virtual bool CheckEncryption(PdfStream pdfStream) {
+            if (crypto == null || (crypto.IsEmbeddedFilesOnly() && !document.DoesStreamBelongToEmbeddedFile(pdfStream)
+                )) {
+                return false;
+            }
+            if (IsXRefStream(pdfStream)) {
+                // The cross-reference stream shall not be encrypted
+                return false;
+            }
+            PdfObject filter = pdfStream.Get(PdfName.Filter, true);
+            if (filter == null) {
+                return true;
+            }
+            if (filter.IsFlushed()) {
+                IndirectFilterUtils.ThrowFlushedFilterException(pdfStream);
+            }
+            if (PdfName.Crypt.Equals(filter)) {
+                return false;
+            }
+            if (filter.GetObjectType() == PdfObject.ARRAY) {
+                PdfArray filters = (PdfArray)filter;
+                if (filters.IsEmpty()) {
+                    return true;
+                }
+                if (filters.Get(0).IsFlushed()) {
+                    IndirectFilterUtils.ThrowFlushedFilterException(pdfStream);
+                }
+                return !PdfName.Crypt.Equals(filters.Get(0, true));
+            }
+            return true;
+        }
+
+        protected internal virtual bool ContainsFlateFilter(PdfStream pdfStream) {
+            PdfName compressionFilter = GetCompressionStrategy().GetFilterName();
+            PdfObject filter = pdfStream.Get(PdfName.Filter);
+            if (filter == null) {
+                return false;
+            }
+            if (filter.IsFlushed()) {
+                IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, pdfStream);
+                return true;
+            }
+            if (filter.GetObjectType() != PdfObject.NAME && filter.GetObjectType() != PdfObject.ARRAY) {
+                throw new PdfException(KernelExceptionMessageConstant.FILTER_IS_NOT_A_NAME_OR_ARRAY);
+            }
+            if (filter.GetObjectType() == PdfObject.NAME) {
+                return compressionFilter.Equals(filter);
+            }
+            foreach (PdfObject obj in (PdfArray)filter) {
+                if (obj.IsFlushed()) {
+                    IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, pdfStream);
+                    return true;
+                }
+            }
+            return ((PdfArray)filter).Contains(compressionFilter);
+        }
+
+        protected internal virtual void UpdateCompressionFilter(PdfStream pdfStream) {
+            PdfObject existingFilter = pdfStream.Get(PdfName.Filter);
+            PdfName newFilter = GetCompressionStrategy().GetFilterName();
+            if (existingFilter == null) {
+                existingFilter = newFilter;
+                // Sometimes there is no filter but there are decode parms, this is invalid state, but we have to handle it.
+                pdfStream.Remove(PdfName.DecodeParms);
+            }
+            else {
+                if (existingFilter.GetObjectType() == PdfObject.ARRAY) {
+                    PdfArray filterArray = (PdfArray)existingFilter;
+                    filterArray.Add(0, newFilter);
+                }
+                else {
+                    if (existingFilter.GetObjectType() == PdfObject.NAME) {
+                        PdfArray filterArray = new PdfArray();
+                        filterArray.Add(newFilter);
+                        filterArray.Add(existingFilter);
+                        existingFilter = filterArray;
+                    }
+                    else {
+                        throw new PdfException(KernelExceptionMessageConstant.FILTER_IS_NOT_A_NAME_OR_ARRAY);
+                    }
+                }
+            }
+            pdfStream.Put(PdfName.Filter, existingFilter);
+            PdfObject existingDecodeParms = pdfStream.Get(PdfName.DecodeParms);
+            PdfObject newDecodeParams = GetCompressionStrategy().GetDecodeParams();
+            if (newDecodeParams == null) {
+                newDecodeParams = new PdfNull();
+            }
+            if (existingDecodeParms == null) {
+                if (!(newDecodeParams is PdfNull)) {
+                    pdfStream.Put(PdfName.DecodeParms, newDecodeParams);
+                }
+            }
+            else {
+                if (existingDecodeParms is PdfDictionary) {
+                    PdfArray array = new PdfArray();
+                    array.Add(newDecodeParams);
+                    array.Add(existingDecodeParms);
+                    pdfStream.Put(PdfName.DecodeParms, array);
+                }
+                else {
+                    if (existingDecodeParms is PdfArray) {
+                        ((PdfArray)existingDecodeParms).Add(0, newDecodeParams);
+                    }
+                    else {
+                        throw new PdfException(KernelExceptionMessageConstant.THIS_DECODE_PARAMETER_TYPE_IS_NOT_SUPPORTED).SetMessageParams
+                            (existingDecodeParms.GetType().ToString());
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds required Filter and DecodeParms to the pdf stream if the stream is embedded file stream
+        /// and only embedded files are expected to be encrypted.
+        /// </summary>
+        /// <remarks>
+        /// Adds required Filter and DecodeParms to the pdf stream if the stream is embedded file stream
+        /// and only embedded files are expected to be encrypted. See
+        /// <see cref="EncryptionConstants.EMBEDDED_FILES_ONLY"/>.
+        /// </remarks>
+        /// <param name="pdfStream">embedded file pdf stream.</param>
+        protected internal virtual void UpdateCryptFilterForEmbeddedFilesOnlyMode(PdfStream pdfStream) {
+            if (crypto != null && crypto.IsEmbeddedFilesOnly() && document.DoesStreamBelongToEmbeddedFile(pdfStream) &&
+                 
+                        // This code works only for AES256.
+                        
+                        // All tests we currently have for earlier versions do not work with and without this code.
+                        crypto.GetEncryptionAlgorithm() >= EncryptionConstants.ENCRYPTION_AES_256) {
+                // Filter
+                PdfObject currentFilters = pdfStream.Get(PdfName.Filter);
+                PdfArray filters = new PdfArray();
+                filters.Add(PdfName.Crypt);
+                if (currentFilters is PdfArray) {
+                    filters.AddAll((PdfArray)currentFilters);
+                }
+                else {
+                    if (currentFilters != null) {
+                        filters.Add(currentFilters);
+                    }
+                }
+                pdfStream.Put(PdfName.Filter, filters);
+                // DecodeParms
+                PdfDictionary crypt = new PdfDictionary();
+                crypt.Put(PdfName.Name, PdfName.StdCF);
+                crypt.Put(PdfName.Type, PdfName.CryptFilterDecodeParms);
+                PdfObject decodeParms = pdfStream.Get(PdfName.DecodeParms);
+                if (decodeParms is PdfDictionary || decodeParms == null) {
+                    PdfArray array = new PdfArray();
+                    array.Add(crypt);
+                    if (decodeParms != null) {
+                        array.Add(decodeParms);
+                    }
+                    pdfStream.Put(PdfName.DecodeParms, array);
+                }
+                else {
+                    if (decodeParms is PdfArray) {
+                        ((PdfArray)decodeParms).Add(0, crypt);
+                    }
+                    else {
+                        throw new PdfException(KernelExceptionMessageConstant.THIS_DECODE_PARAMETER_TYPE_IS_NOT_SUPPORTED).SetMessageParams
+                            (decodeParms.GetType().ToString());
+                    }
+                }
+            }
+        }
+
+        protected internal virtual byte[] DecodeFlateBytes(PdfStream stream, byte[] bytes) {
+            PdfObject filterObject = stream.Get(PdfName.Filter);
+            if (filterObject == null) {
+                return bytes;
+            }
+            // check if flateDecode filter is on top
+            PdfName filterName;
+            PdfArray filtersArray = null;
+            if (filterObject is PdfName) {
+                filterName = (PdfName)filterObject;
+            }
+            else {
+                if (filterObject is PdfArray) {
+                    filtersArray = (PdfArray)filterObject;
+                    if (filtersArray.IsFlushed()) {
+                        IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, stream);
+                        return bytes;
+                    }
+                    filterName = filtersArray.GetAsName(0);
+                }
+                else {
+                    throw new PdfException(KernelExceptionMessageConstant.FILTER_IS_NOT_A_NAME_OR_ARRAY);
+                }
+            }
+            if (filterName.IsFlushed()) {
+                IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, stream);
+                return bytes;
+            }
+            if (!PdfName.FlateDecode.Equals(filterName)) {
+                return bytes;
+            }
+            // get decode params if present
+            PdfDictionary decodeParams;
+            PdfArray decodeParamsArray = null;
+            PdfObject decodeParamsObject = stream.Get(PdfName.DecodeParms);
+            if (decodeParamsObject == null) {
+                decodeParams = null;
+            }
+            else {
+                if (decodeParamsObject.IsFlushed()) {
+                    IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, stream);
+                    return bytes;
+                }
+                else {
+                    if (decodeParamsObject.GetObjectType() == PdfObject.DICTIONARY) {
+                        decodeParams = (PdfDictionary)decodeParamsObject;
+                    }
+                    else {
+                        if (decodeParamsObject.GetObjectType() == PdfObject.ARRAY) {
+                            decodeParamsArray = (PdfArray)decodeParamsObject;
+                            decodeParams = decodeParamsArray.GetAsDictionary(0);
+                        }
+                        else {
+                            throw new PdfException(KernelExceptionMessageConstant.THIS_DECODE_PARAMETER_TYPE_IS_NOT_SUPPORTED).SetMessageParams
+                                (decodeParamsObject.GetType().ToString());
+                        }
+                    }
+                }
+            }
+            if (decodeParams != null && (decodeParams.IsFlushed() || IsFlushed(decodeParams, PdfName.Predictor) || IsFlushed
+                (decodeParams, PdfName.Columns) || IsFlushed(decodeParams, PdfName.Colors) || IsFlushed(decodeParams, 
+                PdfName.BitsPerComponent))) {
+                IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, stream);
+                return bytes;
+            }
+            // decode
+            byte[] res = FlateDecodeFilter.FlateDecode(bytes, true);
+            if (res == null) {
+                res = FlateDecodeFilter.FlateDecode(bytes, false);
+            }
+            bytes = FlateDecodeFilter.DecodePredictor(res, decodeParams);
+            //remove filter and decode params
+            filterObject = null;
+            if (filtersArray != null) {
+                filtersArray.Remove(0);
+                if (filtersArray.Size() == 1) {
+                    filterObject = filtersArray.Get(0);
+                }
+                else {
+                    if (!filtersArray.IsEmpty()) {
+                        filterObject = filtersArray;
+                    }
+                }
+            }
+            decodeParamsObject = null;
+            if (decodeParamsArray != null) {
+                decodeParamsArray.Remove(0);
+                if (decodeParamsArray.Size() == 1 && decodeParamsArray.Get(0).GetObjectType() != PdfObject.NULL) {
+                    decodeParamsObject = decodeParamsArray.Get(0);
+                }
+                else {
+                    if (!decodeParamsArray.IsEmpty()) {
+                        decodeParamsObject = decodeParamsArray;
+                    }
+                }
+            }
+            if (filterObject == null) {
+                stream.Remove(PdfName.Filter);
+            }
+            else {
+                stream.Put(PdfName.Filter, filterObject);
+            }
+            if (decodeParamsObject == null) {
+                stream.Remove(PdfName.DecodeParms);
+            }
+            else {
+                stream.Put(PdfName.DecodeParms, decodeParamsObject);
+            }
+            return bytes;
         }
 
 //\cond DO_NOT_DOCUMENT
@@ -280,19 +573,27 @@ namespace iText.Kernel.Pdf {
                 bool allowCompression = !pdfStream.ContainsKey(PdfName.Filter) && IsNotMetadataPdfStream(pdfStream);
                 if (pdfStream.GetInputStream() != null) {
                     Stream fout = this;
-                    DeflaterOutputStream def = null;
+                    Stream def = null;
                     OutputStreamEncryption ose = null;
+                    long beginStreamContent;
                     if (crypto != null && (!crypto.IsEmbeddedFilesOnly() || document.DoesStreamBelongToEmbeddedFile(pdfStream)
                         )) {
+                        UpdateCryptFilterForEmbeddedFilesOnlyMode(pdfStream);
+                        // We should store current position here because crypto.getEncryptionStream(fout) may already
+                        // output something into the stream (iv vector for AES256)
+                        beginStreamContent = WritePdfStreamAndGetPosition(pdfStream);
                         fout = ose = crypto.GetEncryptionStream(fout);
                     }
-                    if (toCompress && (allowCompression || userDefinedCompression)) {
-                        UpdateCompressionFilter(pdfStream);
-                        fout = def = new DeflaterOutputStream(fout, pdfStream.GetCompressionLevel(), 0x8000);
+                    else {
+                        if (toCompress && (allowCompression || userDefinedCompression)) {
+                            UpdateCompressionFilter(pdfStream);
+                            beginStreamContent = WritePdfStreamAndGetPosition(pdfStream);
+                            fout = def = GetCompressionStrategy().CreateNewOutputStream(fout, pdfStream);
+                        }
+                        else {
+                            beginStreamContent = WritePdfStreamAndGetPosition(pdfStream);
+                        }
                     }
-                    this.Write((PdfDictionary)pdfStream);
-                    WriteBytes(iText.Kernel.Pdf.PdfOutputStream.stream);
-                    long beginStreamContent = GetCurrentPos();
                     byte[] buf = new byte[4192];
                     while (true) {
                         int n = pdfStream.GetInputStream().Read(buf);
@@ -301,8 +602,8 @@ namespace iText.Kernel.Pdf {
                         }
                         fout.Write(buf, 0, n);
                     }
-                    if (def != null) {
-                        def.Finish();
+                    if (def is IFinishable) {
+                        ((IFinishable)def).Finish();
                     }
                     if (ose != null) {
                         ose.Finish();
@@ -333,7 +634,7 @@ namespace iText.Kernel.Pdf {
                             // compress
                             UpdateCompressionFilter(pdfStream);
                             byteArrayStream = new ByteArrayOutputStream();
-                            DeflaterOutputStream zip = new DeflaterOutputStream(byteArrayStream, pdfStream.GetCompressionLevel());
+                            Stream zip = GetCompressionStrategy().CreateNewOutputStream(byteArrayStream, pdfStream);
                             if (pdfStream is PdfObjectStream) {
                                 PdfObjectStream objectStream = (PdfObjectStream)pdfStream;
                                 ((ByteArrayOutputStream)objectStream.GetIndexStream().GetOutputStream()).WriteTo(zip);
@@ -343,7 +644,9 @@ namespace iText.Kernel.Pdf {
                                 System.Diagnostics.Debug.Assert(pdfStream.GetOutputStream() != null, "Error in outputStream");
                                 ((ByteArrayOutputStream)pdfStream.GetOutputStream().GetOutputStream()).WriteTo(zip);
                             }
-                            zip.Finish();
+                            if (zip is IFinishable) {
+                                ((IFinishable)zip).Finish();
+                            }
                         }
                         else {
                             if (pdfStream is PdfObjectStream) {
@@ -358,6 +661,7 @@ namespace iText.Kernel.Pdf {
                             }
                         }
                         if (CheckEncryption(pdfStream)) {
+                            UpdateCryptFilterForEmbeddedFilesOnlyMode(pdfStream);
                             ByteArrayOutputStream encodedStream = new ByteArrayOutputStream();
                             OutputStreamEncryption ose = crypto.GetEncryptionStream(encodedStream);
                             byteArrayStream.WriteTo(ose);
@@ -382,208 +686,10 @@ namespace iText.Kernel.Pdf {
             }
         }
 
-        protected internal virtual bool CheckEncryption(PdfStream pdfStream) {
-            if (crypto == null || (crypto.IsEmbeddedFilesOnly() && !document.DoesStreamBelongToEmbeddedFile(pdfStream)
-                )) {
-                return false;
-            }
-            if (IsXRefStream(pdfStream)) {
-                // The cross-reference stream shall not be encrypted
-                return false;
-            }
-            PdfObject filter = pdfStream.Get(PdfName.Filter, true);
-            if (filter == null) {
-                return true;
-            }
-            if (filter.IsFlushed()) {
-                IndirectFilterUtils.ThrowFlushedFilterException(pdfStream);
-            }
-            if (PdfName.Crypt.Equals(filter)) {
-                return false;
-            }
-            if (filter.GetObjectType() == PdfObject.ARRAY) {
-                PdfArray filters = (PdfArray)filter;
-                if (filters.IsEmpty()) {
-                    return true;
-                }
-                if (filters.Get(0).IsFlushed()) {
-                    IndirectFilterUtils.ThrowFlushedFilterException(pdfStream);
-                }
-                return !PdfName.Crypt.Equals(filters.Get(0, true));
-            }
-            return true;
-        }
-
-        protected internal virtual bool ContainsFlateFilter(PdfStream pdfStream) {
-            PdfObject filter = pdfStream.Get(PdfName.Filter);
-            if (filter == null) {
-                return false;
-            }
-            if (filter.IsFlushed()) {
-                IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, pdfStream);
-                return true;
-            }
-            if (filter.GetObjectType() != PdfObject.NAME && filter.GetObjectType() != PdfObject.ARRAY) {
-                throw new PdfException(KernelExceptionMessageConstant.FILTER_IS_NOT_A_NAME_OR_ARRAY);
-            }
-            if (filter.GetObjectType() == PdfObject.NAME) {
-                return PdfName.FlateDecode.Equals(filter);
-            }
-            foreach (PdfObject obj in (PdfArray)filter) {
-                if (obj.IsFlushed()) {
-                    IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, pdfStream);
-                    return true;
-                }
-            }
-            return ((PdfArray)filter).Contains(PdfName.FlateDecode);
-        }
-
-        protected internal virtual void UpdateCompressionFilter(PdfStream pdfStream) {
-            PdfObject filter = pdfStream.Get(PdfName.Filter);
-            if (filter == null) {
-                // Remove if any
-                pdfStream.Remove(PdfName.DecodeParms);
-                pdfStream.Put(PdfName.Filter, PdfName.FlateDecode);
-                return;
-            }
-            PdfArray filters = new PdfArray();
-            filters.Add(PdfName.FlateDecode);
-            if (filter is PdfArray) {
-                filters.AddAll((PdfArray)filter);
-            }
-            else {
-                filters.Add(filter);
-            }
-            PdfObject decodeParms = pdfStream.Get(PdfName.DecodeParms);
-            if (decodeParms != null) {
-                if (decodeParms is PdfDictionary) {
-                    PdfArray array = new PdfArray();
-                    array.Add(new PdfNull());
-                    array.Add(decodeParms);
-                    pdfStream.Put(PdfName.DecodeParms, array);
-                }
-                else {
-                    if (decodeParms is PdfArray) {
-                        ((PdfArray)decodeParms).Add(0, new PdfNull());
-                    }
-                    else {
-                        throw new PdfException(KernelExceptionMessageConstant.THIS_DECODE_PARAMETER_TYPE_IS_NOT_SUPPORTED).SetMessageParams
-                            (decodeParms.GetType().ToString());
-                    }
-                }
-            }
-            pdfStream.Put(PdfName.Filter, filters);
-        }
-
-        protected internal virtual byte[] DecodeFlateBytes(PdfStream stream, byte[] bytes) {
-            PdfObject filterObject = stream.Get(PdfName.Filter);
-            if (filterObject == null) {
-                return bytes;
-            }
-            // check if flateDecode filter is on top
-            PdfName filterName;
-            PdfArray filtersArray = null;
-            if (filterObject is PdfName) {
-                filterName = (PdfName)filterObject;
-            }
-            else {
-                if (filterObject is PdfArray) {
-                    filtersArray = (PdfArray)filterObject;
-                    if (filtersArray.IsFlushed()) {
-                        IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, stream);
-                        return bytes;
-                    }
-                    filterName = filtersArray.GetAsName(0);
-                }
-                else {
-                    throw new PdfException(KernelExceptionMessageConstant.FILTER_IS_NOT_A_NAME_OR_ARRAY);
-                }
-            }
-            if (filterName.IsFlushed()) {
-                IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, stream);
-                return bytes;
-            }
-            if (!PdfName.FlateDecode.Equals(filterName)) {
-                return bytes;
-            }
-            // get decode params if present
-            PdfDictionary decodeParams;
-            PdfArray decodeParamsArray = null;
-            PdfObject decodeParamsObject = stream.Get(PdfName.DecodeParms);
-            if (decodeParamsObject == null) {
-                decodeParams = null;
-            }
-            else {
-                if (decodeParamsObject.IsFlushed()) {
-                    IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, stream);
-                    return bytes;
-                }
-                else {
-                    if (decodeParamsObject.GetObjectType() == PdfObject.DICTIONARY) {
-                        decodeParams = (PdfDictionary)decodeParamsObject;
-                    }
-                    else {
-                        if (decodeParamsObject.GetObjectType() == PdfObject.ARRAY) {
-                            decodeParamsArray = (PdfArray)decodeParamsObject;
-                            decodeParams = decodeParamsArray.GetAsDictionary(0);
-                        }
-                        else {
-                            throw new PdfException(KernelExceptionMessageConstant.THIS_DECODE_PARAMETER_TYPE_IS_NOT_SUPPORTED).SetMessageParams
-                                (decodeParamsObject.GetType().ToString());
-                        }
-                    }
-                }
-            }
-            if (decodeParams != null && (decodeParams.IsFlushed() || IsFlushed(decodeParams, PdfName.Predictor) || IsFlushed
-                (decodeParams, PdfName.Columns) || IsFlushed(decodeParams, PdfName.Colors) || IsFlushed(decodeParams, 
-                PdfName.BitsPerComponent))) {
-                IndirectFilterUtils.LogFilterWasAlreadyFlushed(LOGGER, stream);
-                return bytes;
-            }
-            // decode
-            byte[] res = FlateDecodeFilter.FlateDecode(bytes, true);
-            if (res == null) {
-                res = FlateDecodeFilter.FlateDecode(bytes, false);
-            }
-            bytes = FlateDecodeFilter.DecodePredictor(res, decodeParams);
-            //remove filter and decode params
-            filterObject = null;
-            if (filtersArray != null) {
-                filtersArray.Remove(0);
-                if (filtersArray.Size() == 1) {
-                    filterObject = filtersArray.Get(0);
-                }
-                else {
-                    if (!filtersArray.IsEmpty()) {
-                        filterObject = filtersArray;
-                    }
-                }
-            }
-            decodeParamsObject = null;
-            if (decodeParamsArray != null) {
-                decodeParamsArray.Remove(0);
-                if (decodeParamsArray.Size() == 1 && decodeParamsArray.Get(0).GetObjectType() != PdfObject.NULL) {
-                    decodeParamsObject = decodeParamsArray.Get(0);
-                }
-                else {
-                    if (!decodeParamsArray.IsEmpty()) {
-                        decodeParamsObject = decodeParamsArray;
-                    }
-                }
-            }
-            if (filterObject == null) {
-                stream.Remove(PdfName.Filter);
-            }
-            else {
-                stream.Put(PdfName.Filter, filterObject);
-            }
-            if (decodeParamsObject == null) {
-                stream.Remove(PdfName.DecodeParms);
-            }
-            else {
-                stream.Put(PdfName.DecodeParms, decodeParamsObject);
-            }
-            return bytes;
+        private long WritePdfStreamAndGetPosition(PdfStream pdfStream) {
+            Write((PdfDictionary)pdfStream);
+            WriteBytes(iText.Kernel.Pdf.PdfOutputStream.stream);
+            return GetCurrentPos();
         }
 
         private static bool IsFlushed(PdfDictionary dict, PdfName name) {

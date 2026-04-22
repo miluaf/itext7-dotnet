@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -134,6 +134,8 @@ namespace iText.Layout.Properties {
         public const int FLEX_WRAP = 128;
 
         public const int FLEX_DIRECTION = 139;
+
+        public const int FLEX_FORCE_START_ON_TOP = 158;
 
         public const int FLOAT = 99;
 
@@ -283,6 +285,8 @@ namespace iText.Layout.Properties {
         public const int OBJECT_FIT = 125;
 
         public const int OPACITY = 92;
+
+        public const int ORDER = 159;
 
         public const int ORPHANS_CONTROL = 121;
 

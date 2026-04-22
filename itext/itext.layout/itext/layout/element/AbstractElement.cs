@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -160,7 +160,7 @@ namespace iText.Layout.Element {
             return (T)(Object)this;
         }
 
-        /// <summary>Creates new renderer instance.</summary>
+        /// <summary>Creates a new renderer instance.</summary>
         /// <returns>
         /// new
         /// <see cref="iText.Layout.Renderer.IRenderer"/>

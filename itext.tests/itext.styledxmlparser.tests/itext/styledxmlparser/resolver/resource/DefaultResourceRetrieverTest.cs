@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -23,6 +23,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 using System;
 using System.Net;
 using iText.Test;
+using iText.Commons.Utils;
 
 namespace iText.StyledXmlParser.Resolver.Resource {
     [NUnit.Framework.Category("IntegrationTest")]
@@ -44,7 +45,7 @@ namespace iText.StyledXmlParser.Resolver.Resource {
                 // Do not check exception message because it is localized
             } catch(OperationCanceledException e) {
                 exceptionThrown = true;
-                NUnit.Framework.Assert.AreEqual("the operation was canceled.", e.Message.ToLower());
+                NUnit.Framework.Assert.AreEqual("the operation was canceled.", StringNormalizer.ToLowerCase(e.Message));
             }
 
             NUnit.Framework.Assert.True(exceptionThrown);

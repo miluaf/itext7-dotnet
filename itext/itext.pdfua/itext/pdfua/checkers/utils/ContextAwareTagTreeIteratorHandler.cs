@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -26,13 +26,14 @@ using iText.Kernel.Pdf.Tagutils;
 namespace iText.Pdfua.Checkers.Utils {
     /// <summary>Class that holds the validation context while iterating the tag tree structure.</summary>
     public abstract class ContextAwareTagTreeIteratorHandler : ITagTreeIteratorHandler {
+        /// <summary>The validation context that holds necessary information during the tag tree iteration.</summary>
         protected internal readonly PdfUAValidationContext context;
 
         /// <summary>
         /// Creates a new instance of the
         /// <see cref="ContextAwareTagTreeIteratorHandler"/>.
         /// </summary>
-        /// <param name="context">The validation context.</param>
+        /// <param name="context">The validation context</param>
         protected internal ContextAwareTagTreeIteratorHandler(PdfUAValidationContext context) {
             this.context = context;
         }

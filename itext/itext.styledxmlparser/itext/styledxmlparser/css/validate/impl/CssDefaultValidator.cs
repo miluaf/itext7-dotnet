@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -27,6 +27,7 @@ using iText.StyledXmlParser.Css;
 using iText.StyledXmlParser.Css.Validate;
 using iText.StyledXmlParser.Css.Validate.Impl.Datatype;
 using iText.StyledXmlParser.Css.Validate.Impl.Declaration;
+using iText.StyledXmlParser.Util;
 
 namespace iText.StyledXmlParser.Css.Validate.Impl {
     /// <summary>Class that bundles all the CSS declaration validators.</summary>
@@ -42,6 +43,11 @@ namespace iText.StyledXmlParser.Css.Validate.Impl {
             new CssEnumValidator(CommonCssConstants.TRANSPARENT, CommonCssConstants.INITIAL, CommonCssConstants.INHERIT
             , CommonCssConstants.CURRENTCOLOR), new CssColorValidator());
 
+        /// <summary>
+        /// Instantiates a new
+        /// <see cref="CssDefaultValidator"/>
+        /// instance with the default validators map.
+        /// </summary>
         public CssDefaultValidator() {
             CssEnumValidator normalValidator = new CssEnumValidator(CommonCssConstants.NORMAL);
             CssEnumValidator relativeSizeValidator = new CssEnumValidator(CommonCssConstants.LARGER, CommonCssConstants
@@ -142,9 +148,8 @@ namespace iText.StyledXmlParser.Css.Validate.Impl {
                 (JavaUtil.ArraysAsList(CommonCssConstants.SPACE_AROUND, CommonCssConstants.SPACE_BETWEEN, CommonCssConstants
                 .SPACE_EVENLY, CommonCssConstants.STRETCH, CommonCssConstants.NORMAL, CommonCssConstants.LEFT, CommonCssConstants
                 .RIGHT)), new CssEnumValidator(JavaUtil.ArraysAsList(CommonCssConstants.CENTER, CommonCssConstants.START
-                , CommonCssConstants.FLEX_START, CommonCssConstants.SELF_START, CommonCssConstants.END, CommonCssConstants
-                .FLEX_END, CommonCssConstants.SELF_END), JavaUtil.ArraysAsList(CommonCssConstants.SAFE, CommonCssConstants
-                .UNSAFE)), inheritInitialUnsetValidator));
+                , CommonCssConstants.FLEX_START, CommonCssConstants.END, CommonCssConstants.FLEX_END), JavaUtil.ArraysAsList
+                (CommonCssConstants.SAFE, CommonCssConstants.UNSAFE)), inheritInitialUnsetValidator));
             defaultValidators.Put(CommonCssConstants.JUSTIFY_ITEMS, new MultiTypeDeclarationValidator(normalValidator, 
                 new CssEnumValidator(JavaUtil.ArraysAsList(CommonCssConstants.BASELINE), JavaUtil.ArraysAsList(CommonCssConstants
                 .FIRST, CommonCssConstants.LAST)), new CssEnumValidator(JavaUtil.ArraysAsList(CommonCssConstants.STRETCH
@@ -161,7 +166,10 @@ namespace iText.StyledXmlParser.Css.Validate.Impl {
         /// <returns>true, if the validation was successful</returns>
         public virtual bool IsValid(CssDeclaration declaration) {
             ICssDeclarationValidator validator = defaultValidators.Get(declaration.GetProperty());
-            return validator == null || validator.IsValid(declaration);
+            // In case of var() expression presence in declaration expression we can't validate it.
+            // It should be expanded first by calling com.itextpdf.styledxmlparser.util.StyleUtil#resolveCssVariables
+            bool isVarExpression = CssVariableUtil.ContainsVarExpression(declaration.GetExpression());
+            return isVarExpression || validator == null || validator.IsValid(declaration);
         }
 
         private static void AddColumnRuleValidation(IDictionary<String, ICssDeclarationValidator> container) {

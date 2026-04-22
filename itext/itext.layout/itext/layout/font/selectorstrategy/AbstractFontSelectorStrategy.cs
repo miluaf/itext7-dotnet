@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -109,10 +109,27 @@ namespace iText.Layout.Font.Selectorstrategy {
                         if (codePoint > 0xFFFF) {
                             i++;
                         }
-                        if (IsCurrentFontCheckRequired() && (i != indexDiacritic - 1) && !iText.IO.Util.TextUtil.IsWhitespaceOrNonPrintable
-                            (codePoint)) {
-                            if (currentFont != MatchFont(codePoint, fontSelector, fontProvider, additionalFonts)) {
-                                breakRequested = true;
+                        if (IsCurrentFontCheckRequired() && (i != indexDiacritic - 1)) {
+                            PdfFont pdfFont = MatchFont(codePoint, fontSelector, fontProvider, additionalFonts);
+                            int nextSignificant = NextSignificantIndex(i, text);
+                            // if below describes the case when non-significant (e.g. whitespace, soft-hyphen)
+                            // symbol is surrounded by significant symbols
+                            if (nextSignificant != i && nextSignificant < text.Length) {
+                                PdfFont nextFont = MatchFont(ExtractCodePoint(text, nextSignificant), fontSelector, fontProvider, additionalFonts
+                                    );
+                                // currentFont - font to the left of current non-significant symbol
+                                // pdfFont - font of the non-significant symbol
+                                // nextFont - font to the right of current non-significant symbol
+                                if (currentFont != pdfFont && nextFont != currentFont) {
+                                    // In this case it means that non-significant symbol will be written by nextFont
+                                    // (after break currentFont will be selected based on nextSignificantIndex(index, text))
+                                    breakRequested = true;
+                                }
+                            }
+                            else {
+                                if (pdfFont != null && currentFont != pdfFont) {
+                                    breakRequested = true;
+                                }
                             }
                         }
                         if (i > indexDiacritic) {

@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-    Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -66,6 +66,10 @@ namespace iText.IO {
 
         public static byte[] GetBytes(this String str, Encoding encoding) {
             return encoding.GetBytes(str);
+        }
+
+        public static byte[] GetBytes(this String str, string encoding) {
+            return Encoding.GetEncoding(encoding).GetBytes(str);
         }
 
         public static long Seek(this FileStream fs, long offset) {
@@ -173,6 +177,15 @@ namespace iText.IO {
             T[] r = new T[col.Count];
             col.CopyTo(r, 0);
             return r;
+        }
+        
+        public static bool ContainsAll<T>(this ICollection<T> thisC, ICollection<T> otherC) {
+            foreach (T e in otherC) {
+                if (!thisC.Contains(e)) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public static Assembly GetAssembly(this Type type) {

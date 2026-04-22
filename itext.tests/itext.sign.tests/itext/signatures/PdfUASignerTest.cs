@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -31,26 +31,32 @@ using iText.Commons.Bouncycastle.Crypto;
 using iText.Commons.Utils;
 using iText.Forms.Fields.Properties;
 using iText.Forms.Form.Element;
+using iText.IO.Image;
 using iText.IO.Util;
 using iText.Kernel.Crypto;
 using iText.Kernel.Font;
 using iText.Kernel.Geom;
 using iText.Kernel.Pdf;
+using iText.Kernel.Pdf.Canvas.Draw;
+using iText.Layout.Element;
+using iText.Layout.Logs;
 using iText.Pdfua;
 using iText.Pdfua.Exceptions;
 using iText.Signatures.Testutils;
 using iText.Test;
+using iText.Test.Attributes;
 using iText.Test.Pdfa;
 
 namespace iText.Signatures {
-    // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
     [NUnit.Framework.Category("IntegrationTest")]
     public class PdfUASignerTest : ExtendedITextTest {
         private static readonly IBouncyCastleFactory BOUNCY_CASTLE_FACTORY = BouncyCastleFactoryCreator.GetFactory
             ();
 
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/signatures/PdfUASignerTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/signatures/PdfUASignerTest/";
+
+        private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+            .CurrentContext.TestDirectory) + "/resources/itext/signatures/sign/PdfUASignerTest/";
 
         private static readonly String FONT = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/signatures/font/FreeSans.ttf";
@@ -92,7 +98,6 @@ namespace iText.Signatures {
             NUnit.Framework.Assert.IsNull(new VeraPdfValidator().Validate(outPdf));
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void VisibleSignatureWithTUButNotAFont() {
             MemoryStream inPdf = GenerateSimplePdfUA1Document();
@@ -114,7 +119,6 @@ namespace iText.Signatures {
             NUnit.Framework.Assert.IsNull(new VeraPdfValidator().Validate(outPdf));
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void VisibleSignatureWithoutTUFont() {
             MemoryStream inPdf = GenerateSimplePdfUA1Document();
@@ -170,7 +174,6 @@ namespace iText.Signatures {
             NUnit.Framework.Assert.IsNull(new VeraPdfValidator().Validate(outPdf));
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void NormalPdfSignerInvisibleSignatureWithoutTU() {
             MemoryStream inPdf = GenerateSimplePdfUA1Document();
@@ -183,7 +186,6 @@ namespace iText.Signatures {
             NUnit.Framework.Assert.IsNull(new VeraPdfValidator().Validate(outPdf));
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void NormalPdfSignerVisibleSignatureWithoutFont() {
             // TODO DEVSIX-8676 Enable keeping A and UA conformance in PdfSigner
@@ -202,7 +204,6 @@ namespace iText.Signatures {
             new VeraPdfValidator().ValidateFailure(outPdf);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void NormalPdfSignerVisibleSignatureWithFont() {
             MemoryStream inPdf = GenerateSimplePdfUA1Document();
@@ -221,7 +222,6 @@ namespace iText.Signatures {
             NUnit.Framework.Assert.IsNull(new VeraPdfValidator().Validate(outPdf));
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void NormalPdfSignerVisibleSignatureWithFontEmptyTU() {
             // TODO DEVSIX-8676 Enable keeping A and UA conformance in PdfSigner
@@ -242,7 +242,6 @@ namespace iText.Signatures {
             new VeraPdfValidator().ValidateFailure(outPdf);
         }
 
-        // Android-Conversion-Skip-Line (TODO DEVSIX-7377 introduce pdf\a validation on Android)
         [NUnit.Framework.Test]
         public virtual void PdfSignerVisibleSignatureWithFontEmptyTU() {
             //Should throw the correct exception if the font is not set
@@ -264,10 +263,88 @@ namespace iText.Signatures {
             );
         }
 
+        [NUnit.Framework.Test]
+        [LogMessage(LayoutLogMessageConstant.ELEMENT_DOES_NOT_FIT_AREA)]
+        public virtual void SignatureAppearanceWithImageUA2() {
+            // TODO DEVSIX-9023 Support "Signature fields" UA-2 rules
+            MemoryStream inPdf = GenerateSimplePdfUA2Document();
+            String outPdf = GenerateSignatureNormal(inPdf, "signatureAppearanceWithImageUA2", (signer) => {
+                signer.SetSignerProperties(new SignerProperties().SetFieldName("Signature12"));
+                SignatureFieldAppearance appearance = null;
+                try {
+                    appearance = new SignatureFieldAppearance(SignerProperties.IGNORED_ID).SetContent(ImageDataFactory.Create(
+                        SOURCE_FOLDER + "/sign.jpg"));
+                }
+                catch (UriFormatException e) {
+                    throw new Exception(e.Message);
+                }
+                appearance.SetAlternativeDescription("Alternative Description");
+                signer.GetSignerProperties().SetPageNumber(1).SetPageRect(new Rectangle(36, 648, 200, 200)).SetSignatureAppearance
+                    (appearance);
+            }
+            );
+            new VeraPdfValidator().Validate(outPdf);
+        }
+
+        [NUnit.Framework.Test]
+        [LogMessage(iText.IO.Logs.IoLogMessageConstant.CLIP_ELEMENT)]
+        public virtual void SignatureAppearanceImageInDivUA2() {
+            // TODO DEVSIX-9023 Support "Signature fields" UA-2 rules
+            MemoryStream inPdf = GenerateSimplePdfUA2Document();
+            String outPdf = GenerateSignatureNormal(inPdf, "signatureAppearanceImageInDivUA2", (signer) => {
+                signer.SetSignerProperties(new SignerProperties().SetFieldName("Signature12"));
+                SignatureFieldAppearance appearance = new SignatureFieldAppearance(SignerProperties.IGNORED_ID);
+                Div div = new Div();
+                iText.Layout.Element.Image img = null;
+                try {
+                    img = new iText.Layout.Element.Image(ImageDataFactory.Create(SOURCE_FOLDER + "/sign.jpg"));
+                }
+                catch (UriFormatException e) {
+                    throw new Exception(e.Message);
+                }
+                div.Add(img);
+                appearance.SetContent(div);
+                appearance.SetAlternativeDescription("Alternative Description");
+                signer.GetSignerProperties().SetPageNumber(1).SetPageRect(new Rectangle(36, 648, 200, 200)).SetSignatureAppearance
+                    (appearance);
+            }
+            );
+            // TODO DEVSIX-9060 Image that is in Div element is not rendered in signature
+            new VeraPdfValidator().Validate(outPdf);
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void SignatureAppearanceWithLineSeparatorUA2() {
+            // TODO DEVSIX-9023 Support "Signature fields" UA-2 rules
+            MemoryStream inPdf = GenerateSimplePdfUA2Document();
+            String outPdf = GenerateSignatureNormal(inPdf, "signatureAppearanceWithLineSeparatorUA2", (signer) => {
+                signer.SetSignerProperties(new SignerProperties().SetFieldName("Signature12"));
+                SignatureFieldAppearance appearance = new SignatureFieldAppearance(SignerProperties.IGNORED_ID);
+                Div div = new Div();
+                LineSeparator line = new LineSeparator(new SolidLine(3));
+                div.Add(line);
+                appearance.SetContent(div);
+                appearance.SetAlternativeDescription("Alternative Description");
+                signer.GetSignerProperties().SetPageNumber(1).SetPageRect(new Rectangle(36, 648, 200, 50)).SetSignatureAppearance
+                    (appearance);
+            }
+            );
+            new VeraPdfValidator().Validate(outPdf);
+        }
+
         private MemoryStream GenerateSimplePdfUA1Document() {
             MemoryStream @out = new MemoryStream();
             PdfUADocument pdfUADocument = new PdfUADocument(new PdfWriter(@out), new PdfUAConfig(PdfUAConformance.PDF_UA_1
                 , "Title", "en-US"));
+            pdfUADocument.AddNewPage();
+            pdfUADocument.Close();
+            return new MemoryStream(@out.ToArray());
+        }
+
+        private MemoryStream GenerateSimplePdfUA2Document() {
+            MemoryStream @out = new MemoryStream();
+            PdfUADocument pdfUADocument = new PdfUADocument(new PdfWriter(@out, new WriterProperties().SetPdfVersion(PdfVersion
+                .PDF_2_0)), new PdfUAConfig(PdfUAConformance.PDF_UA_2, "Title", "en-US"));
             pdfUADocument.AddNewPage();
             pdfUADocument.Close();
             return new MemoryStream(@out.ToArray());

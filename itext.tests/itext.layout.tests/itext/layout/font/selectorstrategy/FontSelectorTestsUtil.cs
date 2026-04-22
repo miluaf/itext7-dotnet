@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -83,8 +83,8 @@ namespace iText.Layout.Font.Selectorstrategy {
             fontProvider.GetFontSet().AddFont(FONTS_FOLDER + "FreeSans.ttf", null, "FontAlias", new RangeBuilder(100, 
                 102).Create());
             // 'x', 'y' and 'z' are in that interval
-            fontProvider.GetFontSet().AddFont(FONTS_FOLDER + "Puritan2.otf", null, "FontAlias", new RangeBuilder(120, 
-                122).Create());
+            fontProvider.GetFontSet().AddFont(FONTS_FOLDER + "Puritan-Regular.ttf", null, "FontAlias", new RangeBuilder
+                (120, 122).Create());
             fontProvider.SetFontSelectorStrategyFactory(factory);
             IList<String> fontFamilies = new List<String>();
             fontFamilies.Add("random");
@@ -98,6 +98,28 @@ namespace iText.Layout.Font.Selectorstrategy {
             fontProvider.SetFontSelectorStrategyFactory(factory);
             IList<String> fontFamilies = new List<String>();
             fontFamilies.Add("random");
+            return fontProvider.CreateFontSelectorStrategy(fontFamilies, new FontCharacteristics(), null);
+        }
+
+        public static IFontSelectorStrategy CreateStrategyWithNotoSansCJKAndFreeSans(IFontSelectorStrategyFactory 
+            factory) {
+            FontSet fs = new FontSet();
+            fs.AddFont(FONTS_FOLDER + "FreeSans.ttf");
+            fs.AddFont(FONTS_FOLDER + "NotoSansCJKjp-Regular.otf");
+            FontProvider fontProvider = new FontProvider(fs, StandardFontFamilies.TIMES);
+            fontProvider.SetFontSelectorStrategyFactory(factory);
+            IList<String> fontFamilies = new List<String>();
+            fontFamilies.Add("random");
+            return fontProvider.CreateFontSelectorStrategy(fontFamilies, new FontCharacteristics(), null);
+        }
+
+        public static IFontSelectorStrategy CreateStrategyWithSymbolFont(IFontSelectorStrategyFactory factory) {
+            FontProvider fontProvider = new FontProvider();
+            // TODO DEVSIX-9589 Create symbol font with cmap 3,0 for testing
+            fontProvider.AddFont(FONTS_FOLDER + "Symbols1.ttf");
+            fontProvider.SetFontSelectorStrategyFactory(factory);
+            IList<String> fontFamilies = new List<String>();
+            fontFamilies.Add("Symbols1");
             return fontProvider.CreateFontSelectorStrategy(fontFamilies, new FontCharacteristics(), null);
         }
     }

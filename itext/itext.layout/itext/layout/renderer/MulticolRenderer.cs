@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -50,8 +50,6 @@ namespace iText.Layout.Renderer {
         private float columnGap;
 
         private float containerWidth;
-
-        private bool isFirstLayout = true;
 
         /// <summary>Creates a DivRenderer from its corresponding layout object.</summary>
         /// <param name="modelElement">
@@ -138,7 +136,7 @@ namespace iText.Layout.Renderer {
         /// <see cref="IRenderer"/>
         /// itself.
         /// </summary>
-        /// <param name="drawContext">the context (canvas, document, etc) of this drawing operation.</param>
+        /// <param name="drawContext">the context (canvas, document, etc.) of this drawing operation.</param>
         public override void DrawBorder(DrawContext drawContext) {
             base.DrawBorder(drawContext);
             Rectangle borderRect = ApplyMargins(occupiedArea.GetBBox().Clone(), GetMargins(), false);
@@ -164,7 +162,7 @@ namespace iText.Layout.Renderer {
             );
         }
 
-        /// <summary>Layouts multicol in the passed area.</summary>
+        /// <summary>Layouts multicol in the provided area.</summary>
         /// <param name="layoutContext">the layout context</param>
         /// <param name="actualBBox">the area to layout multicol on</param>
         /// <returns>
@@ -195,7 +193,6 @@ namespace iText.Layout.Renderer {
         protected internal virtual AbstractRenderer CreateOverflowRenderer(IRenderer overflowedContentRenderer) {
             iText.Layout.Renderer.MulticolRenderer overflowRenderer = (iText.Layout.Renderer.MulticolRenderer)GetNextRenderer
                 ();
-            overflowRenderer.isFirstLayout = false;
             overflowRenderer.parent = parent;
             overflowRenderer.modelElement = modelElement;
             overflowRenderer.AddAllProperties(GetOwnProperties());
@@ -410,6 +407,7 @@ namespace iText.Layout.Renderer {
             float? GetAdditionalHeightOfEachColumn(MulticolRenderer renderer, MulticolRenderer.MulticolLayoutResult result
                 );
 
+            /// <returns>maximum amount of relayouts which can be done by this height enhancer</returns>
             int MaxAmountOfRelayouts();
         }
 
@@ -419,33 +417,63 @@ namespace iText.Layout.Renderer {
         /// for which height should be increased, so it can be lauded.
         /// </summary>
         public class MulticolLayoutResult {
-            private IList<IRenderer> splitRenderers = new List<IRenderer>();
+            private readonly IList<IRenderer> splitRenderers = new List<IRenderer>();
 
             private AbstractRenderer overflowRenderer;
 
             private IRenderer causeOfNothing;
 
+            /// <summary>Gets the split renderers.</summary>
+            /// <returns>
+            /// the split renderers (always not
+            /// <see langword="null"/>
+            /// )
+            /// </returns>
             public virtual IList<IRenderer> GetSplitRenderers() {
                 return splitRenderers;
             }
 
+            /// <summary>Gets the overflow renderer.</summary>
+            /// <returns>
+            /// the overflow renderer, can be
+            /// <see langword="null"/>
+            /// if there is no overflow
+            /// </returns>
             public virtual AbstractRenderer GetOverflowRenderer() {
                 return overflowRenderer;
             }
 
+            /// <summary>Sets the overflow renderer.</summary>
+            /// <param name="overflowRenderer">the overflow renderer to be set</param>
             public virtual void SetOverflowRenderer(AbstractRenderer overflowRenderer) {
                 this.overflowRenderer = overflowRenderer;
             }
 
+            /// <summary>Gets the cause of nothing renderer.</summary>
+            /// <returns>
+            /// the cause of nothing renderer, can be
+            /// <see langword="null"/>
+            /// if
+            /// <see cref="GetSplitRenderers()"/>
+            /// is not empty
+            /// </returns>
             public virtual IRenderer GetCauseOfNothing() {
                 return causeOfNothing;
             }
 
+            /// <summary>Sets the cause of nothing renderer.</summary>
+            /// <param name="causeOfNothing">cause of nothing renderer to be set</param>
             public virtual void SetCauseOfNothing(IRenderer causeOfNothing) {
                 this.causeOfNothing = causeOfNothing;
             }
         }
 
+        /// <summary>
+        /// Default implementation of
+        /// <see cref="ColumnHeightCalculator"/>
+        /// which allows 4 relayouts and performs
+        /// simple additional height calculation (split the elements which don't fit).
+        /// </summary>
         public class LayoutInInfiniteHeightCalculator : MulticolRenderer.ColumnHeightCalculator {
             protected internal int maxRelayoutCount = 4;
 

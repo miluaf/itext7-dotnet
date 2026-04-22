@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -22,15 +22,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
 using System.IO;
+using iText.Commons.Utils;
 using iText.IO.Font.Woff2;
+using iText.Test;
 
 namespace iText.IO.Font.Woff2.W3c {
     public abstract class W3CWoff2DecodeTest : Woff2DecodeTest {
-        private static readonly String baseSourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
-            .CurrentContext.TestDirectory) + "/resources/itext/io/font/woff2/w3c/";
+        private static readonly String W3C_FONT_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
+            .CurrentContext.TestDirectory) + "/resources/itext/io/font/w3c/";
 
-        private static readonly String baseDestinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/io/font/woff2/w3c/";
+        private static readonly String W3C_DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/io/font/w3c/";
 
         protected internal abstract String GetFontName();
 
@@ -52,14 +53,14 @@ namespace iText.IO.Font.Woff2.W3c {
         }
 
         private String GetDestinationFolder() {
-            String localPackage = GetLocalPackage().ToLowerInvariant();
-            return baseDestinationFolder + localPackage + System.IO.Path.DirectorySeparatorChar + GetTestClassName() +
-                 System.IO.Path.DirectorySeparatorChar;
+            String localPackage = StringNormalizer.ToLowerCase(GetLocalPackage());
+            return W3C_DESTINATION_FOLDER + localPackage + System.IO.Path.DirectorySeparatorChar + GetTestClassName() 
+                + System.IO.Path.DirectorySeparatorChar;
         }
 
         private String GetSourceFolder() {
-            String localPackage = GetLocalPackage().ToLowerInvariant();
-            return baseSourceFolder + localPackage + System.IO.Path.DirectorySeparatorChar;
+            String localPackage = StringNormalizer.ToLowerCase(GetLocalPackage());
+            return W3C_FONT_FOLDER + localPackage + System.IO.Path.DirectorySeparatorChar;
         }
 
         private String GetTestClassName() {

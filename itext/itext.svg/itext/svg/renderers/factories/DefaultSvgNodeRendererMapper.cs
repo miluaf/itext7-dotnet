@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -34,11 +34,12 @@ namespace iText.Svg.Renderers.Factories {
     /// tags as defined in the SVG Specification.
     /// </summary>
     internal class DefaultSvgNodeRendererMapper {
-        private static readonly String CLIP_PATH_LC = SvgConstants.Tags.CLIP_PATH.ToLowerInvariant();
+        private static readonly String CLIP_PATH_LC = StringNormalizer.ToLowerCase(SvgConstants.Tags.CLIP_PATH);
 
-        private static readonly String LINEAR_GRADIENT_LC = SvgConstants.Tags.LINEAR_GRADIENT.ToLowerInvariant();
+        private static readonly String LINEAR_GRADIENT_LC = StringNormalizer.ToLowerCase(SvgConstants.Tags.LINEAR_GRADIENT
+            );
 
-        private static readonly String TEXT_LEAF_LC = SvgConstants.Tags.TEXT_LEAF.ToLowerInvariant();
+        private static readonly String TEXT_LEAF_LC = StringNormalizer.ToLowerCase(SvgConstants.Tags.TEXT_LEAF);
 
 //\cond DO_NOT_DOCUMENT
         /// <summary>

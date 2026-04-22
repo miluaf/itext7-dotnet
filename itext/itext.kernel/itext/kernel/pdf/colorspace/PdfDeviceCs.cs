@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -40,6 +40,11 @@ namespace iText.Kernel.Pdf.Colorspace {
             public override int GetNumberOfComponents() {
                 return 1;
             }
+
+            /// <summary><inheritDoc/></summary>
+            public override PdfName GetColorspaceName() {
+                return PdfName.DeviceGray;
+            }
         }
 
         public class Rgb : PdfDeviceCs {
@@ -50,6 +55,11 @@ namespace iText.Kernel.Pdf.Colorspace {
             public override int GetNumberOfComponents() {
                 return 3;
             }
+
+            /// <summary><inheritDoc/></summary>
+            public override PdfName GetColorspaceName() {
+                return PdfName.DeviceRGB;
+            }
         }
 
         public class Cmyk : PdfDeviceCs {
@@ -59,6 +69,11 @@ namespace iText.Kernel.Pdf.Colorspace {
 
             public override int GetNumberOfComponents() {
                 return 4;
+            }
+
+            /// <summary><inheritDoc/></summary>
+            public override PdfName GetColorspaceName() {
+                return PdfName.DeviceCMYK;
             }
         }
     }

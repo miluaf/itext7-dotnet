@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -29,6 +29,12 @@ namespace iText.Svg.Renderers.Impl {
         public virtual void NoObjectBoundingBoxTest() {
             SymbolSvgNodeRenderer renderer = new SymbolSvgNodeRenderer();
             NUnit.Framework.Assert.IsNull(renderer.GetObjectBoundingBox(null));
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void CanConstructViewPortTest() {
+            SymbolSvgNodeRenderer renderer = new SymbolSvgNodeRenderer();
+            NUnit.Framework.Assert.IsTrue(renderer.CanConstructViewPort());
         }
     }
 }

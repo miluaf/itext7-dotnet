@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 using System;
 using System.Text;
+using iText.Commons.Utils;
 
 namespace iText.Kernel.Numbering {
     /// <summary>This class can produce String combinations representing a roman number.</summary>
@@ -48,7 +49,7 @@ namespace iText.Kernel.Numbering {
         /// <param name="number">a number to be converted to roman notation</param>
         /// <returns>an upper case roman representation of an integer</returns>
         public static String ToRomanUpperCase(int number) {
-            return Convert(number).ToUpperInvariant();
+            return StringNormalizer.ToUpperCase(Convert(number));
         }
 
         /// <summary>Returns a roman representation of an integer.</summary>

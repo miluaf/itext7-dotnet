@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -49,16 +49,18 @@ namespace iText.Signatures.Mac {
         private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/signatures/mac/SignedDocumentWithMacTest/";
 
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/signatures/mac/SignedDocumentWithMacTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/signatures/mac/SignedDocumentWithMacTest/";
 
         private static readonly byte[] ENCRYPTION_PASSWORD = "123".GetBytes();
 
         private static readonly char[] PRIVATE_KEY_PASSWORD = "testpassphrase".ToCharArray();
 
+        private static bool runningInFipsMode;
+
         [NUnit.Framework.OneTimeSetUp]
         public static void Before() {
             CreateOrClearDestinationFolder(DESTINATION_FOLDER);
+            runningInFipsMode = "BCFIPS".Equals(BouncyCastleFactoryCreator.GetFactory().GetProviderName());
         }
 
         public static IEnumerable<Object[]> CreateParameters() {
@@ -74,7 +76,7 @@ namespace iText.Signatures.Mac {
             String srcFileName = SOURCE_FOLDER + "macEncryptedDoc.pdf";
             String outputFileName = DESTINATION_FOLDER + fileName;
             String signCertFileName = CERTS_SRC + certName;
-            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName;
+            String cmpFileName = GetCmpFileName(signingOperation, fileName);
             IX509Certificate[] signRsaChain = PemFileHelper.ReadFirstChain(signCertFileName);
             IPrivateKey signRsaPrivateKey = PemFileHelper.ReadFirstKey(signCertFileName, PRIVATE_KEY_PASSWORD);
             using (PdfReader reader = new PdfReader(srcFileName, new ReaderProperties().SetPassword(ENCRYPTION_PASSWORD
@@ -96,7 +98,7 @@ namespace iText.Signatures.Mac {
             String srcFileName = SOURCE_FOLDER + "noMacProtectionDocument.pdf";
             String outputFileName = DESTINATION_FOLDER + fileName;
             String signCertFileName = CERTS_SRC + certName;
-            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName;
+            String cmpFileName = GetCmpFileName(signingOperation, fileName);
             IX509Certificate[] signRsaChain = PemFileHelper.ReadFirstChain(signCertFileName);
             IPrivateKey signRsaPrivateKey = PemFileHelper.ReadFirstKey(signCertFileName, PRIVATE_KEY_PASSWORD);
             using (PdfReader reader = new PdfReader(srcFileName, new ReaderProperties().SetPassword(ENCRYPTION_PASSWORD
@@ -118,7 +120,7 @@ namespace iText.Signatures.Mac {
             String srcFileName = SOURCE_FOLDER + "noMacProtectionDocument_1_7.pdf";
             String outputFileName = DESTINATION_FOLDER + fileName;
             String signCertFileName = CERTS_SRC + certName;
-            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName;
+            String cmpFileName = GetCmpFileName(signingOperation, fileName);
             IX509Certificate[] signRsaChain = PemFileHelper.ReadFirstChain(signCertFileName);
             IPrivateKey signRsaPrivateKey = PemFileHelper.ReadFirstKey(signCertFileName, PRIVATE_KEY_PASSWORD);
             using (PdfReader reader = new PdfReader(srcFileName, new ReaderProperties().SetPassword(ENCRYPTION_PASSWORD
@@ -143,7 +145,7 @@ namespace iText.Signatures.Mac {
             String srcFileName = SOURCE_FOLDER + "noMacProtectionDocument.pdf";
             String outputFileName = DESTINATION_FOLDER + fileName;
             String signCertFileName = CERTS_SRC + certName;
-            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName;
+            String cmpFileName = GetCmpFileName(signingOperation, fileName);
             IX509Certificate[] signRsaChain = PemFileHelper.ReadFirstChain(signCertFileName);
             IPrivateKey signRsaPrivateKey = PemFileHelper.ReadFirstKey(signCertFileName, PRIVATE_KEY_PASSWORD);
             using (PdfReader reader = new PdfReader(srcFileName, new ReaderProperties().SetPassword(ENCRYPTION_PASSWORD
@@ -167,7 +169,7 @@ namespace iText.Signatures.Mac {
             String srcFileName = SOURCE_FOLDER + "macEncryptedDoc.pdf";
             String outputFileName = DESTINATION_FOLDER + fileName;
             String signCertFileName = CERTS_SRC + certName;
-            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName;
+            String cmpFileName = GetCmpFileName(signingOperation, fileName);
             IX509Certificate[] signRsaChain = PemFileHelper.ReadFirstChain(signCertFileName);
             IPrivateKey signRsaPrivateKey = PemFileHelper.ReadFirstKey(signCertFileName, PRIVATE_KEY_PASSWORD);
             using (PdfReader reader = new PdfReader(srcFileName, new ReaderProperties().SetPassword(ENCRYPTION_PASSWORD
@@ -189,7 +191,7 @@ namespace iText.Signatures.Mac {
             String srcFileName = SOURCE_FOLDER + "macEncryptedDocSHA3_384.pdf";
             String outputFileName = DESTINATION_FOLDER + fileName;
             String signCertFileName = CERTS_SRC + certName;
-            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName;
+            String cmpFileName = GetCmpFileName(signingOperation, fileName);
             IX509Certificate[] signRsaChain = PemFileHelper.ReadFirstChain(signCertFileName);
             IPrivateKey signRsaPrivateKey = PemFileHelper.ReadFirstKey(signCertFileName, PRIVATE_KEY_PASSWORD);
             using (PdfReader reader = new PdfReader(srcFileName, new ReaderProperties().SetPassword(ENCRYPTION_PASSWORD
@@ -278,6 +280,15 @@ namespace iText.Signatures.Mac {
         private static void PerformTimestamping(PdfSigner pdfSigner, IPrivateKey privateKey, IX509Certificate[] chain
             ) {
             pdfSigner.Timestamp(new TestTsaClient(JavaUtil.ArraysAsList(chain), privateKey), "timestamp1");
+        }
+
+        private static String GetCmpFileName(string signingOperation, string fileName) {
+            String cmpFileName = SOURCE_FOLDER + "cmp_" + fileName;
+            if (runningInFipsMode && "timestamping".Equals(signingOperation)) {
+                cmpFileName = cmpFileName.Replace(".pdf", "_FIPS.pdf");
+            }
+
+            return cmpFileName;
         }
     }
 }

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -39,7 +39,7 @@ namespace iText.Layout.Renderer {
         private static readonly String CMP = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/LineHeightHelperIntegrationTest/";
 
-        private static readonly String DESTINATION = NUnit.Framework.TestContext.CurrentContext.TestDirectory + "/test/itext/layout/LineHeightHelperTest/";
+        private static readonly String DESTINATION = TestUtil.GetOutputPath() + "/layout/LineHeightHelperTest/";
 
         private const String TEXT_SAMPLE = "Effects present letters inquiry no an removed or friends. " + "Desire behind latter me though in. Supposing shameless am he engrossed up additions. "
              + "My possible peculiar together to. Desire so better am cannot he up before points. " + "Remember mistaken opinions it pleasure of debating. "

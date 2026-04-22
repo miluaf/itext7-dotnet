@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -114,6 +114,11 @@ namespace iText.StyledXmlParser.Css.Resolve {
             defaultValues.Put(CommonCssConstants.WIDOWS, "2");
             defaultValues.Put(CommonCssConstants.JUSTIFY_CONTENT, CommonCssConstants.FLEX_START);
             defaultValues.Put(CommonCssConstants.ALIGN_ITEMS, CommonCssConstants.STRETCH);
+            defaultValues.Put(CommonCssConstants.ALIGN_SELF, CommonCssConstants.AUTO);
+            defaultValues.Put(CommonCssConstants.ALIGN_CONTENT, CommonCssConstants.STRETCH);
+            defaultValues.Put(CommonCssConstants.ROW_GAP, CommonCssConstants.NORMAL);
+            defaultValues.Put(CommonCssConstants.COLUMN_GAP, CommonCssConstants.NORMAL);
+            defaultValues.Put(CommonCssConstants.ORDER, "0");
         }
 
         // Other css properties default values will be added as needed

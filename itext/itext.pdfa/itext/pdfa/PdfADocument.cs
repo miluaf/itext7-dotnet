@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -101,10 +101,13 @@ namespace iText.Pdfa {
             : base(ConfigureWriterProperties(writer, aConformance), properties) {
             PdfAChecker checker = GetCorrectCheckerFromConformance(GetConformance().GetAConformance());
             ValidationContainer validationContainer = new ValidationContainer();
+            if (PdfVersion.PDF_2_0.CompareTo(GetPdfVersionAccordingToConformance(GetConformance().GetAConformance())) 
+                <= 0) {
+                validationContainer.AddChecker(new Pdf20Checker(this));
+            }
             validationContainer.AddChecker(checker);
             GetDiContainer().Register(typeof(ValidationContainer), validationContainer);
             this.pdfPageFactory = new PdfAPageFactory(checker);
-            this.documentInfoHelper = new PdfADocumentInfoHelper(this);
             this.defaultFontStrategy = new PdfADefaultFontStrategy(this);
             AddOutputIntent(outputIntent);
         }
@@ -126,12 +129,15 @@ namespace iText.Pdfa {
                 throw new PdfAConformanceException(PdfaExceptionMessageConstant.DOCUMENT_TO_READ_FROM_SHALL_BE_A_PDFA_CONFORMANT_FILE_WITH_VALID_XMP_METADATA
                     );
             }
-            PdfAChecker checker = GetCorrectCheckerFromConformance(GetConformance().GetAConformance());
+            PdfAChecker pdfAChecker = GetCorrectCheckerFromConformance(GetConformance().GetAConformance());
             ValidationContainer validationContainer = new ValidationContainer();
-            validationContainer.AddChecker(checker);
+            validationContainer.AddChecker(pdfAChecker);
+            if (PdfVersion.PDF_2_0.CompareTo(GetPdfVersionAccordingToConformance(GetConformance().GetAConformance())) 
+                <= 0) {
+                validationContainer.AddChecker(new Pdf20Checker(this));
+            }
             GetDiContainer().Register(typeof(ValidationContainer), validationContainer);
-            this.pdfPageFactory = new PdfAPageFactory(checker);
-            this.documentInfoHelper = new PdfADocumentInfoHelper(this);
+            this.pdfPageFactory = new PdfAPageFactory(pdfAChecker);
             this.defaultFontStrategy = new PdfADefaultFontStrategy(this);
         }
 

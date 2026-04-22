@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -39,6 +39,11 @@ namespace iText.Commons.Utils {
 
         public static long GetTimeBasedSeed() {
             return DateTime.Now.Ticks + Environment.TickCount;
+        }
+
+        public static long CurrentTimeMillis() {
+            long epochTime = (DateTime.UtcNow.Ticks - 621355968000000000) / 10000;
+            return epochTime;
         }
 
         public static int GetTimeBasedIntSeed() {

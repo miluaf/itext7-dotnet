@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -53,8 +53,7 @@ namespace iText.Signatures.Sign {
         private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/signatures/sign/IsoSignatureExtensionsRoundtripTests/";
 
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/signatures/sign/IsoSignatureExtensionsRoundtripTests/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/signatures/sign/IsoSignatureExtensionsRoundtripTests/";
 
         private static readonly char[] SAMPLE_KEY_PASSPHRASE = "secret".ToCharArray();
 
@@ -117,22 +116,12 @@ namespace iText.Signatures.Sign {
 
         [NUnit.Framework.Test]
         public virtual void TestBrainpoolP384r1WithSha3_384() {
-            if ("BCFIPS".Equals(BOUNCY_CASTLE_FACTORY.GetProviderName())) {
-                DoRoundTrip("brainpoolP384r1", DigestAlgorithms.SHA3_384, NistObjectIdentifiers.IdEcdsaWithSha3_384);
-            } else {
-                // Signer SHA3-384WITHECDSA not recognised in BC mode
-                NUnit.Framework.Assert.Catch(typeof(PdfException), () => DoRoundTrip("brainpoolP384r1", DigestAlgorithms.SHA3_384, NistObjectIdentifiers.IdEcdsaWithSha3_384));
-            }
+            DoRoundTrip("brainpoolP384r1", DigestAlgorithms.SHA3_384, NistObjectIdentifiers.IdEcdsaWithSha3_384);
         }
 
         [NUnit.Framework.Test]
         public virtual void TestNistP256WithSha3_256() {
-            if ("BCFIPS".Equals(BOUNCY_CASTLE_FACTORY.GetProviderName())) {
-                DoRoundTrip("nistp256", DigestAlgorithms.SHA3_256, NistObjectIdentifiers.IdEcdsaWithSha3_256);
-            } else {
-                // Signer SHA3-256WITHECDSA not recognised in BC mode
-                NUnit.Framework.Assert.Catch(typeof(PdfException), () => DoRoundTrip("nistp256", DigestAlgorithms.SHA3_256, NistObjectIdentifiers.IdEcdsaWithSha3_256));
-            }
+            DoRoundTrip("nistp256", DigestAlgorithms.SHA3_256, NistObjectIdentifiers.IdEcdsaWithSha3_256);
         }
 
         [NUnit.Framework.Test]
@@ -149,12 +138,7 @@ namespace iText.Signatures.Sign {
 
         [NUnit.Framework.Test]
         public virtual void TestDsaWithSha3_256() {
-            if ("BCFIPS".Equals(BOUNCY_CASTLE_FACTORY.GetProviderName())) {
-                DoRoundTrip("dsa", DigestAlgorithms.SHA3_256, NistObjectIdentifiers.IdDsaWithSha3_256);
-            } else {
-                // Signer SHA3-256WITHDSA not recognised in BC mode
-                NUnit.Framework.Assert.Catch(typeof(PdfException), () => DoRoundTrip("dsa", DigestAlgorithms.SHA3_256, NistObjectIdentifiers.IdDsaWithSha3_256));
-            }
+            DoRoundTrip("dsa", DigestAlgorithms.SHA3_256, NistObjectIdentifiers.IdDsaWithSha3_256);
         }
 
         [NUnit.Framework.Test]

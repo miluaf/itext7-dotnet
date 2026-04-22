@@ -1,6 +1,6 @@
 /*
     This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
     Authors: Apryse Software.
 
     This program is offered under a commercial and under the AGPL license.
@@ -34,6 +34,8 @@ using iText.Commons.Bouncycastle.Crypto;
 using iText.Commons.Bouncycastle.Math;
 using iText.Commons.Bouncycastle.Tsp;
 using iText.Commons.Utils;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
@@ -76,6 +78,18 @@ namespace iText.Bouncycastle.Tsp {
             } catch (TspException e) {
                 throw new TSPExceptionBC(e);
             }
+        }
+
+        /// <summary>
+        /// Creates new wrapper instance for
+        /// <see cref="Org.BouncyCastle.Tsp.TimeStampTokenGenerator"/>.
+        /// </summary>
+        /// <param name="siGen">SignerInfoGenerator</param>
+        /// <param name="digestCalculator">IDigestFactory</param>
+        /// <param name="tsaPolicy">timestamp policy DerObjectIdentifier</param>
+        public TimeStampTokenGeneratorBC(SignerInfoGenerator siGen, IDigestFactory digestCalculator, 
+            DerObjectIdentifier tsaPolicy) {
+            timeStampTokenGenerator = new TimeStampTokenGenerator(siGen, digestCalculator, tsaPolicy, false);
         }
 
         /// <summary>Gets actual org.bouncycastle object being wrapped.</summary>

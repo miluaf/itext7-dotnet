@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -27,6 +27,7 @@ using iText.Kernel.Colors;
 using iText.Kernel.Pdf.Action;
 using iText.Kernel.Pdf.Colorspace;
 using iText.Kernel.Pdf.Navigation;
+using iText.Kernel.Validation.Context;
 
 namespace iText.Kernel.Pdf {
     /// <summary>
@@ -40,17 +41,17 @@ namespace iText.Kernel.Pdf {
         /// <summary>A flag for displaying the outline item’s text with bold font.</summary>
         public const int FLAG_BOLD = 2;
 
-        private IList<iText.Kernel.Pdf.PdfOutline> children = new List<iText.Kernel.Pdf.PdfOutline>();
+        private readonly IList<iText.Kernel.Pdf.PdfOutline> children = new List<iText.Kernel.Pdf.PdfOutline>();
 
         private String title;
 
-        private PdfDictionary content;
+        private readonly PdfDictionary content;
 
         private PdfDestination destination;
 
         private iText.Kernel.Pdf.PdfOutline parent;
 
-        private PdfDocument pdfDoc;
+        private readonly PdfDocument pdfDoc;
 
 //\cond DO_NOT_DOCUMENT
         /// <summary>Create instance of document outline.</summary>
@@ -252,9 +253,15 @@ namespace iText.Kernel.Pdf {
         public virtual void AddAction(PdfAction action) {
             PdfName actionType = action.GetPdfObject().GetAsName(PdfName.S);
             if (PdfName.GoTo.Equals(actionType)) {
-                PdfObject destObject = action.GetPdfObject().Get(PdfName.D);
-                if (destObject != null) {
-                    SetDestination(PdfDestination.MakeDestination(destObject));
+                pdfDoc.CheckIsoConformance(new PdfDestinationAdditionContext(action));
+                PdfObject structureDestinationObject = action.GetPdfObject().Get(PdfName.SD);
+                if (structureDestinationObject != null) {
+                    SetDestination(PdfDestination.MakeDestination(structureDestinationObject));
+                }
+                else {
+                    if (action.GetPdfObject().Get(PdfName.D) != null) {
+                        SetDestination(PdfDestination.MakeDestination(action.GetPdfObject().Get(PdfName.D)));
+                    }
                 }
             }
             content.Put(PdfName.A, action.GetPdfObject());
@@ -271,7 +278,7 @@ namespace iText.Kernel.Pdf {
                 content.Put(PdfName.Count, new PdfNumber(-1));
             }
             else {
-                if (children.Count > 0) {
+                if (!children.IsEmpty()) {
                     content.Put(PdfName.Count, new PdfNumber(children.Count));
                 }
                 else {
@@ -310,7 +317,7 @@ namespace iText.Kernel.Pdf {
             iText.Kernel.Pdf.PdfOutline outline = new iText.Kernel.Pdf.PdfOutline(title, dictionary, this);
             dictionary.Put(PdfName.Title, new PdfString(title, PdfEncodings.UNICODE_BIG));
             dictionary.Put(PdfName.Parent, content);
-            if (children.Count > 0) {
+            if (!children.IsEmpty()) {
                 if (position != 0) {
                     PdfDictionary prevContent = children[position - 1].GetContent();
                     dictionary.Put(PdfName.Prev, prevContent);
@@ -373,24 +380,34 @@ namespace iText.Kernel.Pdf {
         }
 
         /// <summary>Remove this outline from the document.</summary>
-        /// <remarks>Remove this outline from the document. Outlines that are children of this outline are removed recursively
-        ///     </remarks>
         public virtual void RemoveOutline() {
             if (!pdfDoc.HasOutlines() || IsOutlineRoot()) {
                 pdfDoc.GetCatalog().Remove(PdfName.Outlines);
                 return;
             }
             iText.Kernel.Pdf.PdfOutline parent = this.parent;
-            IList<iText.Kernel.Pdf.PdfOutline> children = parent.children;
-            children.Remove(this);
+            IList<iText.Kernel.Pdf.PdfOutline> parentChildren = parent.children;
             PdfDictionary parentContent = parent.content;
-            if (children.Count > 0) {
-                parentContent.Put(PdfName.First, children[0].content);
-                parentContent.Put(PdfName.Last, children[children.Count - 1].content);
+            parentChildren.Remove(this);
+            if (parentChildren.IsEmpty()) {
+                parentContent.Remove(PdfName.Count);
+                if (parent.IsOutlineRoot()) {
+                    pdfDoc.GetCatalog().Remove(PdfName.Outlines);
+                    return;
+                }
+            }
+            int count = content.GetAsInt(PdfName.Count) == null ? 0 : Math.Abs((int)content.GetAsInt(PdfName.Count));
+            // Count this outline too
+            count += 1;
+            UpdateCount(parent, count);
+            if (parentChildren.IsEmpty()) {
+                parentContent.Remove(PdfName.First);
+                parentContent.Remove(PdfName.Last);
+                return;
             }
             else {
-                parent.RemoveOutline();
-                return;
+                parentContent.Put(PdfName.First, parentChildren[0].content);
+                parentContent.Put(PdfName.Last, parentChildren[parentChildren.Count - 1].content);
             }
             PdfDictionary next = content.GetAsDictionary(PdfName.Next);
             PdfDictionary prev = content.GetAsDictionary(PdfName.Prev);
@@ -465,6 +482,27 @@ namespace iText.Kernel.Pdf {
         private bool IsOutlineRoot() {
             PdfDictionary outlineRoot = GetOutlineRoot();
             return outlineRoot == content;
+        }
+
+        /// <summary>Recursively traverse parent tree and adjust Count in each visited outline.</summary>
+        /// <param name="outline">the current outline to process</param>
+        /// <param name="amountOfRemovedOutlines">the amount of removed outlines</param>
+        private static void UpdateCount(iText.Kernel.Pdf.PdfOutline outline, int amountOfRemovedOutlines) {
+            if (outline == null) {
+                return;
+            }
+            if (outline.content.GetAsInt(PdfName.Count) != null) {
+                int currentCount = (int)outline.content.GetAsInt(PdfName.Count);
+                // consider a case when count is 0 as impossible, because in that case there shouldn't be Count at all
+                if (currentCount > 0) {
+                    currentCount -= amountOfRemovedOutlines;
+                }
+                else {
+                    currentCount += amountOfRemovedOutlines;
+                }
+                outline.content.Put(PdfName.Count, new PdfNumber(currentCount));
+            }
+            UpdateCount(outline.parent, amountOfRemovedOutlines);
         }
     }
 }

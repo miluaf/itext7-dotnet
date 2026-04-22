@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -33,8 +33,7 @@ namespace iText.IO.Util {
         private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/io/util/ImageMagickHelperTest/";
 
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/io/ImageMagickHelperTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/io/ImageMagickHelperTest/";
 
         // In some of the test we will check whether ImageMagick has printed something to the console.
         // For this reason the standard output stream will be customized. In .NET, however,
@@ -66,7 +65,7 @@ namespace iText.IO.Util {
         public virtual void ImageMagickEnvVarIsNull() {
             String inputImage = SOURCE_FOLDER + "image.png";
             String cmpImage = SOURCE_FOLDER + "cmp_image.png";
-            String diff = DESTINATION_FOLDER + "diff.png";
+            String diff = DESTINATION_FOLDER + "imageMagickEnvVarIsNull_diff.png";
             ImageMagickHelper imageMagickHelper = new ImageMagickHelper(null);
             bool result = imageMagickHelper.RunImageMagickImageCompare(inputImage, cmpImage, diff);
             NUnit.Framework.Assert.IsTrue(result);
@@ -84,7 +83,7 @@ namespace iText.IO.Util {
         public virtual void RunImageMagickForEqualImages() {
             String inputImage = SOURCE_FOLDER + "image.png";
             String cmpImage = SOURCE_FOLDER + "cmp_image.png";
-            String diff = DESTINATION_FOLDER + "diff_equalImages.png";
+            String diff = DESTINATION_FOLDER + "runImageMagickForEqualImages_diff.png";
             ImageMagickHelper imageMagickHelper = new ImageMagickHelper();
             bool result = imageMagickHelper.RunImageMagickImageCompare(inputImage, cmpImage, diff);
             NUnit.Framework.Assert.IsTrue(result);
@@ -138,7 +137,7 @@ namespace iText.IO.Util {
         [NUnit.Framework.Test]
         public virtual void OutImageCallsHelpTest() {
             String cmpImage = SOURCE_FOLDER + "cmp_Im1_1.jpg";
-            String diff = DESTINATION_FOLDER + "diff.png";
+            String diff = DESTINATION_FOLDER + "outImageCallsHelpTest_diff.png";
             String outImage = SOURCE_FOLDER + "Im1_1.jpg' -help '" + cmpImage + "' '" + diff;
             Object storedPrintStream = System.Console.Out;
             try {
@@ -165,7 +164,7 @@ namespace iText.IO.Util {
         [NUnit.Framework.Test]
         public virtual void CmpImageCallsHelpTest() {
             String outImage = SOURCE_FOLDER + "Im1_1.jpg";
-            String diff = DESTINATION_FOLDER + "diff.png";
+            String diff = DESTINATION_FOLDER + "imageCallsHelpTest_diff.png";
             String cmpImage = SOURCE_FOLDER + "cmp_Im1_1.jpg' -help '" + diff;
             Object storedPrintStream = System.Console.Out;
             try {
@@ -192,7 +191,7 @@ namespace iText.IO.Util {
         [NUnit.Framework.Test]
         public virtual void FuzzinessCallsHelpTest() {
             String outImage = SOURCE_FOLDER + "Im1_1.jpg";
-            String diff = DESTINATION_FOLDER + "diff.png";
+            String diff = DESTINATION_FOLDER + "fuzzinessCallsHelpTest_diff.png";
             String cmpImage = SOURCE_FOLDER + "cmp_Im1_1.jpg";
             String fuzziness = "1% -help ";
             Object storedPrintStream = System.Console.Out;
@@ -223,7 +222,7 @@ namespace iText.IO.Util {
             // different rather than equal images being compared. Now we expect an exception
             String image = SOURCE_FOLDER + "image.png";
             String differentImage = SOURCE_FOLDER + "Im1_1.jpg";
-            String diff = DESTINATION_FOLDER + "diff_equalImages.png";
+            String diff = DESTINATION_FOLDER + "passOutAndCmpAndDiffAsOutTest_diff.png";
             ImageMagickHelper imageMagickHelper = new ImageMagickHelper();
             NUnit.Framework.Assert.Catch(typeof(Exception), () => imageMagickHelper.RunImageMagickImageCompare(image +
                  "' '" + differentImage + "' '" + diff, image, diff));
@@ -234,8 +233,8 @@ namespace iText.IO.Util {
             // In this test we will pass several arguments as the second one. Previously that resulted in
             // diff being overridden (second diff was used). Now we expect an exception
             String image = SOURCE_FOLDER + "image.png";
-            String diff = DESTINATION_FOLDER + "diff_equalImages.png";
-            String secondDiff = DESTINATION_FOLDER + "diff_secondEqualImages.png";
+            String diff = DESTINATION_FOLDER + "passCmpAndDiffAsDiffTest_diff.png";
+            String secondDiff = DESTINATION_FOLDER + "passCmpAndDiffAsDiffTest_diff2.png";
             ImageMagickHelper imageMagickHelper = new ImageMagickHelper();
             NUnit.Framework.Assert.Catch(typeof(Exception), () => imageMagickHelper.RunImageMagickImageCompare(image, 
                 image + "' '" + secondDiff, diff));
@@ -259,22 +258,19 @@ namespace iText.IO.Util {
             // When fuzziness is specified, ImageMagick prints to standard output the number of different bytes.
             // Since we compare equal images, we expect this number to be zero.
             String image = SOURCE_FOLDER + "image.png";
-            String diff = DESTINATION_FOLDER + "diff_equalImages.png";
+            String diff = DESTINATION_FOLDER + "compEqualsImagesFuzziness_diff.png";
             ImageMagickHelper imageMagickHelper = new ImageMagickHelper();
             Object storedPrintStream = System.Console.Out;
             try {
                 using (MemoryStream baos = new MemoryStream()) {
                     System.Console.SetOut(new FormattingStreamWriter(baos));
-                    bool result = imageMagickHelper.RunImageMagickImageCompare(image, image, diff, "1");
-                    NUnit.Framework.Assert.IsTrue(result);
+                    ImageMagickCompareResult result = imageMagickHelper.RunImageMagickImageCompareAndGetResult(image, image, diff
+                        , "1");
+                    NUnit.Framework.Assert.IsTrue(result.IsComparingResultSuccessful());
                     NUnit.Framework.Assert.IsTrue(FileUtil.FileExists(diff));
                     System.Console.Out.Flush();
                     String output = iText.Commons.Utils.JavaUtil.GetStringForBytes(baos.ToArray()).Trim();
-                    // This check is implemented in such a peculiar way because of .NET autoporting
-                    NUnit.Framework.Assert.AreEqual('0', output[output.Length - 1]);
-                    if (output.Length > 1) {
-                        NUnit.Framework.Assert.IsFalse(char.IsDigit(output[output.Length - 2]));
-                    }
+                    NUnit.Framework.Assert.AreEqual(0L, result.GetDiffPixels());
                 }
             }
             catch (Exception) {
@@ -299,7 +295,7 @@ namespace iText.IO.Util {
         public virtual void CompareDifferentImagesAndGetResult() {
             String image = SOURCE_FOLDER + "image.png";
             String image2 = SOURCE_FOLDER + "Im1_1.jpg";
-            String diff = DESTINATION_FOLDER + "diff_equalImages.png";
+            String diff = DESTINATION_FOLDER + "compDiffImagesAndGetResult_diff.png";
             ImageMagickCompareResult result = new ImageMagickHelper().RunImageMagickImageCompareAndGetResult(image, image2
                 , diff, "1");
             NUnit.Framework.Assert.IsFalse(result.IsComparingResultSuccessful());
@@ -309,7 +305,7 @@ namespace iText.IO.Util {
         public virtual void RunImageMagickImageCompareEqualWithThreshold() {
             String image = SOURCE_FOLDER + "image.png";
             String image2 = SOURCE_FOLDER + "image.png";
-            String diff = DESTINATION_FOLDER + "diff_equalImages.png";
+            String diff = DESTINATION_FOLDER + "imgCompEqualWithThreshold_diff.png";
             bool result = new ImageMagickHelper().RunImageMagickImageCompareWithThreshold(image, image2, diff, "0", 0);
             NUnit.Framework.Assert.IsTrue(result);
         }
@@ -318,7 +314,7 @@ namespace iText.IO.Util {
         public virtual void RunImageMagickImageCompareWithEnoughThreshold() {
             String image = SOURCE_FOLDER + "image.png";
             String image2 = SOURCE_FOLDER + "Im1_1.jpg";
-            String diff = DESTINATION_FOLDER + "diff_equalImages.png";
+            String diff = DESTINATION_FOLDER + "imgCompEnoughThreshold_diff.png";
             bool result = new ImageMagickHelper().RunImageMagickImageCompareWithThreshold(image, image2, diff, "20", 2000000
                 );
             NUnit.Framework.Assert.IsTrue(result);
@@ -328,7 +324,7 @@ namespace iText.IO.Util {
         public virtual void RunImageMagickImageCompareWithNotEnoughThreshold() {
             String image = SOURCE_FOLDER + "image.png";
             String image2 = SOURCE_FOLDER + "Im1_1.jpg";
-            String diff = DESTINATION_FOLDER + "diff_equalImages.png";
+            String diff = DESTINATION_FOLDER + "imgCompNotEnoughThreshold_diff.png";
             bool result = new ImageMagickHelper().RunImageMagickImageCompareWithThreshold(image, image2, diff, "20", 2000
                 );
             NUnit.Framework.Assert.IsFalse(result);

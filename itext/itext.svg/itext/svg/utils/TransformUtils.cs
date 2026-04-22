@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -161,7 +161,7 @@ namespace iText.Svg.Utils {
         /// <param name="transformation">string containing a transformation operation</param>
         /// <returns>the mapped AffineTransform object</returns>
         private static AffineTransform TransformationStringToMatrix(String transformation) {
-            String name = GetNameFromString(transformation).ToUpperInvariant();
+            String name = StringNormalizer.ToUpperCase(GetNameFromString(transformation));
             if (String.IsNullOrEmpty(name)) {
                 throw new SvgProcessingException(SvgExceptionMessageConstant.INVALID_TRANSFORM_DECLARATION);
             }

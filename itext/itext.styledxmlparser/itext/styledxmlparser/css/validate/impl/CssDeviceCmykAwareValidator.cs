@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -34,6 +34,14 @@ namespace iText.StyledXmlParser.Css.Validate.Impl {
     /// to also support device-cmyk color structure.
     /// </remarks>
     public class CssDeviceCmykAwareValidator : CssDefaultValidator {
+        /// <summary>
+        /// Instantiates a new
+        /// <see cref="CssDeviceCmykAwareValidator"/>
+        /// instance which extends the
+        /// default
+        /// <see cref="CssDefaultValidator"/>
+        /// to also support device-cmyk color structure.
+        /// </summary>
         public CssDeviceCmykAwareValidator()
             : base() {
             ICssDeclarationValidator colorCmykValidator = new MultiTypeDeclarationValidator(new CssEnumValidator(CommonCssConstants

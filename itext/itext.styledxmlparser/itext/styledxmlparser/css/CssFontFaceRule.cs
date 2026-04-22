@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -68,6 +68,12 @@ namespace iText.StyledXmlParser.Css {
             return sb.ToString();
         }
 
+        /// <summary>Resolves `unicode-range` property if it exists in the properties.</summary>
+        /// <returns>
+        /// the resolved range or
+        /// <see langword="null"/>
+        /// if there is no `unicode-range` property
+        /// </returns>
         public virtual Range ResolveUnicodeRange() {
             Range range = null;
             foreach (CssDeclaration descriptor in GetProperties()) {

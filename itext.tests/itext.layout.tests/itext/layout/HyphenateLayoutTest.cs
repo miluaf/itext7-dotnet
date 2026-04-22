@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -39,8 +39,7 @@ namespace iText.Layout {
         public static readonly String sourceFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/HyphenateLayoutTest/";
 
-        public static readonly String destinationFolder = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/layout/HyphenateLayoutTest/";
+        public static readonly String destinationFolder = TestUtil.GetOutputPath() + "/layout/HyphenateLayoutTest/";
 
         public static readonly String fontsFolder = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/layout/fonts/";
@@ -175,7 +174,7 @@ namespace iText.Layout {
                  + "Dies ist ein Satz in deutscher Sprache. An hm kann man sehen, ob alle Buchstaben da sind. Und der Umbruch? 99\u2011Days-Kaiser.\n"
                  + "Dies ist ein Satz in deutscher Sprache. An hm kann man sehen, ob alle Buchstaben da sind. Und der Umbruch? 99\u2011Frage-Kaiser.\n"
                 );
-            PdfFont font = PdfFontFactory.CreateFont(fontsFolder + "FreeSans.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont font = PdfFontFactory.CreateFont(fontsFolder + "Roboto-Regular.ttf", PdfEncodings.IDENTITY_H);
             text.SetFont(font);
             text.SetFontSize(10);
             Paragraph paragraph = new Paragraph(text);
@@ -196,7 +195,7 @@ namespace iText.Layout {
             Document document = new Document(pdf);
             Div div = new Div();
             div.SetHyphenation(new HyphenationConfig("en", "EN", 2, 2));
-            PdfFont font = PdfFontFactory.CreateFont(fontsFolder + "FreeSans.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont font = PdfFontFactory.CreateFont(fontsFolder + "Roboto-Regular.ttf", PdfEncodings.IDENTITY_H);
             div.SetFont(font);
             div.SetFontSize(12);
             Text text = new Text("Hyphen hyphen hyphen hyphen hyphen hyphen hyphen hyphen hyphen hyphen hyphen ");
@@ -217,7 +216,7 @@ namespace iText.Layout {
             String cmpFileName = sourceFolder + "cmp_hyphenSymbolTest01.pdf";
             PdfDocument pdfDoc = new PdfDocument(new PdfWriter(outFileName));
             Document doc = new Document(pdfDoc);
-            PdfFont font = PdfFontFactory.CreateFont(fontsFolder + "FreeSans.ttf", PdfEncodings.IDENTITY_H);
+            PdfFont font = PdfFontFactory.CreateFont(fontsFolder + "Roboto-Regular.ttf", PdfEncodings.IDENTITY_H);
             Style style = new Style();
             style.SetBorder(new SolidBorder(ColorConstants.BLACK, 1));
             style.SetHyphenation(new HyphenationConfig("en", "EN", 2, 2));

@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -23,7 +23,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 using iText.Svg.Renderers;
 
 namespace iText.Svg.Renderers.Impl {
+    /// <summary>
+    /// <see cref="iText.Svg.Renderers.ISvgNodeRenderer"/>
+    /// implementation for the &lt;tspan&gt; tag.
+    /// </summary>
     public class TextSvgTSpanBranchRenderer : TextSvgBranchRenderer {
+        /// <summary>
+        /// Creates new
+        /// <see cref="TextSvgTSpanBranchRenderer"/>
+        /// instance.
+        /// </summary>
         public TextSvgTSpanBranchRenderer() {
             this.performRootTransformations = false;
         }

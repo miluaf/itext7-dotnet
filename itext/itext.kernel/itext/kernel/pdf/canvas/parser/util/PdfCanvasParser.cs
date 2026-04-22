@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -178,7 +178,23 @@ namespace iText.Kernel.Pdf.Canvas.Parser.Util {
                 }
 
                 default: {
-                    return new PdfLiteral(tokeniser.GetByteContent());
+                    if (tokeniser.TokenValueEqualsTo(PdfTokenizer.Null)) {
+                        return new PdfNull();
+                    }
+                    else {
+                        if (tokeniser.TokenValueEqualsTo(PdfTokenizer.True)) {
+                            return new PdfBoolean(true);
+                        }
+                        else {
+                            if (tokeniser.TokenValueEqualsTo(PdfTokenizer.False)) {
+                                return new PdfBoolean(false);
+                            }
+                            else {
+                                return new PdfLiteral(tokeniser.GetByteContent());
+                            }
+                        }
+                    }
+                    break;
                 }
             }
         }

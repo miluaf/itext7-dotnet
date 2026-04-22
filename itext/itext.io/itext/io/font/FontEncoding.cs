@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -384,7 +384,7 @@ namespace iText.IO.Font {
         /// <param name="enc">the encoding to be normalized</param>
         /// <returns>the normalized encoding</returns>
         protected internal static String NormalizeEncoding(String enc) {
-            String tmp = enc == null ? "" : enc.ToLowerInvariant();
+            String tmp = enc == null ? "" : StringNormalizer.ToLowerCase(enc);
             switch (tmp) {
                 case "":
                 case "winansi":

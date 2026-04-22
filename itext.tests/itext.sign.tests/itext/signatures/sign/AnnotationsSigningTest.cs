@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using iText.Commons.Bouncycastle.Cert;
 using iText.Commons.Bouncycastle.Crypto;
 using iText.Commons.Utils;
+using iText.Forms.Fields;
 using iText.Forms.Fields.Properties;
 using iText.Forms.Form.Element;
 using iText.Kernel.Crypto;
@@ -41,8 +42,7 @@ namespace iText.Signatures.Sign {
         private static readonly String SOURCE_FOLDER = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/signatures/sign/AnnotationsSigningTest/";
 
-        private static readonly String DESTINATION_FOLDER = NUnit.Framework.TestContext.CurrentContext.TestDirectory
-             + "/test/itext/signatures/sign/AnnotationsSigningTest/";
+        private static readonly String DESTINATION_FOLDER = TestUtil.GetOutputPath() + "/signatures/sign/AnnotationsSigningTest/";
 
         private static readonly String CERTS_SRC = iText.Test.TestUtil.GetParentProjectDirectory(NUnit.Framework.TestContext
             .CurrentContext.TestDirectory) + "/resources/itext/signatures/certs/";
@@ -117,6 +117,43 @@ namespace iText.Signatures.Sign {
             NUnit.Framework.Assert.IsNull(SignaturesCompareTool.CompareSignatures(outPdf, cmpPdf));
         }
 
+        [NUnit.Framework.Test]
+        public virtual void SignFieldWithDAEntryTest() {
+            String srcFile = SOURCE_FOLDER + "signatureFieldWithDAEntry.pdf";
+            String cmpPdf = SOURCE_FOLDER + "cmp_signedFieldWithDAEntry.pdf";
+            String outPdf = DESTINATION_FOLDER + "signedFieldWithDAEntry.pdf";
+            String[] signatureFieldNames = new String[] { "signature1" };
+            Sign(srcFile, signatureFieldNames[0], outPdf, chain, pk, DigestAlgorithms.SHA256, PdfSigner.CryptoStandard
+                .CADES, "reason1", "TestCity", null, false, true);
+            CompareDAEntry(outPdf, cmpPdf, signatureFieldNames);
+        }
+
+        [NUnit.Framework.Test]
+        public virtual void SignTwiceDocWithDAEntryTest() {
+            String srcFile = SOURCE_FOLDER + "signedOnceDocWithDAEntry.pdf";
+            String cmpPdf = SOURCE_FOLDER + "cmp_signedTwiceDocWithDAEntry.pdf";
+            String outPdf = DESTINATION_FOLDER + "signedTwiceDocWithDAEntry.pdf";
+            String[] signatureFieldNames = new String[] { "signature1", "signature2" };
+            Sign(srcFile, signatureFieldNames[1], outPdf, chain, pk, DigestAlgorithms.SHA256, PdfSigner.CryptoStandard
+                .CADES, "reason2", "TestCity", null, false, true);
+            CompareDAEntry(outPdf, cmpPdf, signatureFieldNames);
+        }
+
+        private void CompareDAEntry(String outPdf, String cmpPdf, String[] signatureFieldNames) {
+            ITextTest.PrintOutCmpPdfNameAndDir(outPdf, cmpPdf);
+            using (PdfDocument outDoc = new PdfDocument(new PdfReader(outPdf))) {
+                using (PdfDocument cmpDoc = new PdfDocument(new PdfReader(cmpPdf))) {
+                    foreach (String signatureFieldName in signatureFieldNames) {
+                        String outDA = PdfFormCreator.GetAcroForm(outDoc, false).GetField(signatureFieldName).GetPdfObject().GetAsString
+                            (PdfName.DA).ToString();
+                        String cmpDA = PdfFormCreator.GetAcroForm(cmpDoc, false).GetField(signatureFieldName).GetPdfObject().GetAsString
+                            (PdfName.DA).ToString();
+                        NUnit.Framework.Assert.AreEqual(outDA, cmpDA);
+                    }
+                }
+            }
+        }
+
         protected internal virtual void Sign(String src, String name, String dest, IX509Certificate[] chain, IPrivateKey
              pk, String digestAlgorithm, PdfSigner.CryptoStandard subfilter, String reason, String location, Rectangle
              rectangleForNewField, bool setReuseAppearance, bool isAppendMode) {
@@ -155,7 +192,7 @@ namespace iText.Signatures.Sign {
 
         private static IDictionary<int, IList<Rectangle>> GetTestMap(Rectangle ignoredArea) {
             IDictionary<int, IList<Rectangle>> result = new Dictionary<int, IList<Rectangle>>();
-            result.Put(1, JavaUtil.ArraysAsList(ignoredArea));
+            result.Put(1, JavaCollectionsUtil.SingletonList(ignoredArea));
             return result;
         }
     }

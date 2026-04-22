@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -140,8 +140,10 @@ namespace iText.IO.Logs {
 
         public const String FAILED_TO_PARSE_ENCODING_STREAM = "Failed to parse encoding stream.";
 
-        public const String FAILED_TO_PROCESS_A_TRANSFORMATION_MATRIX = "Failed to process a transformation matrix which is noninvertible. Some content may be placed not as "
-             + "expected.";
+        [Obsolete]
+        public const String FAILED_TO_PROCESS_A_TRANSFORMATION_MATRIX = 
+                // replaced by com.itextpdf.kernel.logs.KernelLogMessageConstant#FAILED_TO_PROCESS_A_TRANSFORMATION_MATRIX
+                "Failed to process a transformation matrix which is noninvertible. Some content may be placed not as " + "expected.";
 
         public const String FIELD_VALUE_IS_NOT_CONTAINED_IN_OPT_ARRAY = "Value \"{0}\" is not contained in /Opt array of field \"{1}\".";
 
@@ -157,6 +159,7 @@ namespace iText.IO.Logs {
         public const String FONT_DICTIONARY_WITH_NO_WIDTHS = "Font dictionary does not contain required /Widths " 
             + "entry.";
 
+        [Obsolete]
         public const String FONT_HAS_INVALID_GLYPH = "Font {0} has invalid glyph: {1}";
 
         public const String FONT_PROPERTY_MUST_BE_PDF_FONT_OBJECT = "The \"Property.FONT\" property must be a PdfFont object in this context.";
@@ -269,7 +272,10 @@ namespace iText.IO.Logs {
 
         public const String PDF_READER_CLOSING_FAILED = "PdfReader closing failed due to the error occurred!";
 
-        public const String PDF_REFERS_TO_NOT_EXISTING_PROPERTY_DICTIONARY = "The PDF contains a BDC operator which refers to a not existing Property dictionary: {0}.";
+        [Obsolete]
+        public const String PDF_REFERS_TO_NOT_EXISTING_PROPERTY_DICTIONARY = 
+                // replaced by com.itextpdf.kernel.logs.KernelLogMessageConstant.PDF_REFERS_TO_NOT_EXISTING_PROPERTY_DICTIONARY
+                "The PDF contains a BDC operator which refers to a not existing Property dictionary: {0}.";
 
         public const String PDF_WRITER_CLOSING_FAILED = "PdfWriter closing failed due to the error occurred!";
 
@@ -371,6 +377,10 @@ namespace iText.IO.Logs {
 
         public const String XREF_ERROR_WHILE_READING_TABLE_WILL_BE_REBUILT_WITH_CAUSE = "Error occurred while " + 
             "reading cross reference table. Cross reference table will be rebuilt. Reason: {0}";
+
+        public const String UNABLE_TO_RETRIEVE_RESOURCE_WITH_GIVEN_RESOURCE_SIZE_BYTE_LIMIT = "Unable to retrieve resource with given URL ({0}) and resource size byte limit ({1}).";
+
+        public const String RESOURCE_WITH_GIVEN_URL_WAS_FILTERED_OUT = "Resource with given URL ({0}) was filtered out.";
 
         private IoLogMessageConstant() {
         }

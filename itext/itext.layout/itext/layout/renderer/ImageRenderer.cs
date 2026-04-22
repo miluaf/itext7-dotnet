@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -167,7 +167,7 @@ namespace iText.Layout.Renderer {
                 else {
                     isPlacingForced = true;
                     if (width > layoutBox.GetWidth() + EPS) {
-                        isPlacingForced &= processOverflowX;
+                        isPlacingForced = processOverflowX;
                     }
                     if (height > layoutBox.GetHeight() + EPS) {
                         isPlacingForced &= processOverflowY;

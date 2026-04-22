@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -869,6 +869,12 @@ namespace iText.StyledXmlParser.Css {
         /// <summary>The Constant REPEAT_Y.</summary>
         public const String REPEAT_Y = "repeat-y";
 
+        /// <summary>The Constant REVERT.</summary>
+        public const String REVERT = "revert";
+
+        /// <summary>The Constant REVERT.</summary>
+        public const String REVERT_LAYER = "revert-layer";
+
         /// <summary>The Constant RIDGE.</summary>
         public const String RIDGE = "ridge";
 
@@ -1097,6 +1103,9 @@ namespace iText.StyledXmlParser.Css {
 
         /// <summary>The Constant CHECKED.</summary>
         public const String CHECKED = "checked";
+
+        /// <summary>The Constant HAS.</summary>
+        public const String HAS = "has";
 
         /// <summary>The Constant DISABLED.</summary>
         public const String DISABLED = "disabled";

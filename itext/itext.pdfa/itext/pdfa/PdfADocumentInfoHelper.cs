@@ -1,6 +1,6 @@
 /*
 This file is part of the iText (R) project.
-Copyright (c) 1998-2025 Apryse Group NV
+Copyright (c) 1998-2026 Apryse Group NV
 Authors: Apryse Software.
 
 This program is offered under a commercial and under the AGPL license.
@@ -20,11 +20,13 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+using System;
 using iText.Kernel.Pdf;
 
 namespace iText.Pdfa {
     /// <summary>The class is helper which used for PDF/A document to properly configure PDF document's info dictionary.
     ///     </summary>
+    [System.ObsoleteAttribute(@"functionality moved to pdfDocument.")]
     public class PdfADocumentInfoHelper : DocumentInfoHelper {
         private readonly PdfDocument pdfDocument;
 
